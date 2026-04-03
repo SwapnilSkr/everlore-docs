@@ -24,6 +24,10 @@ These must be set for production deployment:
 | `CLIENT_ORIGINS` | Comma-separated CORS origins | `http://localhost:3000,http://localhost:8080` |
 | `OPENROUTER_API_KEY` | OpenRouter API key (optional) | `` |
 | `PINECONE_INDEX` | Pinecone index name | `nexus-memories` |
+| `GOOGLE_CLIENT_ID` | Web OAuth client ID used to validate Google token audience | `` |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID, or `AC_MOCK_SID` for local mock mode | `` |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token | `` |
+| `TWILIO_VERIFY_SERVICE_SID` | Twilio Verify service SID | `` |
 
 ## Configuration File
 
@@ -69,6 +73,16 @@ OPENROUTER_API_KEY=
 
 # Pinecone Index Name
 PINECONE_INDEX=nexus-memories
+
+# Google Sign-In token verification
+# Use the same Web OAuth client ID as the Flutter GOOGLE_WEB_CLIENT_ID value
+GOOGLE_CLIENT_ID=
+
+# Twilio Verify
+# Set TWILIO_ACCOUNT_SID=AC_MOCK_SID to enable mock mode in local development.
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_VERIFY_SERVICE_SID=
 ```
 
 ### Environment Loading (`src/config/env.ts`)
@@ -87,6 +101,10 @@ const optionalEnvVars = {
   CLIENT_ORIGINS: 'http://localhost:3000,http://localhost:8080',
   OPENROUTER_API_KEY: '',
   PINECONE_INDEX: 'nexus-memories',
+  GOOGLE_CLIENT_ID: '',
+  TWILIO_ACCOUNT_SID: '',
+  TWILIO_AUTH_TOKEN: '',
+  TWILIO_VERIFY_SERVICE_SID: '',
 } as const
 ```
 
@@ -246,6 +264,8 @@ const LIMITS: Record<string, { max: number; windowSeconds: number }> = {
   memory_edit: { max: 30, windowSeconds: 3600 },  // 30/hour
   template_create: { max: 5, windowSeconds: 86400 }, // 5/day
   auth_attempt: { max: 10, windowSeconds: 300 },  // 10/5min
+  otp_send: { max: 5, windowSeconds: 600 },       // 5/10min
+  otp_verify: { max: 10, windowSeconds: 600 },    // 10/10min
 }
 ```
 

@@ -75,27 +75,32 @@ const valid = await argon2.verify(userDoc.password_hash, password)
 - Maximum 128 characters
 - No complexity rules (encourage passphrases)
 
-### Google OAuth
+### Google Sign-In
 
 **Current Implementation**:
 ```typescript
-// Decodes JWT payload only (development)
-const parts = id_token.split('.')
-const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+const response = await fetch(
+  `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+)
 ```
 
-**Production Recommendation**:
-```typescript
-// Use google-auth-library for verification
-import { OAuth2Client } from 'google-auth-library'
-const client = new OAuth2Client(GOOGLE_CLIENT_ID)
+The backend now:
+- Verifies the Google token against Google's tokeninfo endpoint
+- Rejects unverified email identities
+- Checks `aud` against `GOOGLE_CLIENT_ID` when configured
+- Persists `google_sub` on the user record for stable provider identity
 
-const ticket = await client.verifyIdToken({
-  idToken: token,
-  audience: GOOGLE_CLIENT_ID,
-})
-const payload = ticket.getPayload()
-```
+### Phone OTP (Twilio Verify)
+
+The backend supports SMS verification through Twilio Verify:
+
+- `POST /auth/otp/send` starts verification
+- `POST /auth/otp/verify` exchanges the approved code for the normal Everlore JWT
+- Phone numbers must be in E.164 format
+
+**Mock Mode**:
+- Set `TWILIO_ACCOUNT_SID=AC_MOCK_SID` to bypass live SMS delivery in development
+- In mock mode, `123456` is the accepted OTP
 
 ## Authorization
 
@@ -136,6 +141,8 @@ const LIMITS = {
   memory_edit: { max: 30, windowSeconds: 3600 },
   template_create: { max: 5, windowSeconds: 86400 },
   auth_attempt: { max: 10, windowSeconds: 300 },
+  otp_send: { max: 5, windowSeconds: 600 },
+  otp_verify: { max: 10, windowSeconds: 600 },
 }
 ```
 

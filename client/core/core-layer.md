@@ -22,15 +22,20 @@ The `core/` directory contains infrastructure code shared across all features: a
 Reads configuration from Dart compile-time environment variables with sensible defaults for local development.
 
 ```dart
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AppConfig {
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:3000',
-  );
-  static const String wsBaseUrl = String.fromEnvironment(
-    'WS_BASE_URL',
-    defaultValue: 'ws://localhost:3000',
-  );
+  static String get apiBaseUrl {
+    const compiled = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (compiled.isNotEmpty) return compiled;
+    return dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
+  }
+
+  static String get wsBaseUrl {
+    const compiled = String.fromEnvironment('WS_BASE_URL', defaultValue: '');
+    if (compiled.isNotEmpty) return compiled;
+    return dotenv.env['WS_BASE_URL'] ?? 'ws://localhost:3000';
+  }
 }
 ```
 
@@ -39,13 +44,23 @@ class AppConfig {
 flutter run --dart-define=API_BASE_URL=https://api.everlore.io --dart-define=WS_BASE_URL=wss://api.everlore.io
 ```
 
+### Runtime `.env`
+
+`main.dart` also calls `dotenv.load()`, so local development can be configured with:
+
+```env
+API_BASE_URL=http://localhost:3000
+WS_BASE_URL=ws://localhost:3000
+GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
+```
+
 ---
 
 ## Auth (`auth_service.dart`)
 
 **File:** `lib/core/auth/auth_service.dart`
 
-Static service class handling all authentication flows. Uses `ApiClient` for network calls and `SecureStore` for token persistence.
+Static service class handling all authentication flows. Uses `ApiClient` for network calls, `SecureStore` for token persistence, and `WsManager` to establish the authenticated WebSocket session after login.
 
 ### Methods
 
@@ -54,15 +69,18 @@ Static service class handling all authentication flows. Uses `ApiClient` for net
 | `register()` | `email`, `username`, `password` | `Future<User>` | Register new account, stores token + user data |
 | `login()` | `email`, `password` | `Future<User>` | Login with credentials, stores token + user data |
 | `loginWithGoogle()` | `idToken` (String) | `Future<User>` | Google OAuth via server-side verification |
+| `sendOtp()` | `phone` | `Future<bool>` | Requests OTP delivery via `/auth/otp/send` |
+| `verifyOtp()` | `phone`, `code` | `Future<User>` | Verifies SMS code and stores token + user data |
 | `getCurrentUser()` | — | `Future<User?>` | Validates token with `/auth/me`, returns null on failure |
 | `getCachedUser()` | — | `Future<User?>` | Returns locally cached user from secure storage |
-| `logout()` | — | `Future<void>` | Clears all secure storage data |
+| `logout()` | — | `Future<void>` | Disconnects WebSocket and clears all secure storage data |
 | `isLoggedIn()` | — | `Future<bool>` | Checks if a token exists in secure storage |
 
 ### Token Lifecycle
-1. On login/register: token → `SecureStore.saveToken()`, user JSON → `SecureStore.saveUserData()`
-2. On API calls: `ApiClient._headers()` reads token via `SecureStore.getToken()` and adds `Authorization: Bearer <token>` header
-3. On logout: `SecureStore.clearAll()` removes everything
+1. On login/register/Google/OTP verify: token → `SecureStore.saveToken()`, user JSON → `SecureStore.saveUserData()`
+2. AuthService connects `WsManager` with the same JWT immediately after persisting the session
+3. On API calls: `ApiClient._headers()` reads token via `SecureStore.getToken()` and adds `Authorization: Bearer <token>` header
+4. On logout: `WsManager.disconnect()` runs before `SecureStore.clearAll()`
 
 ### Error Handling
 - `getCurrentUser()` returns `null` on any exception (token invalid, network error)
@@ -133,6 +151,8 @@ WsManager (singleton)
 3. **Disconnect:** Triggers reconnect schedule
 4. **Reconnect:** Exponential backoff (2s × attempt, max 30s, up to 10 attempts)
 5. **Network Change:** `connectivity_plus` listener triggers reconnect on network restoration
+
+`connect()` is idempotent for the current token, so repeated auth/bootstrap calls do not spawn duplicate listeners.
 
 ### Message Routing
 

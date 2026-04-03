@@ -83,18 +83,24 @@ MaterialApp.router(
 
 ### New Player Flow
 ```
-/ → (Browse Worlds) → /templates → (tap template) → /templates/:id → (Enter This World) → /play/:instanceId
+/ → /auth → (Google Sign-In or Phone OTP) → / → /templates → (tap template) → /templates/:id → (Enter This World) → /play/:instanceId
 ```
 
 ### Return Player Flow
 ```
-/ → (tap world card) → /play/:instanceId
+/ → (existing secure session) → (tap world card) → /play/:instanceId
 ```
 
 ### Chronicle Access
 ```
 /play/:instanceId → (Chronicle icon) → /chronicle/:instanceId
 ```
+
+### Auth Notes
+
+- The router still has no global guard; authentication is enforced by the backend.
+- The home screen now surfaces unauthorized API responses by linking users to `/auth`.
+- `AuthScreen` handles both Google Sign-In and phone OTP, then redirects with `context.go('/')` after a backend JWT is stored.
 
 ---
 

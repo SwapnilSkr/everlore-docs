@@ -15,7 +15,7 @@ Everlore is a persistent AI-driven chat RPG built with Flutter. Every player cho
 | Routing | `go_router` | Declarative, type-safe navigation with path parameters |
 | Networking (REST) | `http` | Standard HTTP client for API calls |
 | Networking (Real-time) | `web_socket_channel` | WebSocket communication for live gameplay |
-| Auth | `google_sign_in` + `flutter_secure_storage` | Google OAuth and secure token persistence |
+| Auth | `google_sign_in` + `flutter_secure_storage` | Google Sign-In, backend JWT persistence, and phone OTP session storage |
 | Local Storage | `sqflite` | SQLite for offline event caching |
 | Secure Storage | `flutter_secure_storage` | Encrypted key-value store for auth tokens |
 | Connectivity | `connectivity_plus` | Network state monitoring for reconnection logic |
@@ -35,7 +35,8 @@ everlore/lib/
 │       └── nexus_theme.dart     # Dark theme (NexusTheme)
 ├── core/
 │   ├── auth/
-│   │   └── auth_service.dart    # Registration, login, Google auth
+│   │   ├── auth_service.dart    # Session persistence + backend auth flows
+│   │   └── google_auth_service.dart # Google Sign-In wrapper
 │   ├── config/
 │   │   └── env.dart             # API/WS base URL config
 │   ├── network/
@@ -50,7 +51,7 @@ everlore/lib/
 │   ├── chronicle/               # Timeline & memory browser
 │   └── templates/               # Browse & create from world templates
 ├── screens/
-│   ├── auth_screen.dart         # Legacy auth screen (Google Sign-In)
+│   ├── auth_screen.dart         # Auth screen (Google Sign-In + phone OTP)
 │   └── home_screen.dart         # Legacy home screen (placeholder)
 ├── shared/
 │   ├── models/                  # Data models (User, Event, Memory, etc.)
@@ -118,7 +119,7 @@ The app uses a single dark theme (`NexusTheme.dark`) with a deep navy/purple pal
 
 ```
 / (HomeScreen) ─── World list dashboard
-├── /auth (AuthScreen) ─── Google Sign-In
+├── /auth (AuthScreen) ─── Google Sign-In or phone OTP
 ├── /play/:instanceId (PlayScreen) ─── Real-time game chat
 │   └── /chronicle/:instanceId (ChronicleScreen) ─── Timeline & memories
 └── /templates (BrowseTemplatesScreen) ─── Browse world templates
@@ -138,6 +139,8 @@ The frontend expects a backend server (default `http://localhost:3000`) with the
 | POST | `/auth/register` | Email/password registration |
 | POST | `/auth/login` | Email/password login |
 | POST | `/auth/google` | Google OAuth login |
+| POST | `/auth/otp/send` | Send SMS verification code |
+| POST | `/auth/otp/verify` | Verify SMS code and create/login session |
 | GET | `/auth/me` | Get current user |
 | GET | `/instances` | List user's world instances |
 | POST | `/instances` | Create instance from template |
@@ -150,6 +153,14 @@ The frontend expects a backend server (default `http://localhost:3000`) with the
 | DELETE | `/chronicle/memory/:id` | Delete a memory |
 | PUT | `/chronicle/event/:id` | Edit event narrative/input |
 | WS | `/ws/play?token=<jwt>` | Real-time gameplay WebSocket |
+
+### Authentication Flow
+
+1. The Flutter app loads `.env` and initializes Google Sign-In with `GOOGLE_WEB_CLIENT_ID`.
+2. Google Sign-In returns a Google ID token, which the app exchanges with `POST /auth/google`.
+3. Phone auth uses `POST /auth/otp/send` followed by `POST /auth/otp/verify`.
+4. The backend returns the same Everlore JWT shape for Google, phone OTP, register, and login.
+5. The client stores that JWT in secure storage and reuses it for both REST and WebSocket calls.
 
 ### WebSocket Message Types
 

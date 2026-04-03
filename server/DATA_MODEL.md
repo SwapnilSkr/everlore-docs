@@ -24,9 +24,12 @@ Stores user accounts and preferences.
 ```typescript
 {
   _id: string;                    // usr_*
-  email: string;                  // Unique
+  email?: string;                 // Unique, sparse
+  phone?: string;                 // Unique, sparse, E.164
+  google_sub?: string;            // Unique, sparse
   username: string;               // Unique, 3-30 chars, alphanumeric + underscore
   password_hash: string;          // Argon2 hash
+  providers?: string[];           // e.g. ['password'], ['google'], ['phone']
   tier: 'free' | 'premium' | 'creator';
   preferences: {
     nsfw_enabled: boolean;        // Default: false
@@ -42,7 +45,9 @@ Stores user accounts and preferences.
 ```
 
 **Indexes:**
-- `{ email: 1 }` - Unique
+- `{ email: 1 }` - Unique, sparse
+- `{ phone: 1 }` - Unique, sparse
+- `{ google_sub: 1 }` - Unique, sparse
 - `{ username: 1 }` - Unique
 
 ---
@@ -411,6 +416,8 @@ TTL: Window duration (varies by action)
 | memory_edit | 30 | 3600 seconds |
 | template_create | 5 | 86400 seconds |
 | auth_attempt | 10 | 300 seconds |
+| otp_send | 5 | 600 seconds |
+| otp_verify | 10 | 600 seconds |
 
 ### Pub/Sub Channels
 ```

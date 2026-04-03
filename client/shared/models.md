@@ -16,12 +16,13 @@ Represents an authenticated user.
 |-------|------|---------|-------------|
 | `id` | `String` | required | Unique user ID |
 | `email` | `String` | required | User email address |
+| `phone` | `String?` | `null` | E.164 phone number for OTP-authenticated accounts |
 | `username` | `String` | required | Display name |
 | `tier` | `String` | required | Subscription tier (e.g., "free") |
 | `preferences` | `UserPreferences` | `const UserPreferences()` | User settings |
 | `tokenBalance` | `int?` | `null` | Remaining AI token balance |
 
-**JSON Keys:** `id`, `email`, `username`, `tier`, `preferences`, `token_balance`
+**JSON Keys:** `id`, `email`, `phone`, `username`, `tier`, `preferences`, `token_balance`
 
 ### UserPreferences
 

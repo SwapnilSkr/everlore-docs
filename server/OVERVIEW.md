@@ -81,6 +81,8 @@ Everlore is an AI-powered narrative roleplay platform. It allows players to enga
 - **Purpose**: HTTP API + WebSocket real-time communication
 - **Key Features**:
   - JWT authentication
+  - Google Sign-In token exchange
+  - Twilio Verify phone OTP exchange
   - CORS support for multi-origin clients
   - Error handling with appropriate HTTP status codes
   - Health check endpoint
@@ -102,6 +104,7 @@ Everlore is an AI-powered narrative roleplay platform. It allows players to enga
 - **Purpose**: Session caching, rate limiting, pub/sub, job queues
 - **Key Uses**:
   - Session state caching (1-hour TTL)
+  - OTP and login rate limiting counters
   - Generation locks (prevents duplicate requests)
   - Rate limiting counters
   - WebSocket pub/sub for real-time events
@@ -227,6 +230,7 @@ After generation completes:
 | Runtime | Bun | JavaScript/TypeScript runtime |
 | API Framework | Elysia | HTTP/WebSocket server |
 | Auth | @elysiajs/jwt | JWT token handling |
+| Identity Verification | Google tokeninfo + Twilio Verify | Google sign-in and phone OTP verification |
 | Database | MongoDB | Primary data persistence |
 | Cache | Redis (ioredis) | Session cache, pub/sub |
 | Queue | BullMQ | Background job processing |

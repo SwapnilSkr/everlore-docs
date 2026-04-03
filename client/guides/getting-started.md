@@ -21,8 +21,12 @@ flutter pub get
 ### 2. Configure Environment
 Create a `.env` file in the `everlore/` root:
 ```
+API_BASE_URL=http://localhost:3000
+WS_BASE_URL=ws://localhost:3000
 GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
 ```
+
+`GOOGLE_WEB_CLIENT_ID` should be the same Web OAuth client ID that the server uses as `GOOGLE_CLIENT_ID`.
 
 ### 3. Configure Backend URL (Optional)
 For local development, the defaults work:
@@ -196,10 +200,16 @@ flutter build web --release
 
 ## Known Issues & TODOs
 
-- The `lib/screens/` directory contains legacy placeholder screens (`auth_screen.dart`, `home_screen.dart`) that are partially superseded by feature screens
+- The `lib/screens/` directory still contains shared entry screens; `auth_screen.dart` is now the active auth UI for Google Sign-In and phone OTP, while `home_screen.dart` remains placeholder/legacy
 - `LoadingShimmer` widget is defined but unused
-- Error states in `HomeCubit` are captured but not displayed in the UI
+- Error states in `HomeCubit` are only partially surfaced in the UI
 - `context.go()` in `TemplateDetailScreen` replaces the entire navigation stack (user cannot go back to templates)
-- No authentication guards on routes — any route is accessible without login
+- No global authentication guards on routes — access control is enforced by the backend and unauthorized states redirect users toward `/auth`
 - The `UserPreferences.narrationLength` and `preferredModel` fields exist in the model but are not used in the UI
 - WebSocket does not handle token refresh — if the JWT expires during a session, the connection will fail silently
+
+### Authentication Setup Notes
+
+- Google Sign-In requires platform setup outside this repo, including the correct Web OAuth client ID and any Android SHA-1 / iOS bundle registration needed by Google.
+- Phone OTP is backend-driven; the Flutter client only calls `/auth/otp/send` and `/auth/otp/verify`.
+- For local testing with the server in mock Twilio mode, the accepted OTP is `123456`.

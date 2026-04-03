@@ -14,7 +14,7 @@ Most endpoints require a Bearer token in the Authorization header:
 Authorization: Bearer {jwt_token}
 ```
 
-Tokens are obtained from `/auth/login`, `/auth/register`, or `/auth/google`.
+Tokens are obtained from `/auth/login`, `/auth/register`, `/auth/google`, or `/auth/otp/verify`.
 
 ## Content Types
 
@@ -131,7 +131,7 @@ Authenticate via Google ID token.
 }
 ```
 
-**Note:** Currently decodes token payload only. For production, implement full verification with `google-auth-library`.
+The backend verifies the Google token with Google's tokeninfo endpoint and, when `GOOGLE_CLIENT_ID` is configured, checks the token audience against it.
 
 **Response:** Same as `/auth/register`
 
@@ -140,6 +140,79 @@ If user doesn't exist, auto-creates with:
 - Email from token
 - Username: `{email_prefix}_{timestamp}`
 - Password: empty (OAuth-only)
+- `google_sub` set from the verified Google subject
+
+---
+
+#### POST /auth/otp/send
+
+Send an SMS verification code using Twilio Verify.
+
+**Body:**
+```json
+{
+  "phone": "+15551234567"
+}
+```
+
+**Validation:**
+- `phone`: E.164 format, `+` followed by 8-15 digits
+
+**Response:**
+```json
+{
+  "success": true,
+  "mockCode": "123456"
+}
+```
+
+**Notes:**
+- In Twilio mock mode (`TWILIO_ACCOUNT_SID=AC_MOCK_SID`), no SMS is sent and `123456` is accepted.
+- `mockCode` is returned by the current implementation for local development convenience.
+
+**Rate Limiting:** 5 requests per 10 minutes per phone number
+
+---
+
+#### POST /auth/otp/verify
+
+Verify an SMS code and exchange it for the Everlore JWT.
+
+**Body:**
+```json
+{
+  "phone": "+15551234567",
+  "code": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": "usr_a1b2c3d4e5f6",
+    "email": "",
+    "phone": "+15551234567",
+    "username": "15551234567_lmn123",
+    "tier": "free",
+    "preferences": {
+      "nsfw_enabled": false,
+      "preferred_model": "gpt-4o",
+      "theme": "dark",
+      "narration_length": "detailed",
+      "auto_memory_curation": true
+    },
+    "token_balance": 15000
+  }
+}
+```
+
+**Rate Limiting:** 10 requests per 10 minutes per phone number
+
+**User Creation:**
+- If the phone number is new, a user is auto-created with `providers: ['phone']`
+- Existing users are updated to include the `phone` provider
 
 ---
 
@@ -154,6 +227,7 @@ Get current user profile.
 {
   "id": "usr_a1b2c3d4e5f6",
   "email": "user@example.com",
+  "phone": null,
   "username": "player123",
   "tier": "free",
   "preferences": {
