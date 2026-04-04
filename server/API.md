@@ -23,6 +23,10 @@ All requests and responses use JSON:
 Content-Type: application/json
 ```
 
+## Request handling
+
+HTTP and WebSocket paths are registered in `src/routes/`; each handler delegates to a matching controller in `src/controllers/`, which calls `src/services/` for persistence and side effects. See [SERVICES.md](./SERVICES.md) for the full map.
+
 ---
 
 ## HTTP Endpoints

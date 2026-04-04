@@ -124,7 +124,7 @@ Complete architecture documentation for the Everlore AI narrative platform — c
 
 ## Architecture Principles
 
-1. **Separation of Concerns**: API handles I/O, Workers handle processing
+1. **Separation of Concerns**: Routes wire HTTP/WebSocket to controllers; controllers orchestrate validation, auth, and rate limits; services own domain logic. Workers handle async processing.
 2. **Stateless API**: Session data in Redis, enables horizontal scaling
 3. **Event-Driven**: WebSocket pub/sub for real-time updates
 4. **RAG**: Vector search for context-aware AI responses
@@ -136,11 +136,12 @@ Complete architecture documentation for the Everlore AI narrative platform — c
 everlore-server/
 ├── src/
 │   ├── config/          # Database connections, env
+│   ├── controllers/     # Per-domain orchestration (auth, templates, WS play, …)
 │   ├── middleware/      # Auth, rate limiting
 │   ├── queues/          # BullMQ queue definitions
-│   ├── routes/          # HTTP/WebSocket handlers
+│   ├── routes/          # Elysia route trees (thin: plugins, schemas, controller handlers)
 │   ├── schemas/         # TypeBox validation schemas
-│   ├── services/        # Business logic
+│   ├── services/        # Domain logic & data access
 │   └── utils/           # Helper functions
 ├── worker/
 │   ├── lib/             # Worker utilities
@@ -155,7 +156,7 @@ When updating the codebase, please keep this documentation in sync:
 
 - API changes → Update [API.md](API.md)
 - Database changes → Update [DATA_MODEL.md](DATA_MODEL.md)
-- New services → Update [SERVICES.md](SERVICES.md)
+- New routes/controllers/services → Update [SERVICES.md](SERVICES.md)
 - Worker changes → Update [WORKERS.md](WORKERS.md)
 - Config changes → Update [CONFIGURATION.md](CONFIGURATION.md)
 - Security changes → Update [SECURITY.md](SECURITY.md)

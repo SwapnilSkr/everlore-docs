@@ -179,7 +179,7 @@ export const RegisterBody = t.Object({
 
 ### Validation Coverage
 
-- **Routes**: All request bodies validated
+- **Routes (Elysia + TypeBox)**: All request bodies validated on each handler; controllers consume already-validated shapes
 - **Query Params**: Type coercion and validation
 - **Path Params**: Validated by route matching
 - **WebSocket**: Message schema validated

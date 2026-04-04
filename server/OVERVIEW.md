@@ -15,7 +15,7 @@ Everlore is an AI-powered narrative roleplay platform. It allows players to enga
                                        │ HTTP / WebSocket
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           API SERVER (Elysia)                                │
+│                 API SERVER (Elysia) — routes → controllers → services           │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
 │  │ Auth Routes  │  │ Template     │  │ Instance     │  │ Chronicle Routes │ │
 │  │ /auth/*      │  │ Routes       │  │ Routes       │  │ /chronicle/*     │ │
@@ -79,6 +79,7 @@ Everlore is an AI-powered narrative roleplay platform. It allows players to enga
 ### 1. API Server (`src/index.ts`)
 - **Framework**: Elysia (Bun-based, high-performance)
 - **Purpose**: HTTP API + WebSocket real-time communication
+- **Code layout**: `routes/` register paths, validation schemas, and auth plugins; `controllers/` orchestrate (rate limits, tier checks); `services/` implement domain logic and data access. WebSocket play uses the same pattern (`play-ws` controller + `play-ws` service). Details: [SERVICES.md](./SERVICES.md).
 - **Key Features**:
   - JWT authentication
   - Google Sign-In token exchange

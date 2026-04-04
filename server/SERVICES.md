@@ -2,19 +2,65 @@
 
 ## Overview
 
-The service layer implements business logic, separating route handlers from data operations. Services are organized by domain and provide a clean API for the route layer.
+The API follows a strict **routes → controllers → services** flow:
 
-## Service Structure
+1. **`src/routes/*.routes.ts`** — Elysia apps: CORS/auth plugins, TypeBox schemas on each path, and handler references. No business logic here beyond wiring.
+2. **`src/controllers/*.controller.ts`** — Orchestration: ensure the user is authenticated, apply rate limits and tier checks, map validated input to service calls, set HTTP status when a service returns “not found”.
+3. **`src/services/*.service.ts`** — Domain logic, MongoDB/Redis/Pinecone/BullMQ access. No direct dependency on Elysia `Context`.
+
+WebSocket `/ws/play` uses `play-ws.controller.ts` and `play-ws.service.ts` the same way.
+
+---
+
+## Controller structure
+
+```
+src/controllers/
+├── admin.controller.ts    # Dev admin HTTP surface (tier toggles; unauthenticated today)
+├── auth.controller.ts     # Register, login, OAuth/OTP, /me, preferences
+├── chronicle.controller.ts # Events & memories (chronicle API)
+├── instance.controller.ts # Player world instances
+├── play-ws.controller.ts  # WebSocket open / message / close
+└── template.controller.ts # Template browse & creator flows
+```
+
+Each file pairs 1:1 with a route module under `src/routes/`.
+
+---
+
+## Service structure
 
 ```
 src/services/
+├── admin.service.ts         # User listing & tier updates (used by admin controller)
+├── auth.service.ts          # User persistence, passwords, JWT payload helpers
+├── auth-provider.service.ts # Google ID token & phone OTP verification
 ├── template.service.ts      # World template management
 ├── instance.service.ts      # Game instance lifecycle
 ├── generation.service.ts    # AI generation orchestration
 ├── memory.service.ts        # Chronicle (events/memories) management
-├── rag.service.ts          # Retrieval Augmented Generation
+├── play-ws.service.ts     # WS connections, Redis pub/sub bridge, chat dispatch
+├── rag.service.ts         # Retrieval Augmented Generation
 └── model-router.service.ts # LLM model selection
 ```
+
+---
+
+## Auth Service (`auth.service.ts`)
+
+Owns user document lifecycle for password, Google, and phone flows: Argon2 hashing, `users` collection reads/writes, preference patches, and `serializeUser` / `toJwtPayload` helpers. Controllers attach JWTs after a successful service call.
+
+---
+
+## Admin Service (`admin.service.ts`)
+
+Lists users and updates `tier` by id. Intended for local/dev use only until admin auth exists.
+
+---
+
+## Play WebSocket Service (`play-ws.service.ts`)
+
+Manages active socket sets per user, subscribes to Redis `user:{id}:events`, enforces chat rate limits and generation locks, and delegates turns to `generation.service`. `setupRedisPubSub` lives here and is invoked from `src/index.ts` on startup.
 
 ---
 
@@ -41,7 +87,7 @@ export const templateService = {
 - Generates unique slug from title
 - Appends timestamp if slug collision
 - Sets default model preferences
-- Validates creator tier (creator/premium required)
+- Template creation is gated in `template.controller.ts` (creator/premium); the service assumes the caller is allowed
 
 #### Publish Template
 - Sets `is_published: true`
@@ -383,6 +429,18 @@ const client = OPENAI_MODELS.has(model)
 ## Service Dependencies
 
 ```
+auth.service
+  ├── mongo (users)
+  └── auth-provider.service (Google / OTP)
+
+admin.service
+  └── mongo (users)
+
+play-ws.service
+  ├── redis (locks, pub/sub)
+  ├── generation.service
+  └── middleware/auth (WS JWT verify)
+
 template.service
   ├── mongo (world_templates collection)
   ├── pinecone (lore namespace)
@@ -434,21 +492,16 @@ if (instanceCount >= limits.max_instances) {
 Results in HTTP 400 response.
 
 ### Authorization Errors
-```typescript
-if (user.tier !== 'creator' && user.tier !== 'premium') {
-  throw new Error('Creator or premium tier required')
-}
-```
-
-Results in HTTP 403 response.
+Tier and similar checks live in **controllers** (example: template creation). They throw user-facing errors that the API maps to HTTP 4xx responses.
 
 ---
 
 ## Best Practices
 
-1. **Service Purity**: Services don't access request/response objects directly
-2. **Ownership Checks**: Always verify `player_id` matches authenticated user
-3. **Atomic Updates**: Use MongoDB atomic operations where possible
-4. **Caching Strategy**: Cache session data in Redis with appropriate TTL
-5. **Error Messages**: User-friendly messages for client display
-6. **Type Safety**: Use TypeScript interfaces for all data structures
+1. **Layering**: Routes stay thin; controllers don’t embed SQL or Redis calls; services don’t import Elysia context types
+2. **Service Purity**: Services don't access request/response objects directly
+3. **Ownership Checks**: Always verify `player_id` matches authenticated user
+4. **Atomic Updates**: Use MongoDB atomic operations where possible
+5. **Caching Strategy**: Cache session data in Redis with appropriate TTL
+6. **Error Messages**: User-friendly messages for client display
+7. **Type Safety**: Use TypeScript interfaces for all data structures
