@@ -14,6 +14,7 @@ Complete architecture documentation for the Everlore AI narrative platform — c
 | [DATA_MODEL.md](DATA_MODEL.md) | Database schemas, collections, indexes, and data flow |
 | [SERVICES.md](SERVICES.md) | Service layer architecture and business logic |
 | [WORKERS.md](WORKERS.md) | Background job processors and queue system |
+| [MEMORY_ARCHITECTURE.md](MEMORY_ARCHITECTURE.md) | Codex, memories, scene summaries: how context stays bounded & accurate over 10k+ turns |
 
 ### API & Integration
 

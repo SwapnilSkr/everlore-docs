@@ -31,6 +31,7 @@ Located in [`server/`](./server)
 - [Data Model](./server/DATA_MODEL.md)
 - [Services](./server/SERVICES.md)
 - [Workers](./server/WORKERS.md)
+- [Memory & Codex Architecture](./server/MEMORY_ARCHITECTURE.md)
 - [Infrastructure](./server/INFRASTRUCTURE.md)
 - [Security](./server/SECURITY.md)
 
