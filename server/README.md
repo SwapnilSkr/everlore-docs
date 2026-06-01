@@ -15,6 +15,7 @@ Complete architecture documentation for the Everlore AI narrative platform — c
 | [SERVICES.md](SERVICES.md) | Service layer architecture and business logic |
 | [WORKERS.md](WORKERS.md) | Background job processors and queue system |
 | [MEMORY_ARCHITECTURE.md](MEMORY_ARCHITECTURE.md) | Codex, memories, scene summaries: how context stays bounded & accurate over 10k+ turns |
+| [SFW_MODELS.md](SFW_MODELS.md) | SFW (default) narration model, OpenRouter candidates/alternatives for quality prose, and how to test & switch them |
 | [NSFW_MODELS.md](NSFW_MODELS.md) | NSFW narration routing, OpenRouter model candidates/alternatives, and how to test & switch them |
 
 ### API & Integration
