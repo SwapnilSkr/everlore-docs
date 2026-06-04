@@ -5,7 +5,8 @@ alternatives/replacements for the current model, and how to test & switch them.
 
 > All slugs below were verified against the OpenRouter models API and are live. Pricing is
 > per **million** tokens (in / out) and context is the max window. Prices drift — re-check
-> `https://openrouter.ai/api/v1/models` before committing.
+> `https://openrouter.ai/api/v1/models` before committing. For read-aloud of generated prose,
+see [TTS_MODELS.md](TTS_MODELS.md).
 
 ---
 
@@ -41,6 +42,10 @@ recent turns) routinely wants more headroom than MythoMax allows.
 
 ## Candidate replacements (all live on OpenRouter)
 
+> **OpenRouter RP leaderboard (June 2026):** Most *volume* on the [roleplay collection](https://openrouter.ai/collections/roleplay)
+> goes to general 1M models (DeepSeek V4 Flash, MiMo 2.5, Owl Alpha, Claude, Gemini) — not finetunes. For **explicit**
+> turns we still need uncensored/steerable slugs below; cross-check SFW leaderboard picks only for plain-narration quality.
+
 > **On latency & speed:** uncensored finetunes mostly run on smaller/independent providers, so
 > they're generally slower than the big SFW flash models — and the genuinely *fast + large
 > context* NSFW options are limited. The standouts are **`cydonia`** (131K, ~440ms TTFT
@@ -61,6 +66,7 @@ recent turns) routinely wants more headroom than MythoMax allows.
 | `rocinante` | `thedrummer/rocinante-12b`       | 12B  | **32K** | 0.17 / 0.43  | TheDrummer adventure/RP finetune; bold, uncensored, 8× the context.                                                                                                               |
 | `unslop`    | `thedrummer/unslopnemo-12b`      | 12B  | 32K     | 0.40 / 0.40  | Nemo finetune tuned to avoid clichéd "slop" phrasing; fresher prose.                                                                                                              |
 | `aionrp`    | `aion-labs/aion-rp-llama-3.1-8b` | 8B   | **32K** | 0.80 / 1.60  | **Ranks #1 on RPBench-Auto's character eval.** Purpose-built RP finetune — punches above 8B on in-character consistency. Priciest 8B here, but the most "RP-native" small option. |
+| `hermes2pro` | `nousresearch/hermes-2-pro-llama-3-8b` | 8B | 8K | 0.14 / 0.14 | Ultra-cheap steerable Hermes 2; **8K ctx only** — emergency budget, not for full prompt. |
 
 
 ### Tier 2 — Balanced (better prose, 24–36B)
@@ -69,9 +75,12 @@ recent turns) routinely wants more headroom than MythoMax allows.
 | Alias     | Slug                                                            | Size | Context  | $/M (in/out) | Notes                                                                                                                                                                                     |
 | --------- | --------------------------------------------------------------- | ---- | -------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cydonia` | `thedrummer/cydonia-24b-v4.1`                                   | 24B  | **131K** | 0.30 / 0.50  | **Recommended default — and the fastest large-context NSFW option (~440ms TTFT measured).** Uncensored creative-writing finetune with strong recall + prompt adherence; 131K context fits our full prompt comfortably.                                       |
+| `aion2`   | `aion-labs/aion-2.0`                                            | —    | **131K** | 0.80 / 1.60  | **New RP-native option.** DeepSeek V3.2 variant tuned for immersive RP, tension/conflict, and mature themes; 131K fits full prompt. A/B vs `cydonia` on explicit + plain narration. |
 | `skyfall` | `thedrummer/skyfall-36b-v2`                                     | 36B  | 32K      | 0.55 / 0.80  | Larger, richer prose; still affordable.                                                                                                                                                   |
 | `venice`  | `cognitivecomputations/dolphin-mistral-24b-venice-edition:free` | 24B  | 32K      | **free**     | Uncensored Dolphin/Venice edition, **$0**. Great for testing; free tier = rate limits + variable availability, so not for production load.                                                |
 | `minimax` | `minimax/minimax-m2-her`                                        | —    | **65K**  | 0.30 / 1.20  | Dialogue-first model **built specifically for immersive roleplay & character-driven chat**; strong persona/tone consistency over long multi-turn. Pricey output, but very "in-character." |
+| `minimax25` | `minimax/minimax-m2.5`                                        | —    | **205K** | 0.15 / 1.15  | Newer MiniMax generalist (205K); test explicit boundary — may be censored vs `m2-her`. |
+| `minimax27` | `minimax/minimax-m2.7`                                        | —    | **205K** | 0.28 / 1.20  | Latest MiniMax; agent/productivity focus — A/B persona consistency vs `minimax`. |
 | `weaver`  | `mancer/weaver`                                                 | —    | 8K       | 0.75 / 1.00  | Classic Mancer RP host that recreates Claude-style verbosity. Uncensored, popular for narrative; smaller context + older coherence.                                                       |
 
 
@@ -85,8 +94,24 @@ recent turns) routinely wants more headroom than MythoMax allows.
 | `magnum`    | `anthracite-org/magnum-v4-72b`         | 72B      | 32K      | 3.00 / 5.00  | Tuned to emulate Claude-style prose; premium price — reserve for a paid tier.                                                                                |
 | `hermes`    | `nousresearch/hermes-4-70b`            | 70B      | 131K     | 0.13 / 0.40  | Not an RP finetune but highly **steerable & near-unfiltered**; follows explicit system prompts. Cheap 70B; good neutral option.                              |
 | `hermes3`   | `nousresearch/hermes-3-llama-3.1-70b`  | 70B      | **131K** | 0.30 / 0.30  | Prior Hermes gen — same steerable, near-unfiltered behavior; flat cheap pricing. Solid budget alternative to `hermes`.                                       |
-| `hermes405` | `nousresearch/hermes-3-llama-3.1-405b` | **405B** | 131K     | 1.00 / 1.00  | Flagship steerable generalist; biggest model here, follows explicit system prompts well. Has a `**:free`** variant for $0 testing. Reserve for premium tier. |
+| `hermes405` | `nousresearch/hermes-3-llama-3.1-405b` | **405B** | 131K     | 1.00 / 1.00  | Prior-gen Hermes flagship; follows explicit system prompts well. Has a `:free` variant for $0 testing. |
+| `hermes4405` | `nousresearch/hermes-4-405b`          | **405B** | 131K     | 1.00 / 3.00  | **Newer Hermes 4** with hybrid reasoning; steerable near-unfiltered generalist. Premium tier. |
+| `virtuoso`  | `arcee-ai/virtuoso-large`              | 72B      | **131K** | 0.75 / 1.20  | 72B tuned for creative writing; test explicit boundary — may soften vs true RP finetunes. |
+| `hanami`    | `sao10k/l3.1-70b-hanami-x1`            | 70B      | 16K      | 3.00 / 3.00  | Sao10K experiment over Euryale v2.2; **small ctx + pricey** — curiosity only. |
+| `hermes405free` | `nousresearch/hermes-3-llama-3.1-405b:free` | **405B** | 131K | **free** | $0 steerable 405B for boundary tests; rate-limited. |
 
+
+### Not on OpenRouter API (web/HF only — do not plan around)
+
+These appear on OpenRouter model pages, RP blogs, or Hugging Face but **return no slug** from
+`https://openrouter.ai/api/v1/models` as of the last check: `thedrummer/valkyrie-49b-v1`,
+`sao10k/l3-stheno-8b`, `latitudegames/wayfarer-large-70b-llama-3.3`, `neversleep/*` (Lumimaid,
+Noromaid), `sao10k/fimbulvetr-11b-v2`, `erichartford/*` Dolphin variants,
+`arliai/qwq-32b-arliai-rpr-v1` (QwQ 32B RpR), `nothingiisreal/mn-celeste-12b` (Nemo Celeste 12B).
+Re-check the API before adding.
+
+> **Deprecation:** `sao10k/l3-euryale-70b` (8K ctx) is an older Euryale gen — prefer
+> `l3.3-euryale-70b` / `l3.1-euryale-70b`.
 
 ---
 
@@ -96,11 +121,15 @@ recent turns) routinely wants more headroom than MythoMax allows.
 give 8K–131K vs 4K.
 - **Default pick: `cydonia` (`thedrummer/cydonia-24b-v4.1`)** — best balance of explicit
 quality, 131K context, and ~$0.30–0.50/M.
+- **RP-native alternative: `aion2` (`aion-labs/aion-2.0`)** — 131K, DeepSeek-backed,
+  marketed for mature RP; A/B if you want tension/conflict-heavy explicit prose.
+- **New steerable flagship: `hermes4405`** — Hermes 4 405B; test vs `hermes405` before premium tier.
 - **Premium/quality tier: `euryale` (`sao10k/l3.3-euryale-70b`)** — noticeably stronger prose
 for a small price bump; ideal for a paid NSFW tier.
 - **Budget floor: `lunaris`** — if cost is the only concern.
 - **Most "in-character" small model: `aionrp`** — RP-benchmark topper if persona consistency matters more than prose richness.
-- **Free testing: `venice`** (or `hermes405:free`) — validate behavior at $0 before committing spend.
+- **Free testing: `venice`** (or `hermes405free`) — validate behavior at $0 before committing spend.
+- **205K MiniMax probe: `minimax25` / `minimax27`** — if you outgrow 65K `m2-her` but want the brand.
 - **Fastest + large context: `cydonia`** (~440ms TTFT, 131K) — best speed/headroom combo; add `:nitro` to push for the fastest provider route.
 
 Pick by A/B testing with the script below on real prompts — model "feel" matters more than
@@ -118,6 +147,7 @@ reports **TTFT (time to first token), total time, approx tokens/sec**, and a ref
 
 ```bash
 bun run scripts/test-nsfw-model.ts cydonia            # one model, both scenarios
+bun run scripts/test-nsfw-model.ts aion2 cydonia euryale  # new RP-native vs defaults
 bun run scripts/test-nsfw-model.ts euryale cydonia    # compare a few
 bun run scripts/test-nsfw-model.ts all                # every alias
 bun run scripts/test-nsfw-model.ts cydonia --nsfw     # NSFW scenario only
