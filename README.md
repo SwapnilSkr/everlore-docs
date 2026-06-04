@@ -35,6 +35,17 @@ Located in [`server/`](./server)
 - [Infrastructure](./server/INFRASTRUCTURE.md)
 - [Security](./server/SECURITY.md)
 
+### Infinite Memory Docs
+
+Located in [`memory/`](./memory)
+
+- [Memory Docs README](./memory/README.md)
+- [Infinite Memory Architecture](./memory/MEMORY_ARCHITECTURE.md)
+- [Projection And Mutation Model](./memory/PROJECTION_AND_MUTATION_MODEL.md)
+- [Calendar, Timelines, And Locations](./memory/CALENDAR_TIMELINES_AND_LOCATIONS.md)
+- [Features Enabled By Infinite Memory](./memory/FEATURES_ON_TOP.md)
+- [Infinite Memory Checklist](./memory/CHECKLIST.md)
+
 Auth-related server details:
 - HTTP and WebSocket auth contract: [API](./server/API.md)
 - Google and Twilio env vars: [Configuration](./server/CONFIGURATION.md)
