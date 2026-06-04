@@ -238,6 +238,80 @@ Chapter recaps that bridge the distant past and the last few verbatim turns.
   *before* the recent-turns window as "PREVIOUS SCENE SUMMARY" — so turns that
   scrolled out of the verbatim window are still represented, compressed.
 
+### 8.1 Long-horizon roadmap (low priority)
+
+The current architecture keeps the full event log durable while bounding the
+active prompt and client working set. The following improvements are deliberately
+low priority: they are useful once storage cost, discovery, or very-long-session
+continuity becomes a measured problem, but they are not required to keep normal
+gameplay context bounded today.
+
+#### Cold archival storage
+
+Do **not** delete player-visible events just to manage model context. Events are
+the durable transcript, rewind source, and Chronicle history. If Mongo storage
+cost or collection size becomes a real operational issue, move old events to a
+colder tier while preserving the same user-facing history contract.
+
+Acceptable future designs:
+
+- Move old event ranges into an `archived_events` collection with identical
+  ownership checks and Chronicle pagination support.
+- Store compressed event batches in object storage while keeping lightweight
+  Mongo index rows for lookup by `instance_id` and `sequence` range.
+- Apply archival only after summaries, memories, and codex projections for the
+  range exist and have been verified.
+
+Non-goals:
+
+- Automatic deletion of player history.
+- Removing events from Chronicle.
+- Using archival as a substitute for prompt-window management.
+
+#### Advanced context compaction
+
+The current context stack is:
+
+```
+recent events + latest scene summary + retrieved memories + lore + codex + state
+```
+
+That is enough for bounded cost per turn. Later, if long playthrough continuity
+needs more depth, add compaction layers above scene summaries rather than
+expanding the raw event window.
+
+Possible additions:
+
+- **Chapter summaries**: combine several scene summaries into a higher-level
+  recap every N scenes.
+- **Arc summaries**: summarize long-running plotlines, relationships, or quests
+  independently from chronological scenes.
+- **Semantic summary retrieval**: embed scene/chapter summaries and retrieve the
+  most relevant ones alongside memories.
+- **Continuity audits**: periodic checks that compare codex, summaries, and
+  high-importance memories for contradictions.
+
+Keep these layers derived and rebuildable. The event log remains the source of
+truth.
+
+#### Chronicle discovery and inspection UX
+
+Chronicle is the full-history surface. Once histories become large, improve
+navigation instead of loading everything into Play.
+
+Useful future features:
+
+- Search transcript text by character, place, phrase, or scene tag.
+- Jump to sequence, date, scene, or summary range.
+- Link memories and character facts back to their source events.
+- Show summary ranges inline so players can move between recap and original
+  turns.
+- Add filters for edited events, replayed events, intimate scenes, major state
+  changes, or high-importance memories.
+
+These are product/UX improvements. They should not change generation context
+assembly unless a specific retrieval signal proves useful.
+
 ---
 
 ## 9. Editing & propagation
