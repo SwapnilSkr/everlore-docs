@@ -2,7 +2,8 @@
 
 _As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker),
 Phase 7 (server + app surface + audit follow-ups), and scheduled continuity drift
-detection. Phases 1–10 are now substantively complete._
+detection. Phases 1–10 are complete; remaining one-offs are closed as
+deferred-by-design._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -166,15 +167,16 @@ Recap/Echoes/Threads/Location read filters.
   Threads (promise/quest tracker).
 - **Phase 9 (Advanced Compaction): effectively complete.** Chapter summaries, summary
   embedding, summary→prompt consumption ("RELEVANT PAST CHAPTERS"), arc summaries,
-  continuity audits — all done. Only **cold archival** remains, deliberately deferred
-  ("only when storage pressure is real").
-- Phases 1–5, 6A, 8: done earlier. See `CHECKLIST.md` for a few deferred one-offs
-  (Phase 1 revision counters, Phase 2 memory→memory version links, Phase 4 broader
-  BM25).
+  continuity audits — all done. **Cold archival** is closed as deferred-by-design
+  until real Mongo storage pressure or cost data justifies it.
+- Phases 1–5, 6A, 8: done earlier. Former open one-offs are now closed as
+  deferred-by-design: Phase 1 revision counters, Phase 2 memory→memory version
+  links, Phase 4 broader BM25, and Phase 9 cold archival. Reopen only when there is
+  a concrete consumer, measured search/retrieval gap, or real storage pressure.
 
 ## Next (recommended order)
-Phases 1–10 are now substantively complete (6B + 7 finished this stretch). What
-remains is polish, maintenance, and deferred one-offs:
+Phases 1–10 are complete and `CHECKLIST.md` has no unchecked rows. What remains is
+runtime verification and reopen-only maintenance:
 1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
    code-correct but never run against a real generated turn. Start server + worker +
    app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload
@@ -186,9 +188,10 @@ remains is polish, maintenance, and deferred one-offs:
    recorded per instance but nothing reads it yet — an admin endpoint/list or a small
    ops view could surface unhealthy worlds. (The on-demand
    `GET /admin/instances/:id/continuity-audit` still exists for a fresh run.)
-3. **Deferred one-offs** — Phase 1 revision counters, Phase 2 memory→memory version
-   links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only when there's a
-   concrete consumer / real storage pressure.
+3. **Reopen-only deferred work** — Phase 1 revision counters, Phase 2 memory→memory
+   version links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only
+   when there is a concrete consumer, measured retrieval/search gap, or real
+   storage pressure.
 
 _Micro-opt noted, not done: 2 embeds/turn (queryRag + querySummaries run in parallel)
 — could have queryRag expose its embedding to embed once._

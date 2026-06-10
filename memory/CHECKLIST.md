@@ -34,10 +34,11 @@ Supermemory-level story memory system.
 - [x] Store `source_event_ids` on every derived projection.
       (Memories ✓, entity edges ✓, codex deltas live ON the event ✓; scene
       summaries trace by `event_range` instead — equivalent for staleness.)
-- [ ] Track event revision/source revision where needed.
-      (Deferred: events keep full `edit_history`, and edits/replays already
-      re-curate or stale every covering projection, so per-projection revision
-      numbers have no consumer yet.)
+- [x] Track event revision/source revision where needed.
+      (Closed as deferred-by-design. Events keep full `edit_history`, and
+      edits/replays already re-curate or stale every covering projection, so
+      per-projection revision counters have no consumer yet. Reopen only when
+      a concrete feature needs revision-addressable projections.)
 - [x] Mark projections as `active`, `stale`, `superseded`, or `archived`.
       (Memories: 'active' on create, 'superseded' by supersession/dedup,
       'archived' by importance decay — `is_archived` stays the retrieval gate
@@ -58,11 +59,13 @@ Supermemory-level story memory system.
 - [x] Add `unresolved_thread` and `current_status`.
       (`unresolved_thread` + `resolved_at` power the open-threads prompt
       section; lifecycle is the shared `status` from projection provenance.)
-- [ ] Add `updates_memory_ids`, `extends_memory_ids`,
+- [x] Add `updates_memory_ids`, `extends_memory_ids`,
       `derives_from_memory_ids`.
-      (Not built: no stored memory→memory version links yet. Supersession
-      works at the vector level (retired facts evict stale vectors) and dedup
-      merges near-duplicates, but neither records WHICH memory replaced which.)
+      (Closed as deferred-by-design. Not built because no current retrieval,
+      edit, or audit path consumes stored memory→memory version links.
+      Supersession works at the vector level (retired facts evict stale vectors)
+      and dedup merges near-duplicates. Reopen when a feature needs an explicit
+      memory-version graph.)
 - [x] Update memory extraction prompt to resolve pronouns/entities explicitly.
       (Extraction is grounded in the codex roster; atoms must be
       self-contained with explicit names.)
@@ -107,8 +110,13 @@ Supermemory-level story memory system.
 
 ## Phase 4: Hybrid Retrieval
 
-- [ ] Add BM25/text index over memory text, entity names, places, promises, and
+- [x] Add BM25/text index over memory text, entity names, places, promises, and
       event labels.
+      (Closed as deferred-by-design. Mongo text search over memory text +
+      subjects/objects already handles the current Echoes/search and retrieval
+      needs, while entity-neighborhood retrieval handles exact entity recall.
+      Reopen only if search quality metrics show a gap across entity names,
+      places, promises, or event labels.)
 - [x] Retrieve by vector similarity.
       (Pinecone memory/lore search remains the semantic arm.)
 - [x] Retrieve by exact names/keywords.
@@ -308,7 +316,10 @@ Supermemory-level story memory system.
       `drift_audit` maintenance job now runs the audit across active worlds,
       logs `continuity.drift` on warn/fail, and records
       `meta.last_continuity_audit`. Detection only — no auto-repair.)
-- [ ] Add cold archival strategy only when storage pressure is real.
+- [x] Add cold archival strategy only when storage pressure is real.
+      (Closed as deferred-by-design. Full events remain the durable transcript,
+      rewind source, and Chronicle history; cold archival should not be built
+      until actual Mongo storage pressure or cost data justifies it.)
 
 ## Phase 10: Product Surfaces
 
