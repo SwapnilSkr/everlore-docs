@@ -58,13 +58,13 @@ task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 events collection that feeds a MAIN-story surface must filter
 `type: { $ne: 'side_chat' }`**. Known exclusion sites: `summary.processor` (scene
 rollup), `generation.service` (main recents + Play feed), `context-packet` (worker
-recents), `instance.service` (previews), `memory.service.buildRecap` (spine
-fallback), `location.service` (Location Journal), and `time.service` (Calendar).
-When adding a main-story read, grep `events().find`/`findOne`/`aggregate` and
-confirm the filter. Memory *secrets* are gated separately by
-`origin:'side_chat'` / `known_by_entity_ids` in `queryRag` (fail closed) — see
-`rag.provider.ts`, `context-packet.service.ts`, plus the Recap/Location read
-filters.
+recents), `instance.service` (previews), `memory.service.getEvents` (Timeline),
+`memory.service.buildRecap` (spine fallback), `location.service` (Location Journal),
+and `time.service` (Calendar). When adding a main-story read, grep
+`events().find`/`findOne`/`aggregate` and confirm the filter. Memory *secrets* are
+gated separately by `origin:'side_chat'` / `known_by_entity_ids` in `queryRag`
+(fail closed) — see `rag.provider.ts`, `context-packet.service.ts`, plus the
+Recap/Echoes/Threads/Location read filters.
 
 ## State (what's done)
 - **Phase 7 (Side-Character Chats) — SERVER COMPLETE, audited.** Commits:
@@ -88,6 +88,10 @@ filters.
     also needed main-surface exclusion; Recap open-thread memories and Location
     Journal memories now use main-visible memory filtering so private side-chat
     atoms only surface when the protagonist is among `known_by_entity_ids`.
+  - `bf9ff3e` — **Lore Tome consistency fix**: Timeline (`getEvents`) excludes
+    `side_chat` events; Echoes (`getMemories`) and Threads (`listThreads`) use the
+    same main-visible memory gate as Recap/Location, so all Lore Tome tabs are
+    main-story scoped except the dedicated side-chat thread surface.
   - **Two known gaps (honest, not bugs):** (a) the LLM-dependent paths (extraction
     NOTE framing, delta name-filter) were code-reviewed but never run against a live
     generated turn; (b) **no app surface yet** — the server contract is ready, nothing
