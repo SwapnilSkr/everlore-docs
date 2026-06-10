@@ -316,10 +316,13 @@ Supermemory-level story memory system.
       `drift_audit` maintenance job now runs the audit across active worlds,
       logs `continuity.drift` on warn/fail, and records
       `meta.last_continuity_audit`. Detection only — no auto-repair.)
-- [~] (IN PROGRESS) Surface scheduled drift-audit results for admins.
-      (`meta.last_continuity_audit` is recorded per instance; this slice adds a
-      focused admin list endpoint/filter so unhealthy or stale audited worlds are
-      discoverable without running a fresh audit.)
+- [x] Surface scheduled drift-audit results for admins.
+      (Server commit `076a365`. Adds
+      `GET /admin/instances/continuity-audits` with `status=all|healthy|
+      unhealthy|missing|stale`, paging, and `stale_days`; returns compact
+      instance refs plus `meta.last_continuity_audit` so unhealthy/stale worlds
+      are discoverable without running a fresh audit. Verified by
+      `bun run typecheck`.)
 - [x] Add cold archival strategy only when storage pressure is real.
       (Closed as deferred-by-design. Full events remain the durable transcript,
       rewind source, and Chronicle history; cold archival should not be built

@@ -161,6 +161,11 @@ Recap/Echoes/Threads/Location read filters.
   audit. **Detection only — no mutation/auto-repair** (confirmed with the user).
   Verified: tsc clean; throwaway smoke drove `drift_audit` against a live instance —
   audit ran, warn logged, `meta.last_continuity_audit` persisted, then deleted.
+  - `076a365` — **admin status surface**:
+    `GET /admin/instances/continuity-audits` lists compact instance audit status
+    with `status=all|healthy|unhealthy|missing|stale`, paging, and `stale_days`.
+    This surfaces scheduled results without running a fresh audit. Verified by
+    server `bun run typecheck`.
 - **Phase 10 (Product Surfaces): COMPLETE.** Lore Tome has 7 tabs: Recap (landing),
   Timeline, Echoes (searchable + filters), Almanac (calendar + timelines), Places
   (location journal), Bonds (relationship ledger → tap → "what they remember"),
@@ -184,11 +189,7 @@ runtime verification and reopen-only maintenance:
    **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
    (visible in the journal).
-2. **Surface the drift audit (small, optional).** `meta.last_continuity_audit` is now
-   recorded per instance but nothing reads it yet — an admin endpoint/list or a small
-   ops view could surface unhealthy worlds. (The on-demand
-   `GET /admin/instances/:id/continuity-audit` still exists for a fresh run.)
-3. **Reopen-only deferred work** — Phase 1 revision counters, Phase 2 memory→memory
+2. **Reopen-only deferred work** — Phase 1 revision counters, Phase 2 memory→memory
    version links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only
    when there is a concrete consumer, measured retrieval/search gap, or real
    storage pressure.
