@@ -191,7 +191,12 @@ Supermemory-level story memory system.
       previews. WS `side_chat` action + `GET /chronicle/side-chats/...` thread
       endpoints. Memory curation deferred to the secret-scoping item so no
       unscoped side-chat atom can ever leak.)
-- [ ] Pin active side character in context packet.
+- [x] Pin active side character in context packet.
+      (Server commit `5c0cd26`. `buildSideChatPacket`: the card is the pinned
+      canon sheet; retrieval scoped to what the character can know — memories
+      they are subject/object of + open threads involving them — injected as
+      "what they remember" / "unresolved matters" sections. Knowledge scope
+      already excludes OTHER characters' private side-chat memories.)
 - [ ] Scope secrets by who knows them.
 - [ ] Update relationship graph from side chats.
 - [ ] Let main narration retrieve side-chat memories only when canonically
