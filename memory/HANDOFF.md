@@ -1,6 +1,6 @@
 # Everlore build — handoff
 
-_As of June 10 2026, post Phase 7 (server) + audit follow-up._
+_As of June 10 2026, post Phase 7 (server + app surface) + audit follow-up._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -67,7 +67,7 @@ gated separately by `origin:'side_chat'` / `known_by_entity_ids` in `queryRag`
 Recap/Echoes/Threads/Location read filters.
 
 ## State (what's done)
-- **Phase 7 (Side-Character Chats) — SERVER COMPLETE, audited.** Commits:
+- **Phase 7 (Side-Character Chats) — SERVER + APP SURFACE COMPLETE, audited.** Commits:
   - `e07a6b6` — `side_chat` event type; shared ledger/sequence; streamed in-character
     reply built from the codex card; **story time does not advance**. Excluded from
     main recents, scene summaries, Play feed, previews. WS action `side_chat`; REST
@@ -92,10 +92,12 @@ Recap/Echoes/Threads/Location read filters.
     `side_chat` events; Echoes (`getMemories`) and Threads (`listThreads`) use the
     same main-visible memory gate as Recap/Location, so all Lore Tome tabs are
     main-story scoped except the dedicated side-chat thread surface.
-  - **Two known gaps (honest, not bugs):** (a) the LLM-dependent paths (extraction
-    NOTE framing, delta name-filter) were code-reviewed but never run against a live
-    generated turn; (b) **no app surface yet** — the server contract is ready, nothing
-    in Flutter triggers it.
+  - `b3cea7b` — **app surface**: Bonds cards expose a private-chat action; the
+    side-chat thread screen loads REST history, dispatches WS `side_chat`, and
+    streams `side_chat_delta` / `side_chat_complete` / `side_chat_error`.
+  - **Known gap (honest, not a bug):** the LLM-dependent paths (extraction NOTE
+    framing, delta name-filter, streamed reply) were code-reviewed and app-wired
+    but still need one live generated side chat against a running server.
 - **Phase 10 (Product Surfaces): COMPLETE.** Lore Tome has 7 tabs: Recap (landing),
   Timeline, Echoes (searchable + filters), Almanac (calendar + timelines), Places
   (location journal), Bonds (relationship ledger → tap → "what they remember"),
@@ -109,12 +111,10 @@ Recap/Echoes/Threads/Location read filters.
   BM25).
 
 ## Next (recommended order)
-1. **Phase 7 app surface (RECOMMENDED).** App needs: an entry point (Bonds tab /
-   character card), a thread screen consuming `side_chat_delta` / `side_chat_complete`
-   / `side_chat_error` frames + the thread REST endpoints, repo + cubit per the
-   Chronicle-surface pattern. WS action `side_chat` payload = `character_id` + message.
-   Building this also lets you close gap (a) with one real side chat. Confirm the UI
-   entry point with the user first.
+1. **Live Phase 7 verification (RECOMMENDED).** Start server + worker + app, open
+   Bonds → private chat, send one message, and verify: streamed reply arrives,
+   REST thread reload shows it, codex update/memory curation don't leak into main
+   Lore Tome tabs, and the server logs show the side-chat curation path ran.
 2. **Phase 6B — travel** (travel events, travel-time calendar effects, permanent
    location state/facts).
 3. Small: turn `continuityAuditService` into a scheduled background drift-detection

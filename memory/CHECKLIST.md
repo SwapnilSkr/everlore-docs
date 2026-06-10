@@ -215,6 +215,13 @@ Supermemory-level story memory system.
       side chats qualify; sentient-world ones don't). A secret enters the main
       story by being SHARED there, which organically mints a new main-scoped
       memory — deterministic, no model-judgment leak risk.)
+- [x] Add the app surface for private side-character chats.
+      (App commit `b3cea7b`. Bonds cards now expose a private-chat action; the
+      thread screen loads `GET /chronicle/side-chats/:instanceId/:characterId`,
+      sends WS `side_chat`, and streams `side_chat_delta` /
+      `side_chat_complete` / `side_chat_error` frames. Verified by
+      `flutter analyze lib`; live LLM-path verification still needs a running
+      server + one real side chat.)
 
 ## Phase 8: Context Packet Builder
 
