@@ -254,7 +254,11 @@ Supermemory-level story memory system.
       (Same surface, framed as what they carry about the player — memories
       where the character is a subject/object, with emotional tone /
       relationship-shift / unresolved-thread markers.)
-- [ ] Promise/quest tracker.
+- [x] Promise/quest tracker.
+      (Threads tab in the Lore Tome — server commit `21ec317`, app commit
+      `19e52b4`. Open threads (`unresolved_thread` atoms, by importance) +
+      recently-resolved ones (by close time), via `GET /chronicle/threads/
+      :instanceId`. Same data that feeds the open-threads prompt section.)
 - [x] Timeline branch viewer.
       (Almanac "Realities" switcher — app commit `5079600`. Lists timeline
       branches, highlights the active one, and switches the active reality via
