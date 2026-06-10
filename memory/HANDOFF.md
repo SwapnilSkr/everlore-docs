@@ -20,9 +20,18 @@ task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 2. **Edit `CHECKLIST.md` BEFORE and AFTER each item.** Before: flip to
    `[~] (IN PROGRESS)` + a one-line note. After: `[x]` + commit ref(s) + 2–3 line
    summary. Commit the checklist edit as `docs(memory): ...`.
-3. **After completing a phase, update this `HANDOFF.md`.** Whoever reads this next
-   should see the new state, exact commits, honest gaps, and recommended next step
-   without reconstructing the prior session from git history.
+3. **Update this `HANDOFF.md` after EVERY pass / slice / item — not just at the end
+   of a phase.** This is a hard requirement, called out because past agents have
+   skipped it. If you are a Claude agent (or any AI): you may keep your own private
+   memory files (e.g. `~/.claude/.../memory/session_handoff.md`), but **do not treat
+   those as a substitute for this file.** Your private memory is invisible to the
+   next agent and to the user. THIS file is the single durable, in-repo source of
+   truth. So after each slice you ship: edit `CHECKLIST.md` (per rule 2) AND edit
+   this `HANDOFF.md` — update the date/title line, the relevant State bullet (exact
+   commit refs, what shipped, how verified, honest gaps), and the Next list — then
+   commit it as `docs(memory): ...`. A reader of this file alone should be able to
+   resume without reconstructing the prior session from git history or from any
+   agent's private notes.
 4. **Backend first, then frontend.** Verify each: server
    `cd everlore-server && npx tsc --noEmit` (expect exit 0); app
    `cd everlore && flutter analyze lib/features/<area>` (expect "No issues found!").
