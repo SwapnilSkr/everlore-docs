@@ -308,6 +308,10 @@ Supermemory-level story memory system.
 
 ## Phase 10: Product Surfaces
 
+- [~] (IN PROGRESS) Add a travel marker to Chronicle/Almanac.
+      (Small post-Phase 6B polish slice. Travel exists structurally as
+      `type:'travel'` + `data.travel={from,to}`, but the app needs an explicit
+      "traveled from X to Y" marker in dated events and the main Timeline.)
 - [x] Calendar view.
       (Almanac tab in the Lore Tome — app commit `5079600`. Renders the current
       story-time cursor through the world calendar plus events grouped by
