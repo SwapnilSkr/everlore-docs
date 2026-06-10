@@ -229,7 +229,13 @@ Supermemory-level story memory system.
       safe. NOT yet consumed by the prompt — context-packet integration is a
       follow-up.)
 - [ ] Add arc summaries over plot/relationship threads.
-- [ ] Embed summaries for semantic summary retrieval.
+- [x] Embed summaries for semantic summary retrieval.
+      (Server commit `f33694a`. Scene + chapter summaries embed into a
+      per-instance `sum_<id>` Pinecone namespace on create (deterministic
+      per-range vector id → rebuild overwrites). `querySummaries()` = vector
+      search + Mongo status cross-check so stale summaries never surface.
+      Vector lifecycle on rewind/reset/delete. NOT yet consumed by the prompt —
+      context-packet consumption is the deliberate follow-up.)
 - [ ] Add continuity audits comparing codex, memories, summaries, and graph
       state.
 - [ ] Add cold archival strategy only when storage pressure is real.
