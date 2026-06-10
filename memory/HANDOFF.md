@@ -1,7 +1,8 @@
 # Everlore build — handoff
 
-_As of June 10 2026, post Phase 6B (travel + location state/facts) and Phase 7
-(server + app surface + audit follow-ups). Phases 1–10 are now substantively complete._
+_As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker)
+and Phase 7 (server + app surface + audit follow-ups). Phases 1–10 are now
+substantively complete._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -109,10 +110,14 @@ Recap/Echoes/Threads/Location read filters.
   - **Verified:** tsc clean (both server commits); `flutter analyze lib/features/chronicle`
     clean; rewind-audit 27/27 unbroken; throwaway location-facts smoke 8/8
     (apply/provenance/dedup/edit-prune/rewind-prune), then deleted.
+  - `2e4daa9` + `deb2bfd` — **travel UI marker polish.** Calendar events expose
+    `travel:{from,to}`; the app parses that payload and renders "Traveled from X
+    to Y" in Almanac dated events and above travel turns in the main
+    Timeline/NarrativeBubble. Verified with server `bun run typecheck` and app
+    `flutter analyze lib`.
   - **Known gap (honest):** the new extractor fields (`time_elapsed`, travel-via-location,
     `location_*_changes`) are schema/prompt-correct + apply-path-tested but never run
-    against a live generated turn. No dedicated "you traveled" marker in the
-    Almanac/Timeline UI yet (travel surfaces as a time-jump + journal facts).
+    against a live generated turn.
 - **Phase 7 (Side-Character Chats) — SERVER + APP SURFACE COMPLETE, audited.** Commits:
   - `e07a6b6` — `side_chat` event type; shared ledger/sequence; streamed in-character
     reply built from the codex card; **story time does not advance**. Excluded from
@@ -166,12 +171,9 @@ remains is polish, maintenance, and deferred one-offs:
    **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
    (visible in the journal).
-2. **Travel UI marker (small).** Travel exists structurally but is only visible as a
-   time-jump + journal facts. A "⤳ traveled to X" marker in the Almanac dated-events
-   list and/or the main Chronicle Timeline would make it legible. Cheap, additive.
-3. **Background drift detection.** Turn `continuityAuditService` (read-only, reusable)
+2. **Background drift detection.** Turn `continuityAuditService` (read-only, reusable)
    into a scheduled maintenance job.
-4. **Deferred one-offs** — Phase 1 revision counters, Phase 2 memory→memory version
+3. **Deferred one-offs** — Phase 1 revision counters, Phase 2 memory→memory version
    links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only when there's a
    concrete consumer / real storage pressure.
 
