@@ -174,9 +174,11 @@ Supermemory-level story memory system.
 - [x] Retrieve location memories when entering a place.
       (Events and memories now carry `location_anchor`; RAG fuses a current
       location memory arm with vector/keyword/entity/timeline retrieval.)
-- [ ] Add "what happened here before?" Chronicle view.
-      (Backend memory substrate exists through `location_anchor`; product
-      surface/filtering remains Phase 10.)
+- [x] Add "what happened here before?" Chronicle view.
+      (Shipped — server commit `de747cd`, app commit `733d598`. Per-place
+      journal screen: events + memories anchored to a location via
+      `GET /chronicle/locations/:instanceId/:locationEntityId`. Reached from the
+      Phase 10 Location Journal "Places" tab.)
 
 ## Phase 7: Side-Character Chats
 
@@ -227,12 +229,23 @@ Supermemory-level story memory system.
 
 ## Phase 10: Product Surfaces
 
-- [ ] Calendar view.
+- [x] Calendar view.
+      (Almanac tab in the Lore Tome — app commit `5079600`. Renders the current
+      story-time cursor through the world calendar plus events grouped by
+      in-world date with milestone/time-jump markers. Backed by the existing
+      `GET /chronicle/calendar/:instanceId`.)
 - [ ] Relationship ledger.
-- [ ] Location journal.
+- [x] Location journal.
+      (Places tab in the Lore Tome — server commit `de747cd`, app commit
+      `733d598`. Lists every visited place (current location pinned first, with
+      moment/echo counts) via `GET /chronicle/locations/:instanceId`; tapping a
+      place opens the per-place "what happened here before?" journal.)
 - [ ] Character-specific memory view.
 - [ ] "What this character remembers about you."
 - [ ] Promise/quest tracker.
-- [ ] Timeline branch viewer.
+- [x] Timeline branch viewer.
+      (Almanac "Realities" switcher — app commit `5079600`. Lists timeline
+      branches, highlights the active one, and switches the active reality via
+      `PUT /chronicle/calendar/:instanceId/timeline/active`.)
 - [ ] Memory-aware recaps.
 - [ ] Advanced Chronicle search and filters.
