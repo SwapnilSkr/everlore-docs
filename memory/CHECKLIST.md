@@ -182,7 +182,15 @@ Supermemory-level story memory system.
 
 ## Phase 7: Side-Character Chats
 
-- [ ] Add side-chat event type.
+- [x] Add side-chat event type.
+      (Server commit `e07a6b6`. `type: 'side_chat'` in the SAME ledger +
+      sequence counter (rewind/time anchors/continuity audit exact by
+      construction) with a `side_chat` character anchor. Worker path streams an
+      in-character reply from the codex card; story time/scene/location cursors
+      untouched. Excluded from main recents, scene summaries, Play feed,
+      previews. WS `side_chat` action + `GET /chronicle/side-chats/...` thread
+      endpoints. Memory curation deferred to the secret-scoping item so no
+      unscoped side-chat atom can ever leak.)
 - [ ] Pin active side character in context packet.
 - [ ] Scope secrets by who knows them.
 - [ ] Update relationship graph from side chats.
