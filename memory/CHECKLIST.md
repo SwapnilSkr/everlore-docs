@@ -48,16 +48,29 @@ Supermemory-level story memory system.
 
 ## Phase 2: Rich Memory Atoms
 
-- [ ] Extend memory schema with `subject_entity_ids`.
-- [ ] Extend memory schema with `object_entity_ids`.
-- [ ] Add `emotional_cause`, `emotional_effect`, `relationship_delta`.
-- [ ] Add `unresolved_thread` and `current_status`.
+- [x] Extend memory schema with `subject_entity_ids`.
+      (Shipped with Phase 3: extraction resolves subjects to entity ids;
+      string `subjects` kept for back-compat.)
+- [x] Extend memory schema with `object_entity_ids`.
+- [x] Add `emotional_cause`, `emotional_effect`, `relationship_delta`.
+      (Plus `emotional_valence`; extraction prompt asks for cause AND lasting
+      effect explicitly.)
+- [x] Add `unresolved_thread` and `current_status`.
+      (`unresolved_thread` + `resolved_at` power the open-threads prompt
+      section; lifecycle is the shared `status` from projection provenance.)
 - [ ] Add `updates_memory_ids`, `extends_memory_ids`,
       `derives_from_memory_ids`.
-- [ ] Update memory extraction prompt to resolve pronouns/entities explicitly.
-- [ ] Update memory extraction to create emotionally-rich facts, not only
+      (Not built: no stored memory→memory version links yet. Supersession
+      works at the vector level (retired facts evict stale vectors) and dedup
+      merges near-duplicates, but neither records WHICH memory replaced which.)
+- [x] Update memory extraction prompt to resolve pronouns/entities explicitly.
+      (Extraction is grounded in the codex roster; atoms must be
+      self-contained with explicit names.)
+- [x] Update memory extraction to create emotionally-rich facts, not only
       factual summaries.
-- [ ] Re-embed memories after enriched text generation.
+- [x] Re-embed memories after enriched text generation.
+      (Moot as a separate step: extraction emits enriched text directly and
+      embeds it once; player edits re-embed onto the same vector id.)
 
 ## Phase 3: Entity Graph
 
