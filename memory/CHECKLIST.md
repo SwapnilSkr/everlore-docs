@@ -164,12 +164,19 @@ Supermemory-level story memory system.
 - [x] Add location entities.
       (Location entity type + memory extraction mint linked location entities;
       gameplay/location-state systems below remain unbuilt.)
-- [ ] Track current player location per instance.
+- [x] Track current player location per instance.
+      (`world_instances.current_location` stores the current location entity
+      anchor; generation updates it from metadata when a turn establishes a
+      concrete end-of-scene place, otherwise it carries the prior place.)
 - [ ] Add travel events.
 - [ ] Update calendar/story time during travel.
 - [ ] Store location state and permanent location facts.
-- [ ] Retrieve location memories when entering a place.
+- [x] Retrieve location memories when entering a place.
+      (Events and memories now carry `location_anchor`; RAG fuses a current
+      location memory arm with vector/keyword/entity/timeline retrieval.)
 - [ ] Add "what happened here before?" Chronicle view.
+      (Backend memory substrate exists through `location_anchor`; product
+      surface/filtering remains Phase 10.)
 
 ## Phase 7: Side-Character Chats
 
@@ -190,17 +197,19 @@ Supermemory-level story memory system.
 - [x] Separate static canon from dynamic state.
       (Prompt builder: byte-stable cacheable static prefix — identity, voice,
       lore, format rules — then per-turn dynamic sections.)
-- [ ] Include current scene, location, story time, timeline branch.
+- [x] Include current scene, location, story time, timeline branch.
       (Story time + timeline branch now inject through the context packet;
-      current location remains Phase 6.)
+      current location is injected as a place anchor. Current scene remains
+      covered by recents + scene summary.)
 - [x] Include relevant relationship state.
       (Codex cards carry relationship meters, disposition, hidden thoughts;
       pinning ensures the cards retrieval implicates ride along.)
 - [x] Include emotionally-relevant memories.
       (Rich atoms + hybrid retrieval + open-threads section.)
-- [ ] Include location/time memories.
+- [x] Include location/time memories.
       (Timeline-scoped memories now work through `time_anchor`; location-state
-      entry retrieval remains Phase 6.)
+      memories now retrieve through `location_anchor`. Rich independent
+      location-state entries remain Phase 6 follow-up work.)
 - [x] Include recent raw turns.
 - [x] Add token budgeting per packet section.
       (Packet-level allocator: reference sections share the pool left after
