@@ -168,16 +168,29 @@ Supermemory-level story memory system.
       (`world_instances.current_location` stores the current location entity
       anchor; generation updates it from metadata when a turn establishes a
       concrete end-of-scene place, otherwise it carries the prior place.)
-- [~] (IN PROGRESS) Add travel events.
-      (Extraction-driven: scene-metadata extractor emits travel{from,to};
-      a turn that moves the protagonist between concrete places becomes a
-      `travel` event.)
-- [~] (IN PROGRESS) Update calendar/story time during travel.
-      (Extractor emits in-world time elapsed; narrated time skips — travel or
-      otherwise — now advance the day-level calendar, not just explicit waits.)
-- [~] (IN PROGRESS) Store location state and permanent location facts.
-      (Location entities gain provenance-tracked current_state + permanent_facts,
-      applied from extraction, pruned on rewind/edit, surfaced in the journal.)
+- [x] Add travel events.
+      (Server commit `723d366`. Extraction-driven: a player turn that carries the
+      protagonist from one concrete place to a different one becomes a `travel`
+      event with `data.travel = {from,to}`. Detected in generation.processor by
+      comparing the resolved end-of-turn location against the prior cursor — no
+      self-report needed, robust. Continue/wait ticks stay their own kind.)
+- [x] Update calendar/story time during travel.
+      (Server commit `723d366`. Scene-metadata extractor reports in-world
+      `time_elapsed`; ANY narrated time skip — travel or "weeks passed" — now
+      advances the day-level calendar via `data.time_advanced`, not just the
+      explicit wait/continue tick. `advanceDays` rewritten to parse explicit
+      amounts + worded numbers across day/week/month/season/year so travel time
+      is precise.)
+- [x] Store location state and permanent location facts.
+      (Server commit `3e71e4b`, app commit `c8cd9a1`. Location
+      entities carry provenance-tracked `location_state` (mutable condition) +
+      `location_facts` (enduring canon) from the extractor's
+      location_state_changes / location_permanent_facts. Event-sourced: rewind
+      range-prunes by source_sequence, edit/replay prunes by source_event_id, so
+      a place never asserts a fact whose source turn no longer happened. Surfaced
+      in the prompt's CURRENT LOCATION section and the place journal. Verified by
+      a throwaway smoke (apply/dedup/edit-prune/rewind-prune, 8/8) + rewind-audit
+      27/27 unbroken.)
 - [x] Retrieve location memories when entering a place.
       (Events and memories now carry `location_anchor`; RAG fuses a current
       location memory arm with vector/keyword/entity/timeline retrieval.)
