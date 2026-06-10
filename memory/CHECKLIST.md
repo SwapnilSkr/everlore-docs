@@ -48,15 +48,36 @@ Supermemory-level story memory system.
 
 ## Phase 3: Entity Graph
 
-- [ ] Add entity collection or graph model.
-- [ ] Support entity types: player, protagonist, character, location, faction,
+- [x] Add entity collection or graph model.
+      (`entities` collection + `entity-graph.service.ts`; dedup by normalized
+      name/alias, created on first mention.)
+- [x] Support entity types: player, protagonist, character, location, faction,
       item, quest, relationship, calendar, timeline.
-- [ ] Add edge model with type, source events, status, and importance.
-- [ ] Link memory atoms to entities.
-- [ ] Link codex cards to character entities.
-- [ ] Add relationship edges for trust, affection, fear, betrayal, forgiveness,
+      (`EntityType` = player/protagonist/character/location/faction/item/quest/
+      concept; calendar + timeline deferred to Phase 5 with the TimeAnchor work.)
+- [x] Add edge model with type, source events, status, and importance.
+      (`entity_edges`: typed directed edges with `source_event_ids` provenance,
+      status, importance, and `weight` for meter edges. The label is part of
+      edge identity — each narrative assertion is its own edge, so provenance
+      pruning on rewind/edit is exact and never leaves a stale label.)
+- [x] Link memory atoms to entities.
+      (New extractions populate `subject_entity_ids`/`object_entity_ids`;
+      string `subjects`/`objects` kept for back-compat. Entity-neighborhood
+      retrieval is fused into hybrid RAG when the player names an entity.)
+- [x] Link codex cards to character entities.
+      (1:1 `characters.entity_id` ↔ `entities.character_id`, synced every turn
+      and re-linked after rewind re-mints card ids; lazy backfill for old worlds.)
+- [x] Add relationship edges for trust, affection, fear, betrayal, forgiveness,
       secrecy, debt, rivalry.
-- [ ] Add graph repair job for edges pointing to stale/deleted events.
+      (Meter edges trust/affection/fear/rivalry are projected from the codex
+      relationship ledger; free-form `relationship` edges with labels come from
+      relationship-type memory atoms — betrayal/forgiveness/debt live in the
+      label rather than as fixed types.)
+- [x] Add graph repair job for edges pointing to stale/deleted events.
+      (Inline in `rewindToSequence` — entities born in removed turns deleted,
+      edge provenance pruned, empty edges dropped, meter edges re-projected —
+      plus event edit/replay provenance pruning and a `repair_entity_graph`
+      maintenance task; verified by `scripts/rewind-audit.ts`.)
 
 ## Phase 4: Hybrid Retrieval
 
@@ -64,7 +85,9 @@ Supermemory-level story memory system.
       event labels.
 - [ ] Retrieve by vector similarity.
 - [ ] Retrieve by exact names/keywords.
-- [ ] Retrieve by entity neighborhood.
+- [x] Retrieve by entity neighborhood.
+      (Shipped with Phase 3: memories linked by id to entities the player
+      named, fused into RRF alongside vector + keyword.)
 - [ ] Retrieve by timeline/calendar filters.
 - [ ] Merge/rerank retrieval results into a context packet.
 - [ ] Track retrieval usage and update access counts.
