@@ -26,12 +26,25 @@ Supermemory-level story memory system.
 
 ## Phase 1: Projection Provenance
 
-- [ ] Add projection metadata shared by memories, codex facts, summaries,
+- [x] Add projection metadata shared by memories, codex facts, summaries,
       relationships, locations, and calendar entries.
-- [ ] Store `source_event_ids` on every derived projection.
+      (`projection.model.ts`: shared `ProjectionStatus` + `ProjectionProvenance`
+      used by memories, scene summaries, and entity edges; codex deltas are
+      ledgered on their source event. Calendar entries arrive in Phase 5.)
+- [x] Store `source_event_ids` on every derived projection.
+      (Memories ✓, entity edges ✓, codex deltas live ON the event ✓; scene
+      summaries trace by `event_range` instead — equivalent for staleness.)
 - [ ] Track event revision/source revision where needed.
-- [ ] Mark projections as `active`, `stale`, `superseded`, or `archived`.
-- [ ] Add admin/debug endpoint to inspect projections for an event.
+      (Deferred: events keep full `edit_history`, and edits/replays already
+      re-curate or stale every covering projection, so per-projection revision
+      numbers have no consumer yet.)
+- [x] Mark projections as `active`, `stale`, `superseded`, or `archived`.
+      (Memories: 'active' on create, 'superseded' by supersession/dedup,
+      'archived' by importance decay — `is_archived` stays the retrieval gate
+      for back-compat. Summaries: active/stale. Edges: active/stale/archived.)
+- [x] Add admin/debug endpoint to inspect projections for an event.
+      (`GET /admin/events/:eventId/projections` — memories with effective
+      status, entity edges, covering summaries, codex deltas, linked entities.)
 
 ## Phase 2: Rich Memory Atoms
 
@@ -89,7 +102,9 @@ Supermemory-level story memory system.
       (Shipped with Phase 3: memories linked by id to entities the player
       named, fused into RRF alongside vector + keyword.)
 - [ ] Retrieve by timeline/calendar filters.
-- [ ] Merge/rerank retrieval results into a context packet.
+- [x] Merge/rerank retrieval results into a context packet.
+      (RRF fusion of vector + keyword + entity arms feeds the Phase 8
+      ContextPacket; timeline-filter reranking remains for Phase 5.)
 - [ ] Track retrieval usage and update access counts.
 
 ## Phase 5: Calendar And Timelines
@@ -124,14 +139,29 @@ Supermemory-level story memory system.
 
 ## Phase 8: Context Packet Builder
 
-- [ ] Build explicit context packet before `buildPrompt`.
-- [ ] Separate static canon from dynamic state.
+- [x] Build explicit context packet before `buildPrompt`.
+      (`context-packet.service.ts`, built in the WORKER so retrieval runs
+      BEFORE codex selection: cards pin for direct name mentions AND for
+      characters the retrieved memories are about (memory-driven pinning via
+      `retrievedEntityIds`). Dispatch is now thin: session + consent + enqueue.)
+- [x] Separate static canon from dynamic state.
+      (Prompt builder: byte-stable cacheable static prefix — identity, voice,
+      lore, format rules — then per-turn dynamic sections.)
 - [ ] Include current scene, location, story time, timeline branch.
-- [ ] Include relevant relationship state.
-- [ ] Include emotionally-relevant memories.
+      (Current scene = recents + summary today; location/story time/timeline
+      sections land with Phases 5–6.)
+- [x] Include relevant relationship state.
+      (Codex cards carry relationship meters, disposition, hidden thoughts;
+      pinning ensures the cards retrieval implicates ride along.)
+- [x] Include emotionally-relevant memories.
+      (Rich atoms + hybrid retrieval + open-threads section.)
 - [ ] Include location/time memories.
-- [ ] Include recent raw turns.
-- [ ] Add token budgeting per packet section.
+      (Needs Phase 5 time anchors / Phase 6 location state.)
+- [x] Include recent raw turns.
+- [x] Add token budgeting per packet section.
+      (Packet-level allocator: reference sections share the pool left after
+      the static prefix, proportionally and capped; recent-turn continuity has
+      a HARD 1000-token floor that survives even oversized prefixes.)
 
 ## Phase 9: Advanced Compaction
 
