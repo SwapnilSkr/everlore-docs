@@ -269,4 +269,9 @@ Supermemory-level story memory system.
       latest non-stale scene summary (prose spine) + open threads + relationship
       standings + current place/time, via `GET /chronicle/recap/:instanceId`.
       No new LLM call; always reflects current projections.)
-- [ ] Advanced Chronicle search and filters.
+- [x] Advanced Chronicle search and filters.
+      (Echoes search + filter chips — server commit `b640134`, app commit
+      `f9943d5`. `GET /chronicle/memories` gained `q` (full-text over
+      text/subjects/objects, relevance-ranked), `type`, `min_importance`, and
+      `unresolved` params; the Echoes tab has a search bar + Unresolved/
+      Important/type chips with a no-matches state.)
