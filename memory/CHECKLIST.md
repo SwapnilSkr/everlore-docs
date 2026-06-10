@@ -304,6 +304,10 @@ Supermemory-level story memory system.
       + lingering staleness (scene/chapter/arc), time + location cursor sanity —
       returning an ok/warn/fail report. `GET /admin/instances/:instanceId/
       continuity-audit`. Service is reusable by a background drift job later.)
+      (Follow-up `c56b9c3`: a daily `schedule_continuity_audits` → per-instance
+      `drift_audit` maintenance job now runs the audit across active worlds,
+      logs `continuity.drift` on warn/fail, and records
+      `meta.last_continuity_audit`. Detection only — no auto-repair.)
 - [ ] Add cold archival strategy only when storage pressure is real.
 
 ## Phase 10: Product Surfaces

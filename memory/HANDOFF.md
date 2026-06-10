@@ -1,8 +1,8 @@
 # Everlore build — handoff
 
-_As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker)
-and Phase 7 (server + app surface + audit follow-ups). Phases 1–10 are now
-substantively complete._
+_As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker),
+Phase 7 (server + app surface + audit follow-ups), and scheduled continuity drift
+detection. Phases 1–10 are now substantively complete._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -149,6 +149,17 @@ Recap/Echoes/Threads/Location read filters.
   - **Known gap (honest, not a bug):** the LLM-dependent paths (extraction NOTE
     framing, delta name-filter, streamed reply) were code-reviewed and app-wired
     but still need one live generated side chat against a running server.
+- **Background drift detection — DONE (server `c56b9c3`).** A daily
+  `continuity-audit-scheduler` repeatable job (cron `30 2 * * *`, registered in
+  `worker/index.ts`) fans out per-instance `drift_audit` jobs across active worlds
+  with real history (`meta.total_events > 5`, not archived; capped 1000/run). Each
+  runs the existing read-only `continuityAuditService.audit()`, structured-logs any
+  warn/fail under `continuity.drift`, and records a compact result on the instance
+  (`meta.last_continuity_audit`: healthy / summary{ok,warn,fail} / max_sequence /
+  issues[] / checked_at) so drift is visible to an admin without re-running the
+  audit. **Detection only — no mutation/auto-repair** (confirmed with the user).
+  Verified: tsc clean; throwaway smoke drove `drift_audit` against a live instance —
+  audit ran, warn logged, `meta.last_continuity_audit` persisted, then deleted.
 - **Phase 10 (Product Surfaces): COMPLETE.** Lore Tome has 7 tabs: Recap (landing),
   Timeline, Echoes (searchable + filters), Almanac (calendar + timelines), Places
   (location journal), Bonds (relationship ledger → tap → "what they remember"),
@@ -171,8 +182,10 @@ remains is polish, maintenance, and deferred one-offs:
    **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
    (visible in the journal).
-2. **Background drift detection.** Turn `continuityAuditService` (read-only, reusable)
-   into a scheduled maintenance job.
+2. **Surface the drift audit (small, optional).** `meta.last_continuity_audit` is now
+   recorded per instance but nothing reads it yet — an admin endpoint/list or a small
+   ops view could surface unhealthy worlds. (The on-demand
+   `GET /admin/instances/:id/continuity-audit` still exists for a fresh run.)
 3. **Deferred one-offs** — Phase 1 revision counters, Phase 2 memory→memory version
    links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only when there's a
    concrete consumer / real storage pressure.
