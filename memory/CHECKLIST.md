@@ -242,8 +242,14 @@ Supermemory-level story memory system.
       `2c4da86`: the context packet retrieves relevant distant summaries
       (concurrently with RAG) into a token-budgeted RELEVANT PAST CHAPTERS
       section.)
-- [ ] Add continuity audits comparing codex, memories, summaries, and graph
+- [x] Add continuity audits comparing codex, memories, summaries, and graph
       state.
+      (Server commit `541a458`. Read-only `continuityAuditService.audit()` with 8
+      cross-projection checks — event-sequence integrity, single-protagonist,
+      codex↔entity 1:1 linkage, memory/edge entity-ref resolution, summary bounds
+      + lingering staleness (scene/chapter/arc), time + location cursor sanity —
+      returning an ok/warn/fail report. `GET /admin/instances/:instanceId/
+      continuity-audit`. Service is reusable by a background drift job later.)
 - [ ] Add cold archival strategy only when storage pressure is real.
 
 ## Phase 10: Product Surfaces
