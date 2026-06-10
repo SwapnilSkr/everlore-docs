@@ -168,9 +168,16 @@ Supermemory-level story memory system.
       (`world_instances.current_location` stores the current location entity
       anchor; generation updates it from metadata when a turn establishes a
       concrete end-of-scene place, otherwise it carries the prior place.)
-- [ ] Add travel events.
-- [ ] Update calendar/story time during travel.
-- [ ] Store location state and permanent location facts.
+- [~] (IN PROGRESS) Add travel events.
+      (Extraction-driven: scene-metadata extractor emits travel{from,to};
+      a turn that moves the protagonist between concrete places becomes a
+      `travel` event.)
+- [~] (IN PROGRESS) Update calendar/story time during travel.
+      (Extractor emits in-world time elapsed; narrated time skips — travel or
+      otherwise — now advance the day-level calendar, not just explicit waits.)
+- [~] (IN PROGRESS) Store location state and permanent location facts.
+      (Location entities gain provenance-tracked current_state + permanent_facts,
+      applied from extraction, pruned on rewind/edit, surfaced in the journal.)
 - [x] Retrieve location memories when entering a place.
       (Events and memories now carry `location_anchor`; RAG fuses a current
       location memory arm with vector/keyword/entity/timeline retrieval.)
