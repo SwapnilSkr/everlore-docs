@@ -1,6 +1,7 @@
 # Everlore build — handoff
 
-_As of June 10 2026, post Phase 7 (server + app surface) + audit follow-up._
+_As of June 10 2026, post Phase 6B (travel + location state/facts) and Phase 7
+(server + app surface + audit follow-ups). Phases 1–10 are now substantively complete._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -70,6 +71,39 @@ gated separately by `origin:'side_chat'` / `known_by_entity_ids` in `queryRag`
 Recap/Echoes/Threads/Location read filters.
 
 ## State (what's done)
+- **Phase 6B (Travel + location state/facts) — COMPLETE.** Extraction-driven
+  (confirmed with the user), NOT an explicit travel action — it matches how
+  `scene_tag` / `present_characters` / `current_location` are already derived from
+  finished prose. Commits:
+  - `723d366` — **travel events + narrated time advances the calendar.** A player
+    turn whose resolved end-of-turn location differs from the prior cursor becomes a
+    `type:'travel'` event with `data.travel={from,to}` (detected server-side by
+    comparing locations — no model self-report). Travel is a MAIN-story event
+    (continue/wait ticks stay `calendar_tick`). The scene-metadata extractor emits
+    `time_elapsed`; on a real turn ANY narrated skip ("weeks passed") now advances
+    the day-level calendar via `data.time_advanced`, not just the explicit wait tick.
+    `advanceDays` parses `<amount> <unit>` (digits or worded numbers) across
+    day/week/month/season/year.
+  - `3e71e4b` — **location state + permanent facts.** Location entities carry
+    provenance-tracked `location_state` (mutable condition, ring-capped) +
+    `location_facts` (enduring canon, append-bounded), each a
+    `LocationFactDoc{text,source_event_id,source_sequence,created_at}`, applied by
+    `entityGraphService.applyLocationFacts` from the extractor's
+    `location_state_changes` / `location_permanent_facts`. **Event-sourced and
+    rewind-safe:** rewind range-prunes `source_sequence>=seq` (inline in
+    `repairAfterRewind`), edit/replay prunes by `source_event_id`
+    (`pruneLocationFactsByEvents`, called in `recurateMemoriesForEvent`). reset/delete
+    need no change (facts live on the entity; `deleteInstanceData` drops it). Surfaced
+    in the prompt's CURRENT LOCATION section + the place journal
+    (`permanent_facts` / `current_state`); app journal screen renders them
+    (`everlore@c8cd9a1`).
+  - **Verified:** tsc clean (both server commits); `flutter analyze lib/features/chronicle`
+    clean; rewind-audit 27/27 unbroken; throwaway location-facts smoke 8/8
+    (apply/provenance/dedup/edit-prune/rewind-prune), then deleted.
+  - **Known gap (honest):** the new extractor fields (`time_elapsed`, travel-via-location,
+    `location_*_changes`) are schema/prompt-correct + apply-path-tested but never run
+    against a live generated turn. No dedicated "you traveled" marker in the
+    Almanac/Timeline UI yet (travel surfaces as a time-jump + journal facts).
 - **Phase 7 (Side-Character Chats) — SERVER + APP SURFACE COMPLETE, audited.** Commits:
   - `e07a6b6` — `side_chat` event type; shared ledger/sequence; streamed in-character
     reply built from the codex card; **story time does not advance**. Excluded from
@@ -114,15 +148,23 @@ Recap/Echoes/Threads/Location read filters.
   BM25).
 
 ## Next (recommended order)
-1. **Live Phase 7 verification (RECOMMENDED).** Start server + worker + app, open
-   Bonds → private chat, send one message, and verify: streamed reply arrives,
-   REST thread reload shows it, codex update/memory curation don't leak into main
-   Lore Tome tabs, and the server logs show the side-chat curation path ran.
-2. **Phase 6B — travel** (travel events, travel-time calendar effects, permanent
-   location state/facts).
-3. Small: turn `continuityAuditService` into a scheduled background drift-detection
-   job (the service is already reusable).
-4. Deferred one-offs + Phase 9 cold archival — only when actually needed.
+Phases 1–10 are now substantively complete (6B + 7 finished this stretch). What
+remains is polish, maintenance, and deferred one-offs:
+1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
+   code-correct but never run against a real generated turn. Start server + worker +
+   app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload
+   shows it, and side-chat curation doesn't leak into the main Lore Tome tabs;
+   **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
+   the calendar date, and records `location_state` / `location_facts` on the place
+   (visible in the journal).
+2. **Travel UI marker (small).** Travel exists structurally but is only visible as a
+   time-jump + journal facts. A "⤳ traveled to X" marker in the Almanac dated-events
+   list and/or the main Chronicle Timeline would make it legible. Cheap, additive.
+3. **Background drift detection.** Turn `continuityAuditService` (read-only, reusable)
+   into a scheduled maintenance job.
+4. **Deferred one-offs** — Phase 1 revision counters, Phase 2 memory→memory version
+   links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only when there's a
+   concrete consumer / real storage pressure.
 
 _Micro-opt noted, not done: 2 embeds/turn (queryRag + querySummaries run in parallel)
 — could have queryRag expose its embedding to embed once._
