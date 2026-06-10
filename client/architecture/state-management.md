@@ -107,36 +107,13 @@ All 5 `StreamSubscription`s are cancelled in `close()`.
 
 **File:** `lib/features/chronicle/state/chronicle_cubit.dart`
 
-**State:** `ChronicleState`
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `events` | `List<GameEvent>` | `[]` | Paginated event timeline |
-| `memories` | `List<Memory>` | `[]` | Memories for the instance |
-| `isLoading` | `bool` | `false` | Loading indicator |
-| `error` | `String?` | `null` | Error message |
-| `activeTab` | `ChronicleTab` | `timeline` | Current tab (timeline/memories) |
-| `totalEvents` | `int` | `0` | Total event count for pagination |
-| `currentPage` | `int` | `1` | Current pagination page |
+**Tabs (`ChronicleTab`):** `recap`, `timeline`, `echoes`, `almanac`, `places`, `bonds`, `threads` — default **recap**.
 
-**Methods:**
-| Method | Description |
-|--------|-------------|
-| `loadEvents({page})` | Fetches paginated events from API |
-| `loadMemories({includeArchived})` | Fetches memories from API |
-| `editMemory(id, text, {type, importance})` | Edits a memory, updates local state |
-| `deleteMemory(id)` | Deletes a memory, removes from local state |
-| `editEvent(id, {aiResponse, playerInput})` | Edits an event, reloads page |
-| `switchTab(tab)` | Switches tab, lazy-loads data |
+**State highlights:** Per-tab lazy-loaded data (`recap`, `events`, `memories`, `calendar`, `locations`, `bonds`, `threads`), Echoes filter params, loading/error.
 
-**Tab Lazy Loading:**
-When switching tabs, data is only loaded if the target list is empty:
-```dart
-void switchTab(ChronicleTab tab) {
-  emit(state.copyWith(activeTab: tab));
-  if (tab == ChronicleTab.timeline && state.events.isEmpty) loadEvents();
-  else if (tab == ChronicleTab.memories && state.memories.isEmpty) loadMemories();
-}
-```
+**Methods:** `loadRecap`, `loadEvents`, `loadMemories`, `loadCalendar`, `loadLocations`, `loadBonds`, `loadThreads`, `setMemoryFilters`, `editMemory`, `deleteMemory`, `editEvent`, `switchTab` (lazy-loads missing tab data).
+
+See [chronicle-feature.md](../features/chronicle-feature.md).
 
 ---
 

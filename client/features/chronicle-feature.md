@@ -1,20 +1,38 @@
-# Chronicle Feature
+# Chronicle Feature (Lore Tome)
 
-The Chronicle feature provides a historical view of game events and curated memories for a specific world instance. It has two tabs: **Timeline** (event history) and **Memories** (AI-curated memory browser).
+The **Lore Tome** is the player's library over their story: seven tabs plus drill-down screens for places, character memories, and private side chats.
+
+**Route:** `/chronicle/:instanceId`  
+**See also:** [../../system-guide/04-frontend-where-things-live.md](../../system-guide/04-frontend-where-things-live.md)
 
 ---
 
-## File Structure
+## File structure
 
 ```
 features/chronicle/
 ├── data/
-│   └── chronicle_repository.dart
+│   ├── chronicle_repository.dart   # REST API client
+│   ├── calendar_data.dart
+│   ├── location_journal.dart
+│   ├── relationship_ledger.dart
+│   ├── recap_data.dart
+│   ├── side_chat_data.dart
+│   └── threads_data.dart
 ├── presentation/
-│   ├── chronicle_screen.dart
+│   ├── chronicle_screen.dart       # Tab shell
+│   ├── location_journal_screen.dart
+│   ├── character_memory_screen.dart
+│   ├── side_chat_screen.dart
 │   └── widgets/
-│       ├── edit_dialog.dart
-│       └── memory_card.dart
+│       ├── recap_view.dart
+│       ├── almanac_view.dart
+│       ├── places_view.dart
+│       ├── bonds_view.dart
+│       ├── threads_view.dart
+│       ├── echoes_filter_bar.dart
+│       ├── memory_card.dart
+│       └── edit_dialog.dart
 └── state/
     └── chronicle_cubit.dart
 ```
@@ -23,144 +41,72 @@ features/chronicle/
 
 ## ChronicleScreen
 
-**File:** `lib/features/chronicle/presentation/chronicle_screen.dart`
+Opens on **Recap** tab; calls `loadRecap()` on create.
 
-Route: `/chronicle/:instanceId`
+### Seven tabs (horizontal scroll)
 
-### State Management
-- Provided with `BlocProvider<ChronicleCubit>` at the widget level
-- Calls `loadEvents()` on creation
-- Uses `BlocBuilder` for UI rebuilds
+| Tab | Widget | Loads on first visit | API |
+|-----|--------|----------------------|-----|
+| **Recap** | `RecapView` | Default | `GET /chronicle/recap/:id` |
+| **Timeline** | `NarrativeBubble` list | If events empty | `GET /chronicle/events/:id` |
+| **Echoes** | `MemoryCard` + filters | If memories empty | `GET /chronicle/memories/:id` |
+| **Almanac** | `AlmanacView` | If calendar null | `GET /chronicle/calendar/:id` |
+| **Places** | `PlacesView` | If locations null | `GET /chronicle/locations/:id` |
+| **Bonds** | `BondsView` | If bonds null | `GET /chronicle/relationships/:id` |
+| **Threads** | `ThreadsView` | If threads null | `GET /chronicle/threads/:id` |
 
-### Layout
-
-```
-┌────────────────────────────────────┐
-│ AppBar: "Chronicle" title          │
-├────────────────────────────────────┤
-│ [Timeline]  [Memories]  ← Tab bar  │
-├────────────────────────────────────┤
-│                                    │
-│  Tab content (ListView)            │
-│                                    │
-└────────────────────────────────────┘
-```
-
-### Tab Navigation
-Custom tab buttons in the AppBar's `bottom` slot. Active tab has a purple bottom border. Tapping switches tab and lazy-loads data.
-
-| Tab | Content | Data Source |
-|-----|---------|-------------|
-| Timeline | `NarrativeBubble` list (reused from Play) | `ChronicleRepository.getEvents()` |
-| Memories | `MemoryCard` list | `ChronicleRepository.getMemories()` |
-
-### Empty States
-- Timeline empty: "No events yet" centered text
-- Memories empty: "No memories yet" centered text
+Tab switches call `ChronicleCubit.switchTab()` which lazy-loads missing data.
 
 ---
 
-## MemoryCard
+## Drill-down screens
 
-**File:** `lib/features/chronicle/presentation/widgets/memory_card.dart`
+| Screen | Entry | API |
+|--------|-------|-----|
+| `LocationJournalScreen` | Tap place in Places tab | `GET /chronicle/locations/:id/:locationEntityId` |
+| `CharacterMemoryScreen` | Tap bond card | `GET /chronicle/relationships/:id/:charId/memories` |
+| `SideChatScreen` | Private chat icon on bond card | REST history + WS `side_chat` |
 
-Displays a single `Memory` with its type, importance rating, text content, and action buttons.
-
-### Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `memory` | `Memory` | Memory data |
-| `onEdit` | `VoidCallback?` | Opens edit dialog |
-| `onDelete` | `VoidCallback?` | Shows delete confirmation |
-
-### Layout
-
-```
-┌────────────────────────────────────────┐
-│ [relationship] ★★★★★    [✏️] [🗑️]     │  ← Type badge + importance + actions
-│                                        │
-│ "The blacksmith swore an oath to..."   │  ← Memory text
-│                                        │
-│ (Archived)                             │  ← If archived
-└────────────────────────────────────────┘
-```
-
-### Memory Type Colors
-
-| Type | Color |
-|------|-------|
-| `relationship` | `Colors.pinkAccent` |
-| `promise` | `Colors.amberAccent` |
-| `lore` | `Colors.cyanAccent` |
-| `observation` | `Colors.blueAccent` |
-| `emotion` | `Colors.purpleAccent` |
-| `secret` | `Colors.redAccent` |
-| (default) | `Colors.grey` |
-
-### Importance Display
-Renders `memory.importance` number of star icons (★).
-
-### Delete Confirmation
-Shows an `AlertDialog` with "Cancel" and "Delete" options. The dialog warns "This memory will be permanently forgotten."
+Side chat is **not** in the main Timeline — separate thread surface.
 
 ---
 
-## EditMemoryDialog
+## Echoes tab
 
-**File:** `lib/features/chronicle/presentation/widgets/edit_dialog.dart`
-
-A dialog for editing a memory's text, type, and importance.
-
-### Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `initialText` | `String` | Current memory text |
-| `initialType` | `String` | Current memory type |
-| `initialImportance` | `int` | Current importance (1-5) |
-
-### Form Fields
-
-| Field | Widget | Options/Range |
-|-------|--------|---------------|
-| Text | `TextField` (4 lines max) | Free text |
-| Type | `DropdownButtonFormField<String>` | `relationship`, `promise`, `lore`, `observation`, `emotion`, `secret` |
-| Importance | `Slider` | 1-5, integer steps |
-
-### Return Value
-On "Save", pops with `Map<String, dynamic>`:
-```dart
-{ 'text': 'Updated text', 'type': 'lore', 'importance': 4 }
-```
-On "Cancel", pops with `null`.
+- **Search** — submit triggers `q` param (full-text on server)
+- **Filter chips** — Unresolved, Important (≥4), memory types
+- **Edit/delete** — `EditMemoryDialog` → `PUT/DELETE /chronicle/memory/:id`
 
 ---
 
 ## ChronicleRepository
 
-**File:** `lib/features/chronicle/data/chronicle_repository.dart`
+All Chronicle REST calls. Key methods:
 
-### Methods
-
-| Method | API Call | Returns | Description |
-|--------|----------|---------|-------------|
-| `getEvents(instanceId, {page, limit, type})` | `GET /chronicle/events/:instanceId?page=N&limit=N` | `Map` with `events`, `total`, `page` | Paginated event list |
-| `getMemories(instanceId, {includeArchived})` | `GET /chronicle/memories/:instanceId?include_archived=false` | `List<Memory>` | Memory list |
-| `editMemory(memoryId, {text, type, importance})` | `PUT /chronicle/memory/:id` | `void` | Updates memory fields |
-| `deleteMemory(memoryId)` | `DELETE /chronicle/memory/:id` | `void` | Permanently deletes memory |
-| `editEvent(eventId, {aiResponse, playerInput})` | `PUT /chronicle/event/:id` | `void` | Edits event narrative or input |
+| Method | Endpoint |
+|--------|----------|
+| `getEvents` | `/chronicle/events/:instanceId` |
+| `getMemories` | `/chronicle/memories/:instanceId` |
+| `getRecap` | `/chronicle/recap/:instanceId` |
+| `getThreads` | `/chronicle/threads/:instanceId` |
+| `getRelationships` | `/chronicle/relationships/:instanceId` |
+| `getCharacterMemories` | `/chronicle/relationships/:id/:charId/memories` |
+| `getLocations` / `getLocationJournal` | `/chronicle/locations/...` |
+| `getCalendar` / `setActiveTimeline` | `/chronicle/calendar/...` |
+| `getSideChatThread` | `/chronicle/side-chats/...` |
+| `rewind` | `POST /chronicle/rewind/:instanceId` |
+| `editEvent` / `editMemory` / `editCharacter` | PUT routes |
 
 ---
 
 ## ChronicleCubit
 
-**File:** `lib/features/chronicle/state/chronicle_cubit.dart`
+- **Lazy loading** per tab — avoids fetching all seven surfaces at once
+- **Optimistic** memory edit/delete in Echoes
+- **Filter state** for Echoes (`setMemoryFilters` → reload with query params)
 
-See [State Management docs](../architecture/state-management.md#chroniclecubit) for full details.
+---
 
-### Key Behaviors
-- **Tab switching** is lazy — only loads data when the target list is empty
-- **Memory editing** optimistically updates the local list via `map()` instead of re-fetching
-- **Memory deletion** optimistically removes from local list
-- **Event editing** re-fetches the current page to get server-confirmed data
+## Privacy note
+
+Timeline, Echoes, Recap, Threads, Places, and Calendar show **main-story** data only. Side-chat content appears only in `SideChatScreen`. Server enforces this; client relies on correct endpoints.
