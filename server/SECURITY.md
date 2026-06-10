@@ -36,7 +36,7 @@ This document outlines security considerations, best practices, and implementati
 **Token Payload**:
 ```typescript
 {
-  id: string        // User ID (usr_*)
+  id: string        // User ID (Mongo ObjectId hex)
   email: string     // User email
   username: string  // Username
   tier: string      // free/premium/creator

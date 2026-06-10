@@ -1,4 +1,8 @@
-# Everlore Server - API Documentation
+# Everlore Server — API Documentation
+
+> **Schema reference:** [SCHEMAS.md](./SCHEMAS.md) — canonical field names and JSON shapes from the TypeScript models.  
+> IDs are 24-char MongoDB **ObjectId** hex strings (`674a1b2c3d4e5f6071829301`), not prefixed strings.  
+> For product behavior, see [../system-guide/](../system-guide/README.md). For every route file, see [../code-reference/SERVER.md](../code-reference/SERVER.md).
 
 ## Base URL
 
@@ -81,8 +85,9 @@ Register a new user account.
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {
-    "id": "usr_a1b2c3d4e5f6",
+    "id": "674a1b2c3d4e5f6071829301",
     "email": "user@example.com",
+    "phone": null,
     "username": "player123",
     "tier": "free",
     "preferences": {
@@ -91,7 +96,8 @@ Register a new user account.
       "theme": "dark",
       "narration_length": "detailed",
       "auto_memory_curation": true
-    }
+    },
+    "token_balance": 15000
   }
 }
 ```
@@ -190,27 +196,7 @@ Verify an SMS code and exchange it for the Everlore JWT.
 }
 ```
 
-**Response:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "usr_a1b2c3d4e5f6",
-    "email": "",
-    "phone": "+15551234567",
-    "username": "15551234567_lmn123",
-    "tier": "free",
-    "preferences": {
-      "nsfw_enabled": false,
-      "preferred_model": "gpt-4o",
-      "theme": "dark",
-      "narration_length": "detailed",
-      "auto_memory_curation": true
-    },
-    "token_balance": 15000
-  }
-}
-```
+**Response:** Same shape as `/auth/register` (includes `phone`, `token_balance`).
 
 **Rate Limiting:** 10 requests per 10 minutes per phone number
 
@@ -226,24 +212,7 @@ Get current user profile.
 
 **Headers:** `Authorization: Bearer {token}`
 
-**Response:**
-```json
-{
-  "id": "usr_a1b2c3d4e5f6",
-  "email": "user@example.com",
-  "phone": null,
-  "username": "player123",
-  "tier": "free",
-  "preferences": {
-    "nsfw_enabled": false,
-    "preferred_model": "gpt-4o",
-    "theme": "dark",
-    "narration_length": "detailed",
-    "auto_memory_curation": true
-  },
-  "token_balance": 15000
-}
-```
+**Response:** `serializeUser` shape — see [SCHEMAS.md](./SCHEMAS.md#auth-api-shape-serializeuser).
 
 ---
 
@@ -260,12 +229,17 @@ Update user preferences.
   "preferred_model": "gpt-4o-mini",
   "theme": "light",
   "narration_length": "verbose",
-  "auto_memory_curation": false
+  "auto_memory_curation": false,
+  "player_name": "Aria",
+  "gender": "female",
+  "interests": ["fantasy", "romance"]
 }
 ```
 
 **Validation:**
-- `narration_length`: Must be 'concise', 'detailed', or 'verbose'
+- `narration_length`: `"concise"` | `"detailed"` | `"verbose"`
+- `gender`: `"male"` | `"female"` | `"non_binary"`
+- `player_name`: 2–40 characters
 
 **Response:**
 ```json
@@ -290,8 +264,8 @@ List published templates (public).
 {
   "templates": [
     {
-      "_id": "tpl_g7h8i9j0k1l2",
-      "creator_id": "usr_xxx",
+      "_id": "674a1b2c3d4e5f6071829302",
+      "creator_id": "674a1b2c3d4e5f6071829301",
       "title": "Mystic Academy",
       "slug": "mystic-academy",
       "description": "A magical school adventure...",
@@ -454,10 +428,10 @@ List current user's instances.
 {
   "instances": [
     {
-      "_id": "inst_m3n4o5p6q7r8",
-      "template_id": "tpl_g7h8i9j0k1l2",
+      "_id": "674a1b2c3d4e5f6071829303",
+      "template_id": "674a1b2c3d4e5f6071829302",
       "template_version": 1,
-      "player_id": "usr_a1b2c3d4e5f6",
+      "player_id": "674a1b2c3d4e5f6071829301",
       "world_state": {
         "health": 85,
         "sanity": 92
@@ -471,15 +445,22 @@ List current user's instances.
         "turn_count": 7,
         "summary_pending": false
       },
+      "narration_pov": "third",
+      "mode": "free_play",
+      "message_length": "medium",
+      "focus_character_id": null,
+      "current_time_anchor": null,
+      "current_location": null,
       "meta": {
         "total_events": 42,
         "total_memories": 15,
         "total_tokens_consumed": 150000,
         "last_active_at": "2025-01-15T10:30:00Z",
-        "is_archived": false
+        "is_archived": false,
+        "milestones": []
       },
       "template": {
-        "_id": "tpl_g7h8i9j0k1l2",
+        "_id": "674a1b2c3d4e5f6071829302",
         "title": "Space Station Omega",
         "is_sentient": false,
         "description": "A sci-fi survival horror..."
@@ -490,6 +471,29 @@ List current user's instances.
   ]
 }
 ```
+
+Full field list: [SCHEMAS.md — World instance](./SCHEMAS.md#world-instance).
+
+#### PATCH /instances/:id/settings
+
+Update per-instance play settings.
+
+**Body:** (all optional)
+```json
+{
+  "narration_pov": "first",
+  "mode": "free_play",
+  "message_length": "short",
+  "focus_character_id": "674a1b2c3d4e5f6071829306",
+  "persona_id": null
+}
+```
+
+| Field | Values |
+|-------|--------|
+| `narration_pov` | `"first"` \| `"third"` |
+| `message_length` | `"short"` \| `"medium"` \| `"long"` |
+| `focus_character_id` | ObjectId or `null` |
 
 ---
 
@@ -508,7 +512,7 @@ Create new instance from template.
 **Body:**
 ```json
 {
-  "template_id": "tpl_g7h8i9j0k1l2"
+  "template_id": "674a1b2c3d4e5f6071829302"
 }
 ```
 
@@ -547,57 +551,108 @@ Archive (soft-delete) an instance.
 
 ### Chronicle Routes (`/chronicle`)
 
+All routes require auth. Ownership verified via `world_instances` (`player_id` match).
+
+#### Read surfaces (Lore Tome)
+
+| Method | Path | Purpose | Key query params |
+|--------|------|---------|------------------|
+| GET | `/chronicle/events/:instanceId` | Timeline tab | `page`, `limit`, `type` — excludes `side_chat` |
+| GET | `/chronicle/memories/:instanceId` | Echoes tab | `q` (full-text), `type`, `min_importance`, `unresolved`, `include_archived` |
+| GET | `/chronicle/recap/:instanceId` | Recap landing | — |
+| GET | `/chronicle/threads/:instanceId` | Threads tab | open + recently resolved |
+| GET | `/chronicle/relationships/:instanceId` | Bonds tab | codex meters + narrative edges |
+| GET | `/chronicle/relationships/:instanceId/:characterId/memories` | Character memory view | entity-linked memories |
+| GET | `/chronicle/locations/:instanceId` | Places index | current location pinned first |
+| GET | `/chronicle/locations/:instanceId/:locationEntityId` | Place journal | facts, state, events, memories |
+| GET | `/chronicle/calendar/:instanceId` | Almanac | calendars, timelines, dated events |
+| GET | `/chronicle/side-chats/:instanceId` | Side chat thread list | per-character aggregates |
+| GET | `/chronicle/side-chats/:instanceId/:characterId` | One side-chat thread | paginated turns |
+
+#### Calendar / timeline mutations
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/chronicle/calendar/:instanceId/timeline` | Fork a new timeline branch |
+| PUT | `/chronicle/calendar/:instanceId/timeline/active` | Switch active reality |
+| PUT | `/chronicle/calendar/event/:eventId/time-anchor` | Flashback: change story date without changing sequence |
+
+#### Player edits & rollback
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| PUT | `/chronicle/memory/:memoryId` | Edit memory (re-embeds vector) |
+| DELETE | `/chronicle/memory/:memoryId` | Delete memory + vector |
+| PUT | `/chronicle/event/:eventId` | Edit turn → re-curates memories, stales summaries |
+| PUT | `/chronicle/character/:characterId` | Edit codex card → may supersede memories |
+| POST | `/chronicle/replay/:eventId` | Generate replay variants (also via WS) |
+| POST | `/chronicle/replay/select/:eventId` | Commit a replay variant |
+| POST | `/chronicle/rewind/:instanceId` | Roll back to sequence — body: `{ "sequence": N }` |
+
 #### GET /chronicle/events/:instanceId
 
-Get event history for an instance.
+Paginated main-story event history (oldest first). Excludes `side_chat`.
 
-**Query Parameters:**
-- `page` (number, optional): Default 1
-- `limit` (number, optional): Default 50
-- `type` (string, optional): Filter by event type
+**Query:** `page` (default 1), `limit` (default 50), optional `type` filter (ignored if `side_chat`).
 
 **Response:**
 ```json
 {
-  "events": [
-    {
-      "_id": "evt_s9t0u1v2w3x4",
-      "instance_id": "inst_m3n4o5p6q7r8",
-      "player_id": "usr_a1b2c3d4e5f6",
-      "sequence": 42,
-      "type": "narration",
-      "scene_tag": "exploration",
-      "data": {
-        "player_input": "I search the room for clues",
-        "ai_response": "You find a datapad...",
-        "state_mutations": {},
-        "flag_mutations": {},
-        "model_used": "gpt-4o",
-        "tokens_in": 2500,
-        "tokens_out": 400
-      },
-      "is_user_edited": false,
-      "edit_history": [],
-      "created_at": "2025-01-15T10:30:00Z"
-    }
-  ],
+  "events": [ …WorldEventDoc[], oldest first within page… ],
   "total": 42,
   "page": 1
 }
 ```
 
-**Note:** Events returned in chronological order (oldest first).
+See [SCHEMAS.md — World event](./SCHEMAS.md#world-event).
+
+---
+
+#### GET /chronicle/recap/:instanceId
+
+Deterministic "Story so far" card — no LLM call.
+
+**Response:** See [SCHEMAS.md — recap](./SCHEMAS.md#get-chroniclerecapinstanceid).
+
+---
+
+#### GET /chronicle/threads/:instanceId
+
+Open and recently resolved promise/conflict threads.
+
+**Response:** `{ "open": [...], "resolved": [...] }` — shaped memory rows.
+
+---
+
+#### GET /chronicle/relationships/:instanceId
+
+Bond ledger: codex meters + narrative edge moments.
+
+**Response:** See [SCHEMAS.md — relationships](./SCHEMAS.md#get-chroniclerelationshipsinstanceid).
+
+---
+
+#### GET /chronicle/locations/:instanceId
+
+Places index with current location pinned.
+
+**Response:** See [SCHEMAS.md — locations](./SCHEMAS.md#get-chroniclerocationsinstanceid).
+
+---
+
+#### GET /chronicle/side-chats/:instanceId
+
+One row per character with side-chat history.
+
+**Response:** See [SCHEMAS.md — side chats](./SCHEMAS.md#get-chronicleside-chatsinstanceid).
 
 ---
 
 #### GET /chronicle/memories/:instanceId
 
-Get memories for an instance.
+Main-story-visible memories. Supports Echoes search/filters.
 
-**Query Parameters:**
-- `include_archived` (boolean, optional): Include archived memories
-
-**Response:** Array of memory objects
+**Query:** `q`, `type`, `min_importance`, `unresolved`, `include_archived`
 
 ---
 
@@ -666,6 +721,8 @@ Edit an event.
 
 ## WebSocket Protocol
 
+Full message catalog: [SCHEMAS.md — WebSocket](./SCHEMAS.md#websocket--client--server).
+
 ### Connection
 
 ```
@@ -678,177 +735,191 @@ Token must be provided as query parameter (not header).
 
 1. Client connects with token
 2. Server validates JWT
-3. Server subscribes to `user:{userId}:events` Redis channel
-4. Server sends: `{ "type": "connected", "userId": "usr_xxx" }`
+3. Server subscribes to `user:{userId}:events` Redis channel (first socket only)
+4. Server sends: `{ "type": "connected", "userId": "674a1b2c3d4e5f6071829301" }`
 
 ### Client → Server Messages
 
-All messages follow this structure:
+All messages use this envelope:
 
-```json
-{
-  "action": "chat" | "ping" | "load_instance",
-  "instance_id": "inst_xxx",  // Required for most actions
-  "payload": { ... }          // Action-specific data
-}
-```
-
-#### Action: `chat`
-
-Send a message to the AI.
-
-**Request:**
 ```json
 {
   "action": "chat",
-  "instance_id": "inst_m3n4o5p6q7r8",
-  "payload": {
-    "message": "I examine the strange device"
-  }
+  "instance_id": "674a1b2c3d4e5f6071829303",
+  "event_id": "674a1b2c3d4e5f6071829304",
+  "payload": { }
 }
 ```
 
-**Validation:**
-- Message: 1-4000 characters
-- Rate limit: 10 per minute
+| Action | Required | Payload |
+|--------|----------|---------|
+| `chat` | `instance_id` | `{ "message": "…" }` — 1–4000 chars |
+| `continue` | `instance_id` | `{ "advance"?: "hours" \| "day" \| "days" \| "season" }` — world advances without player input |
+| `side_chat` | `instance_id` | `{ "character_id": "…", "message": "…" }` — private character thread |
+| `replay` | `instance_id`, `event_id` | — streams alternative turn |
+| `load_instance` | `instance_id` | — hydrates play screen |
+| `ping` | — | keepalive |
 
-**Immediate Response:**
+On successful dispatch, server immediately sends:
+
 ```json
-{ "type": "ack", "jobId": "bull:generation:123" }
+{ "type": "ack", "jobId": "42" }
 ```
 
-**Error Cases:**
+**Error cases:**
 ```json
+{ "type": "error", "message": "Invalid message" }
 { "type": "error", "code": "RATE_LIMITED", "retryAfter": 45 }
 { "type": "error", "code": "GENERATION_IN_PROGRESS" }
-{ "type": "error", "message": "Invalid message" }
 ```
 
-**Async Response** (when generation completes):
-```json
-{
-  "type": "generation_complete",
-  "instanceId": "inst_m3n4o5p6q7r8",
-  "event": {
-    "id": "evt_s9t0u1v2w3x4",
-    "sequence": 43,
-    "narrative": "The device pulses with an eerie blue light...",
-    "scene_tag": "exploration",
-    "emotional_tone": "curious",
-    "state_diff": {
-      "world_state": { "health": 85, "sanity": 90 },
-      "active_flags": { "has_weapon": true, "doors_unlocked": 3 }
-    }
-  }
-}
-```
-
----
-
-#### Action: `load_instance`
-
-Load full instance state.
-
-**Request:**
-```json
-{
-  "action": "load_instance",
-  "instance_id": "inst_m3n4o5p6q7r8"
-}
-```
-
-**Response:**
-```json
-{
-  "type": "instance_loaded",
-  "data": {
-    "instance": { ... },
-    "template": { ... },
-    "recentEvents": [ ... ],
-    "memories": [ ... ]
-  }
-}
-```
-
----
-
-#### Action: `ping`
-
-Keep connection alive.
-
-**Request:**
-```json
-{
-  "action": "ping"
-}
-```
-
-**Response:**
-```json
-{ "type": "pong" }
-```
+Rate limit: 10 chat-class actions per minute per user.
 
 ---
 
 ### Server → Client Events
 
-Events are pushed via Redis pub/sub and sent to all connected WebSockets for the user.
+Relayed verbatim from Redis pub/sub to all open sockets for the user.
+
+#### Main story streaming
+
+```json
+{ "type": "generation_delta", "instanceId": "674a1b2c3d4e5f6071829303", "delta": "The " }
+{ "type": "generation_stream_end", "instanceId": "674a1b2c3d4e5f6071829303", "narrative": "…full prose…" }
+```
 
 #### `generation_complete`
-
-AI response is ready.
 
 ```json
 {
   "type": "generation_complete",
-  "instanceId": "inst_xxx",
+  "instanceId": "674a1b2c3d4e5f6071829303",
   "event": {
-    "id": "evt_xxx",
+    "id": "674a1b2c3d4e5f6071829304",
     "sequence": 43,
-    "narrative": "...",
-    "scene_tag": "dialogue",
-    "emotional_tone": "warm",
+    "narrative": "The device pulses with an eerie blue light…",
+    "scene_tag": "exploration",
+    "emotional_tone": "curious",
+    "model_used": "gpt-4o",
+    "choices": [
+      { "label": "Touch it", "kind": "act", "send": "*I reach out to touch it*" }
+    ],
+    "milestone": null,
+    "present_characters": ["Mira"],
+    "time_advanced": null,
+    "time_anchor": { "sequence": 43, "timeline_id": "main", "…": "…" },
+    "location_anchor": { "entity_id": "674a1b2c3d4e5f6071829308", "name": "The Rusty Anchor", "name_normalized": "the rusty anchor" },
+    "fate_thread": null,
+    "event_type": "narration",
     "state_diff": {
-      "world_state": { ... },
-      "active_flags": { ... }
+      "world_state": { "health": 85, "sanity": 90 },
+      "active_flags": { "has_weapon": true }
     }
   }
 }
 ```
 
----
-
 #### `generation_failed`
 
-Generation job failed permanently (after retries).
+Permanent job failure (after retries):
 
 ```json
 {
   "type": "generation_failed",
-  "instanceId": "inst_xxx",
+  "instanceId": "674a1b2c3d4e5f6071829303",
   "message": "The world could not respond. Please try again."
 }
 ```
 
----
+#### Side chat
 
-#### `memories_curated`
+```json
+{ "type": "side_chat_delta", "instanceId": "…", "characterId": "674a1b2c3d4e5f6071829306", "delta": "…" }
+```
 
-New memories extracted from conversation.
+```json
+{
+  "type": "side_chat_complete",
+  "instanceId": "674a1b2c3d4e5f6071829303",
+  "character": { "id": "674a1b2c3d4e5f6071829306", "name": "Mira" },
+  "event": {
+    "id": "674a1b2c3d4e5f6071829304",
+    "sequence": 44,
+    "player_input": "What do you know about the device?",
+    "narrative": "…",
+    "model_used": "gpt-4o",
+    "created_at": "2025-01-15T10:31:00.000Z"
+  }
+}
+```
+
+#### Replay
+
+```json
+{ "type": "replay_delta", "instanceId": "…", "eventId": "…", "delta": "…" }
+```
+
+```json
+{
+  "type": "replay_complete",
+  "instanceId": "674a1b2c3d4e5f6071829303",
+  "eventId": "674a1b2c3d4e5f6071829304",
+  "narrative": "…",
+  "selected_index": 1,
+  "variants": [{ "id": "v1", "narrative": "…", "model_used": "gpt-4o", "created_at": "…" }]
+}
+```
+
+#### Post-turn projections
 
 ```json
 {
   "type": "memories_curated",
-  "instanceId": "inst_xxx",
+  "instanceId": "674a1b2c3d4e5f6071829303",
   "memories": [
-    {
-      "id": "mem_xxx",
-      "text": "The player showed kindness to the wounded guard",
-      "type": "observation",
-      "importance": 3
-    }
+    { "id": "674a1b2c3d4e5f6071829305", "text": "The player showed kindness…", "type": "observation", "importance": 3 }
   ]
 }
+```
+
+```json
+{
+  "type": "character_codex_updated",
+  "instanceId": "674a1b2c3d4e5f6071829303",
+  "focused_character_id": null,
+  "characters": [ …full codex cards… ]
+}
+```
+
+```json
+{
+  "type": "milestone_unlocked",
+  "instanceId": "674a1b2c3d4e5f6071829303",
+  "milestone": { "label": "First blood", "sequence": 43 }
+}
+```
+
+#### `instance_loaded`
+
+```json
+{
+  "type": "instance_loaded",
+  "data": {
+    "instance": { …WorldInstanceDoc… },
+    "template": { …WorldTemplateDoc or null… },
+    "recentEvents": [ …main story only, no side_chat… ],
+    "memories": [ …top 20 by importance… ],
+    "characters": [ …top 30 codex cards… ],
+    "eventWindow": { "limit": 30, "total": 42, "hasOlder": true }
+  }
+}
+```
+
+#### Other
+
+```json
+{ "type": "pong" }
+{ "type": "account_deleted" }
 ```
 
 ---

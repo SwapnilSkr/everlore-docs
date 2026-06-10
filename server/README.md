@@ -1,176 +1,80 @@
-# Everlore Documentation
+# Everlore Server Documentation
 
-Complete architecture documentation for the Everlore AI narrative platform — covering both the server backend and the Flutter frontend client.
+Backend docs for the Bun/Elysia API + BullMQ workers.
 
----
-
-## Server Documentation
-
-### Core Architecture
-
-| Document | Description |
-|----------|-------------|
-| [OVERVIEW.md](OVERVIEW.md) | High-level system architecture, component overview, and design decisions |
-| [DATA_MODEL.md](DATA_MODEL.md) | Database schemas, collections, indexes, and data flow |
-| [SERVICES.md](SERVICES.md) | Service layer architecture and business logic |
-| [WORKERS.md](WORKERS.md) | Background job processors and queue system |
-| [MEMORY_ARCHITECTURE.md](MEMORY_ARCHITECTURE.md) | Codex, memories, scene summaries: how context stays bounded & accurate over 10k+ turns |
-| [SFW_MODELS.md](SFW_MODELS.md) | SFW (default) narration model, OpenRouter candidates/alternatives for quality prose, and how to test & switch them |
-| [NSFW_MODELS.md](NSFW_MODELS.md) | NSFW narration routing, OpenRouter model candidates/alternatives, and how to test & switch them |
-
-### API & Integration
-
-| Document | Description |
-|----------|-------------|
-| [API.md](API.md) | HTTP endpoints, WebSocket protocol, and request/response formats |
-
-### Operations
-
-| Document | Description |
-|----------|-------------|
-| [INFRASTRUCTURE.md](INFRASTRUCTURE.md) | Deployment options, scaling, and infrastructure setup |
-| [CONFIGURATION.md](CONFIGURATION.md) | Environment variables, feature flags, and configuration |
-| [SECURITY.md](SECURITY.md) | Security considerations, authentication, and best practices |
+**Start here for the memory system:** [../system-guide/README.md](../system-guide/README.md)  
+**File-by-file code reference:** [../code-reference/SERVER.md](../code-reference/SERVER.md)
 
 ---
 
-## Frontend Documentation (Flutter Client)
-
-### Architecture
+## Core architecture
 
 | Document | Description |
 |----------|-------------|
-| [architecture/overview.md](architecture/overview.md) | Tech stack, directory structure, data flow, design decisions, API contract |
-| [architecture/state-management.md](architecture/state-management.md) | Cubit pattern, all cubits, optimistic updates, adding new cubits |
-| [architecture/routing.md](architecture/routing.md) | Route table, navigation API, navigation flows |
-| [architecture/theme.md](architecture/theme.md) | Color palette, component themes, hardcoded colors |
+| [OVERVIEW.md](./OVERVIEW.md) | Stack, component diagram, design principles |
+| [DATA_MODEL.md](./DATA_MODEL.md) | Mongo collections, entities, events, memories, summaries |
+| [SERVICES.md](./SERVICES.md) | All services + providers (current list) |
+| [WORKERS.md](./WORKERS.md) | Queues, processors, cron jobs, turn pipeline |
+| [MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md) | Codex + four prompt layers (foundation doc; see system-guide for full picture) |
 
-### Core Layer
-
-| Document | Description |
-|----------|-------------|
-| [core/core-layer.md](core/core-layer.md) | Config, Auth, API Client, WebSocket Manager, Secure Storage, Local DB |
-
-### Features
+## API & integration
 
 | Document | Description |
 |----------|-------------|
-| [features/home-feature.md](features/home-feature.md) | World instance dashboard, WorldCard, HomeCubit |
-| [features/play-feature.md](features/play-feature.md) | Real-time gameplay chat, NarrativeBubble, PlayerInput, WorldStateBar, PlayCubit |
-| [features/chronicle-feature.md](features/chronicle-feature.md) | Timeline & memory browser, MemoryCard, EditDialog, ChronicleCubit |
-| [features/templates-feature.md](features/templates-feature.md) | Template browsing, template details, instance creation |
+| [SCHEMAS.md](./SCHEMAS.md) | Canonical request/response JSON shapes |
+| [API.md](./API.md) | HTTP + WebSocket protocol |
+| [SECURITY.md](./SECURITY.md) | Auth, JWT, rate limits |
+| [CONFIGURATION.md](./CONFIGURATION.md) | Environment variables |
 
-### Shared
-
-| Document | Description |
-|----------|-------------|
-| [shared/models.md](shared/models.md) | User, GameEvent, Memory, WorldInstance, WorldTemplate, StatDefinition |
-| [shared/widgets.md](shared/widgets.md) | ErrorBanner, StatBar, LoadingShimmer |
-
-### Guides
+## AI models
 
 | Document | Description |
 |----------|-------------|
-| [guides/getting-started.md](guides/getting-started.md) | Setup, conventions, common tasks, testing, known issues |
+| [SFW_MODELS.md](./SFW_MODELS.md) | SFW narration models + testing |
+| [NSFW_MODELS.md](./NSFW_MODELS.md) | NSFW routing + models |
+| [TTS_MODELS.md](./TTS_MODELS.md) | Text-to-speech |
+| [IMAGE_MODELS.md](./IMAGE_MODELS.md) | Cover/avatar generation |
 
-## Quick Start
+## Operations
 
-1. **New Developer?** Start with [OVERVIEW.md](OVERVIEW.md)
-2. **Building Features?** Check [SERVICES.md](SERVICES.md) and [API.md](API.md)
-3. **Deploying?** Read [INFRASTRUCTURE.md](INFRASTRUCTURE.md) and [CONFIGURATION.md](CONFIGURATION.md)
-4. **Security Review?** See [SECURITY.md](SECURITY.md)
+| Document | Description |
+|----------|-------------|
+| [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Deployment, scaling |
 
-## System Overview
+---
 
-```
-┌─────────────────┐
-│   Client Apps   │
-└────────┬────────┘
-         │ HTTP / WebSocket
-         ▼
-┌─────────────────┐
-│   API Server    │  ← Elysia (Bun)
-│  (src/index.ts) │
-└────────┬────────┘
-         │
-    ┌────┴────┬──────────┐
-    ▼         ▼          ▼
-┌────────┐ ┌────────┐ ┌──────────┐
-│ MongoDB│ │ Redis  │ │ Pinecone │
-└────────┘ └────────┘ └──────────┘
-                │
-                ▼
-         ┌────────────┐
-         │  BullMQ    │
-         │   Queues   │
-         └────────────┘
-                │
-                ▼
-┌─────────────────────────┐
-│      Worker Cluster     │  ← Background processing
-│    (worker/index.ts)    │
-└─────────────────────────┘
+## Quick start for developers
+
+1. **How does a turn work?** → [../system-guide/02-one-turn-journey.md](../system-guide/02-one-turn-journey.md)
+2. **What changed recently?** → [../memory/CHECKLIST.md](../memory/CHECKLIST.md) + [../memory/HANDOFF.md](../memory/HANDOFF.md)
+3. **Adding an endpoint?** → [SERVICES.md](./SERVICES.md) + [API.md](./API.md)
+4. **Debugging memory?** → `GET /admin/events/:eventId/projections`, `scripts/rewind-audit.ts`
+
+---
+
+## System diagram
+
+```text
+Flutter app ──HTTP/WS──► API (src/index.ts)
+                              │
+                    enqueue   │
+                              ▼
+                         Workers
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+           MongoDB         Redis          Pinecone
 ```
 
-## Technology Stack
+---
 
-| Layer | Technology |
-|-------|------------|
-| Runtime | Bun |
-| API Framework | Elysia |
-| Database | MongoDB |
-| Cache | Redis |
-| Queue | BullMQ |
-| Vector DB | Pinecone |
-| LLM | OpenAI / OpenRouter |
-| Auth | JWT (Argon2 for passwords) |
+## When updating code, update docs
 
-## Architecture Principles
-
-1. **Separation of Concerns**: Routes wire HTTP/WebSocket to controllers; controllers orchestrate validation, auth, and rate limits; services own domain logic. Workers handle async processing.
-2. **Stateless API**: Session data in Redis, enables horizontal scaling
-3. **Event-Driven**: WebSocket pub/sub for real-time updates
-4. **RAG**: Vector search for context-aware AI responses
-5. **Structured Output**: JSON Schema validation for LLM responses
-
-## Directory Structure
-
-```
-everlore-server/
-├── src/
-│   ├── config/          # Database connections, env
-│   ├── controllers/     # Per-domain orchestration (auth, templates, WS play, …)
-│   ├── middleware/      # Auth, rate limiting
-│   ├── queues/          # BullMQ queue definitions
-│   ├── routes/          # Elysia route trees (thin: plugins, schemas, controller handlers)
-│   ├── schemas/         # TypeBox validation schemas
-│   ├── services/        # Domain logic & data access
-│   └── utils/           # Helper functions
-├── worker/
-│   ├── lib/             # Worker utilities
-│   ├── processors/      # Job processors
-│   └── index.ts         # Worker entry point
-└── everlore-docs/       # This documentation
-```
-
-## Contributing
-
-When updating the codebase, please keep this documentation in sync:
-
-- API changes → Update [API.md](API.md)
-- Database changes → Update [DATA_MODEL.md](DATA_MODEL.md)
-- New routes/controllers/services → Update [SERVICES.md](SERVICES.md)
-- Worker changes → Update [WORKERS.md](WORKERS.md)
-- Config changes → Update [CONFIGURATION.md](CONFIGURATION.md)
-- Security changes → Update [SECURITY.md](SECURITY.md)
-
-## License
-
-[Your License Here]
-
-## Support
-
-For questions or issues:
-- Development: Check relevant documentation
-- Security: See [SECURITY.md](SECURITY.md) reporting guidelines
-- Operations: Review [INFRASTRUCTURE.md](INFRASTRUCTURE.md)
+| Change | Doc |
+|--------|-----|
+| New route or response shape | [API.md](./API.md) + [SCHEMAS.md](./SCHEMAS.md) |
+| New collection/field | [DATA_MODEL.md](./DATA_MODEL.md) |
+| New service | [SERVICES.md](./SERVICES.md) |
+| Worker/queue change | [WORKERS.md](./WORKERS.md) |
+| Env var | [CONFIGURATION.md](./CONFIGURATION.md) |
+| Memory behavior | [../memory/CHECKLIST.md](../memory/CHECKLIST.md) + [../system-guide/](../system-guide/) |

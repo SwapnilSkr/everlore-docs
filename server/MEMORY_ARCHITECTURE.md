@@ -1,5 +1,10 @@
 # Everlore Server — Memory & Codex Architecture
 
+> **Updated context (June 2026):** This doc covers the **codex + four-layer prompt** foundation.  
+> The system now also includes: **entity graph**, **context packet** (worker-side), **hybrid RAG**, **time/place anchors**, **side chats**, **chapter/arc summaries**, and **Lore Tome APIs**.  
+> For the full current system in plain language → [../system-guide/](../system-guide/README.md).  
+> For agent checklist + commits → [../memory/CHECKLIST.md](../memory/CHECKLIST.md).
+
 How Everlore keeps a story coherent over thousands of turns without an
 ever-growing prompt. This document covers the four context layers (codex,
 memories, scene summaries, recent turns), how each is built and retrieved, how
