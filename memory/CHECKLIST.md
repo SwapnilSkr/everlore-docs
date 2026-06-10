@@ -226,16 +226,17 @@ Supermemory-level story memory system.
       `chapter_summaries` collection + index; rebuildable projection keyed by
       event range with scene provenance; full lifecycle (trigger / edit-stale +
       rebuild / rewind / reset). Children fetched by range so scene rebuilds are
-      safe. NOT yet consumed by the prompt — context-packet integration is a
-      follow-up.)
+      safe. CONSUMED by the prompt as of `2c4da86` (RELEVANT PAST CHAPTERS).)
 - [ ] Add arc summaries over plot/relationship threads.
 - [x] Embed summaries for semantic summary retrieval.
       (Server commit `f33694a`. Scene + chapter summaries embed into a
       per-instance `sum_<id>` Pinecone namespace on create (deterministic
       per-range vector id → rebuild overwrites). `querySummaries()` = vector
       search + Mongo status cross-check so stale summaries never surface.
-      Vector lifecycle on rewind/reset/delete. NOT yet consumed by the prompt —
-      context-packet consumption is the deliberate follow-up.)
+      Vector lifecycle on rewind/reset/delete. CONSUMED by the prompt as of
+      `2c4da86`: the context packet retrieves relevant distant summaries
+      (concurrently with RAG) into a token-budgeted RELEVANT PAST CHAPTERS
+      section.)
 - [ ] Add continuity audits comparing codex, memories, summaries, and graph
       state.
 - [ ] Add cold archival strategy only when storage pressure is real.
