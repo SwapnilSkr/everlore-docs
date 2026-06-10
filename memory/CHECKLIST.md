@@ -227,7 +227,12 @@ Supermemory-level story memory system.
       event range with scene provenance; full lifecycle (trigger / edit-stale +
       rebuild / rewind / reset). Children fetched by range so scene rebuilds are
       safe. CONSUMED by the prompt as of `2c4da86` (RELEVANT PAST CHAPTERS).)
-- [ ] Add arc summaries over plot/relationship threads.
+- [x] Add arc summaries over plot/relationship threads.
+      (Server commit `5fd9375`. Every 4 chapters roll up into one arc framed
+      around plot/relationship through-lines. `arc_summaries` collection +
+      index; same rebuildable-projection model + full lifecycle (trigger /
+      edit-stale + rebuild / rewind / reset) as chapters; embedded into `sum_`
+      and surfaced through querySummaries + the RELEVANT PAST CHAPTERS section.)
 - [x] Embed summaries for semantic summary retrieval.
       (Server commit `f33694a`. Scene + chapter summaries embed into a
       per-instance `sum_<id>` Pinecone namespace on create (deterministic
