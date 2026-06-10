@@ -1,5 +1,8 @@
 # 05 — Play Screen
 
+> **⚠️ Partially outdated:** Bond rail, choice chips, time skip, and entity links are not fully reflected below.  
+> **Current behavior:** [../../system-guide/04-frontend-where-things-live.md](../../system-guide/04-frontend-where-things-live.md)
+
 > **Route:** `/play/:instanceId` | **File:** `lib/features/play/presentation/play_screen.dart` | **Auth:** Required
 
 ---

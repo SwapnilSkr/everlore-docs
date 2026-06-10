@@ -1,63 +1,77 @@
 # Everlore Docs
 
-Central documentation hub for the Everlore Flutter client and Elysia server.
+Documentation for the Everlore Flutter client and Bun/Elysia server.
 
-## Structure
+---
 
-### Client Docs
+## Start here
 
-Located in [`client/`](./client)
+| Audience | Read |
+|----------|------|
+| **Understand the whole system** | [system-guide/README.md](./system-guide/README.md) |
+| **Find a specific source file** | [code-reference/README.md](./code-reference/README.md) |
+| **Continue development / agents** | [memory/HANDOFF.md](./memory/HANDOFF.md) + [memory/CHECKLIST.md](./memory/CHECKLIST.md) |
 
-- [Architecture Overview](./client/architecture/overview.md)
-- [Routing](./client/architecture/routing.md)
-- [State Management](./client/architecture/state-management.md)
-- [Core Layer](./client/core/core-layer.md)
-- [Getting Started](./client/guides/getting-started.md)
-- [Shared Models](./client/shared/models.md)
+---
 
-Auth-related client details:
-- Google Sign-In and phone OTP entry flow: [Architecture Overview](./client/architecture/overview.md)
-- Session persistence, WebSocket auth, secure storage: [Core Layer](./client/core/core-layer.md)
-- Local environment setup: [Getting Started](./client/guides/getting-started.md)
+## Documentation map
 
-### Server Docs
+```text
+everlore-docs/
+├── system-guide/       ← Product + memory system (plain language)
+├── code-reference/     ← File-by-file server + client map
+├── memory/             ← Infinite memory roadmap, checklist, handoff
+├── server/             ← API, data model, workers, config, models
+├── client/             ← Flutter architecture + features
+└── visual-guide/       ← Pixel-level UI notes (may lag — check system-guide first)
+```
 
-Located in [`server/`](./server)
+---
 
-- [Server README](./server/README.md)
-- [Architecture Overview](./server/OVERVIEW.md)
-- [API](./server/API.md)
-- [Configuration](./server/CONFIGURATION.md)
-- [Data Model](./server/DATA_MODEL.md)
-- [Services](./server/SERVICES.md)
-- [Workers](./server/WORKERS.md)
-- [Memory & Codex Architecture](./server/MEMORY_ARCHITECTURE.md)
-- [Infrastructure](./server/INFRASTRUCTURE.md)
-- [Security](./server/SECURITY.md)
+## Server (`everlore-server/`)
 
-### Infinite Memory Docs
+| Doc | Topic |
+|-----|-------|
+| [server/README.md](./server/README.md) | Index |
+| [server/SERVICES.md](./server/SERVICES.md) | All services (current) |
+| [server/DATA_MODEL.md](./server/DATA_MODEL.md) | Mongo collections |
+| [server/API.md](./server/API.md) | HTTP + WebSocket |
+| [server/SCHEMAS.md](./server/SCHEMAS.md) | Request/response JSON shapes (canonical) |
+| [server/WORKERS.md](./server/WORKERS.md) | Queues & processors |
+| [server/NSFW_MODELS.md](./server/NSFW_MODELS.md) | Model routing |
 
-Located in [`memory/`](./memory)
+## Client (`everlore/`)
 
-- [Memory Docs README](./memory/README.md)
-- [Infinite Memory Architecture](./memory/MEMORY_ARCHITECTURE.md)
-- [Projection And Mutation Model](./memory/PROJECTION_AND_MUTATION_MODEL.md)
-- [Calendar, Timelines, And Locations](./memory/CALENDAR_TIMELINES_AND_LOCATIONS.md)
-- [Features Enabled By Infinite Memory](./memory/FEATURES_ON_TOP.md)
-- [Infinite Memory Checklist](./memory/CHECKLIST.md)
+| Doc | Topic |
+|-----|-------|
+| [client/README.md](./client/README.md) | Index |
+| [client/features/play-feature.md](./client/features/play-feature.md) | Play screen |
+| [client/features/chronicle-feature.md](./client/features/chronicle-feature.md) | Lore Tome (7 tabs) |
+| [client/architecture/routing.md](./client/architecture/routing.md) | Routes |
 
-Auth-related server details:
-- HTTP and WebSocket auth contract: [API](./server/API.md)
-- Google and Twilio env vars: [Configuration](./server/CONFIGURATION.md)
-- JWT, Google verification, Twilio Verify, and rate limits: [Security](./server/SECURITY.md)
-- User fields such as `phone`, `google_sub`, and provider metadata: [Data Model](./server/DATA_MODEL.md)
+## Memory program
 
-## Current Auth Summary
+| Doc | Topic |
+|-----|-------|
+| [memory/CHECKLIST.md](./memory/CHECKLIST.md) | Phases 1–10 status |
+| [memory/HANDOFF.md](./memory/HANDOFF.md) | Agent handoff |
+| [memory/MEMORY_ARCHITECTURE.md](./memory/MEMORY_ARCHITECTURE.md) | Target vision |
 
-Everlore now uses a unified backend JWT session model for:
+---
 
-- Email/password login and registration
-- Google Sign-In token exchange
-- Twilio Verify phone OTP
+## Repos
 
-The Flutter app stores the returned JWT in secure storage and reuses it for both REST and WebSocket authentication.
+Three separate git repos under `rpg-ai/`:
+
+- `everlore/` — Flutter app  
+- `everlore-server/` — API + workers  
+- `everlore-docs/` — this repo  
+
+---
+
+## Auth (quick reference)
+
+JWT from `/auth/login`, `/auth/register`, `/auth/google`, or `/auth/otp/verify`.  
+Stored in secure storage; used for REST + `WS /ws/play?token=...`.
+
+Details: [server/SECURITY.md](./server/SECURITY.md), [client/core/core-layer.md](./client/core/core-layer.md)

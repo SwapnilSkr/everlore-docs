@@ -13,11 +13,13 @@ emotionally-aware context.
 
 | Document | Purpose |
 |----------|---------|
+| [**../system-guide/**](../system-guide/README.md) | **Start here** — plain-language walkthrough of everything shipped (Play, Lore Tome, backend, all 10 phases) |
 | [MEMORY_ARCHITECTURE.md](MEMORY_ARCHITECTURE.md) | Core infinite-memory architecture: current system, target system, and Supermemory-style mapping |
 | [PROJECTION_AND_MUTATION_MODEL.md](PROJECTION_AND_MUTATION_MODEL.md) | How edits, replays, rewinds, deletes, and memory edits affect derived memory state |
 | [CALENDAR_TIMELINES_AND_LOCATIONS.md](CALENDAR_TIMELINES_AND_LOCATIONS.md) | Story calendars, magical calendars, time travel, locations, and travel-aware memory |
 | [FEATURES_ON_TOP.md](FEATURES_ON_TOP.md) | Product features enabled by the memory graph |
 | [CHECKLIST.md](CHECKLIST.md) | Implementation checklist and phased roadmap |
+| [HANDOFF.md](HANDOFF.md) | Agent handoff — current state, patterns, next steps |
 
 ## Core Principle
 

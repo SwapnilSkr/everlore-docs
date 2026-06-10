@@ -1,5 +1,8 @@
 # 06 — Chronicle Screen (Lore Tome)
 
+> **⚠️ Outdated tab count:** This visual guide describes 2 tabs. The app now has **7 tabs** (Recap, Timeline, Echoes, Almanac, Places, Bonds, Threads).  
+> **Current behavior:** [../../system-guide/04-frontend-where-things-live.md](../../system-guide/04-frontend-where-things-live.md)
+
 > **Route:** `/chronicle/:instanceId` | **File:** `lib/features/chronicle/presentation/chronicle_screen.dart` | **Auth:** Required
 
 ---
