@@ -220,7 +220,14 @@ Supermemory-level story memory system.
 
 ## Phase 9: Advanced Compaction
 
-- [ ] Add chapter summaries over scene summaries.
+- [x] Add chapter summaries over scene summaries.
+      (Server commit `b23cf21`. Every 8 scene summaries roll up into one
+      LLM-generated chapter (reuses the scene-summary worker via kind:'chapter').
+      `chapter_summaries` collection + index; rebuildable projection keyed by
+      event range with scene provenance; full lifecycle (trigger / edit-stale +
+      rebuild / rewind / reset). Children fetched by range so scene rebuilds are
+      safe. NOT yet consumed by the prompt — context-packet integration is a
+      follow-up.)
 - [ ] Add arc summaries over plot/relationship threads.
 - [ ] Embed summaries for semantic summary retrieval.
 - [ ] Add continuity audits comparing codex, memories, summaries, and graph
