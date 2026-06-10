@@ -59,13 +59,13 @@ Supermemory-level story memory system.
 - [x] Add `unresolved_thread` and `current_status`.
       (`unresolved_thread` + `resolved_at` power the open-threads prompt
       section; lifecycle is the shared `status` from projection provenance.)
-- [x] Add `updates_memory_ids`, `extends_memory_ids`,
+- [ ] Add `updates_memory_ids`, `extends_memory_ids`,
       `derives_from_memory_ids`.
-      (Closed as deferred-by-design. Not built because no current retrieval,
-      edit, or audit path consumes stored memory→memory version links.
-      Supersession works at the vector level (retired facts evict stale vectors)
-      and dedup merges near-duplicates. Reopen when a feature needs an explicit
-      memory-version graph.)
+      (REOPENED for next planning pass. Goal: make memory evolution explicit
+      enough for explainability/admin inspection and future retrieval prompts:
+      which memory updates, extends, or derives from which earlier atom.
+      Current supersession/dedup still works at vector/text level; this is an
+      additive version graph, not a replacement.)
 - [x] Update memory extraction prompt to resolve pronouns/entities explicitly.
       (Extraction is grounded in the codex roster; atoms must be
       self-contained with explicit names.)
@@ -110,13 +110,12 @@ Supermemory-level story memory system.
 
 ## Phase 4: Hybrid Retrieval
 
-- [x] Add BM25/text index over memory text, entity names, places, promises, and
+- [ ] Add BM25/text index over memory text, entity names, places, promises, and
       event labels.
-      (Closed as deferred-by-design. Mongo text search over memory text +
-      subjects/objects already handles the current Echoes/search and retrieval
-      needs, while entity-neighborhood retrieval handles exact entity recall.
-      Reopen only if search quality metrics show a gap across entity names,
-      places, promises, or event labels.)
+      (REOPENED for next planning pass. Goal: broaden exact lexical retrieval
+      beyond memory text/subjects/objects to entity names, places, promises, and
+      event labels, then measure whether it improves Echoes search / prompt RAG
+      before increasing prompt recall surface.)
 - [x] Retrieve by vector similarity.
       (Pinecone memory/lore search remains the semantic arm.)
 - [x] Retrieve by exact names/keywords.

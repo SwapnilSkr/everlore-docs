@@ -2,8 +2,8 @@
 
 _As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker),
 Phase 7 (server + app surface + audit follow-ups), and scheduled continuity drift
-detection. Phases 1–10 are complete; remaining one-offs are closed as
-deferred-by-design._
+detection. Phases 1–10 are complete; Phase 2 memory-version links and Phase 4
+broader BM25 are intentionally reopened for the next planning pass._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -174,14 +174,14 @@ Recap/Echoes/Threads/Location read filters.
   embedding, summary→prompt consumption ("RELEVANT PAST CHAPTERS"), arc summaries,
   continuity audits — all done. **Cold archival** is closed as deferred-by-design
   until real Mongo storage pressure or cost data justifies it.
-- Phases 1–5, 6A, 8: done earlier. Former open one-offs are now closed as
-  deferred-by-design: Phase 1 revision counters, Phase 2 memory→memory version
-  links, Phase 4 broader BM25, and Phase 9 cold archival. Reopen only when there is
-  a concrete consumer, measured search/retrieval gap, or real storage pressure.
+- Phases 1–5, 6A, 8: done earlier. Phase 2 memory→memory version links and Phase 4
+  broader BM25 are now reopened for discussion/planning. Phase 1 revision counters
+  and Phase 9 cold archival remain closed as deferred-by-design.
 
 ## Next (recommended order)
-Phases 1–10 are complete and `CHECKLIST.md` has no unchecked rows. What remains is
-runtime verification and reopen-only maintenance:
+Phases 1–10 are complete, but `CHECKLIST.md` now intentionally has two reopened
+planning items: Phase 4 broader BM25 and Phase 2 memory-version links. Recommended
+order:
 1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
    code-correct but never run against a real generated turn. Start server + worker +
    app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload
@@ -189,10 +189,15 @@ runtime verification and reopen-only maintenance:
    **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
    (visible in the journal).
-2. **Reopen-only deferred work** — Phase 1 revision counters, Phase 2 memory→memory
-   version links, Phase 4 broader BM25 index, Phase 9 cold archival. Build only
-   when there is a concrete consumer, measured retrieval/search gap, or real
-   storage pressure.
+2. **Discuss Phase 4 broader BM25 first.** Define target surfaces (Echoes only vs
+   prompt RAG too), index shape, measurement plan, and how to avoid polluting
+   private `side_chat` boundaries.
+3. **Discuss Phase 2 memory-version links second.** Define schema and lifecycle for
+   `updates_memory_ids` / `extends_memory_ids` / `derives_from_memory_ids`, then
+   decide whether links are extractor-produced, dedup/supersession-produced, or
+   maintenance-derived.
+4. **Still deferred:** Phase 1 revision counters and Phase 9 cold archival. Reopen
+   only for a concrete consumer or real storage pressure.
 
 _Micro-opt noted, not done: 2 embeds/turn (queryRag + querySummaries run in parallel)
 — could have queryRag expose its embedding to embed once._
