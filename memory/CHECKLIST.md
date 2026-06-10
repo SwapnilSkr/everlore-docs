@@ -263,5 +263,10 @@ Supermemory-level story memory system.
       (Almanac "Realities" switcher — app commit `5079600`. Lists timeline
       branches, highlights the active one, and switches the active reality via
       `PUT /chronicle/calendar/:instanceId/timeline/active`.)
-- [ ] Memory-aware recaps.
+- [x] Memory-aware recaps.
+      (Recap tab — now the Lore Tome landing view — server commit `e43c08e`,
+      app commit `8da8cb9`. "Story so far" assembled deterministically from the
+      latest non-stale scene summary (prose spine) + open threads + relationship
+      standings + current place/time, via `GET /chronicle/recap/:instanceId`.
+      No new LLM call; always reflects current projections.)
 - [ ] Advanced Chronicle search and filters.
