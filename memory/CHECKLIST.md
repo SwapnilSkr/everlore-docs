@@ -245,8 +245,15 @@ Supermemory-level story memory system.
       `733d598`. Lists every visited place (current location pinned first, with
       moment/echo counts) via `GET /chronicle/locations/:instanceId`; tapping a
       place opens the per-place "what happened here before?" journal.)
-- [ ] Character-specific memory view.
-- [ ] "What this character remembers about you."
+- [x] Character-specific memory view.
+      (Tap a character in the Bonds ledger — server commit `db59a35`, app
+      commit `a9cf236`. Opens the memories that character is part of, found via
+      Phase 3 entity subject/object links, `GET /chronicle/relationships/
+      :instanceId/:characterId/memories`.)
+- [x] "What this character remembers about you."
+      (Same surface, framed as what they carry about the player — memories
+      where the character is a subject/object, with emotional tone /
+      relationship-shift / unresolved-thread markers.)
 - [ ] Promise/quest tracker.
 - [x] Timeline branch viewer.
       (Almanac "Realities" switcher — app commit `5079600`. Lists timeline
