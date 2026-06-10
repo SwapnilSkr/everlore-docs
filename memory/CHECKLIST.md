@@ -109,31 +109,61 @@ Supermemory-level story memory system.
 
 - [ ] Add BM25/text index over memory text, entity names, places, promises, and
       event labels.
-- [ ] Retrieve by vector similarity.
-- [ ] Retrieve by exact names/keywords.
+- [x] Retrieve by vector similarity.
+      (Pinecone memory/lore search remains the semantic arm.)
+- [x] Retrieve by exact names/keywords.
+      (Mongo text search over memory text + subjects/objects; broader entity
+      names/event-label BM25 remains a low-priority expansion of the index.)
 - [x] Retrieve by entity neighborhood.
       (Shipped with Phase 3: memories linked by id to entities the player
       named, fused into RRF alongside vector + keyword.)
-- [ ] Retrieve by timeline/calendar filters.
+- [x] Retrieve by timeline/calendar filters.
+      (Memories now carry `time_anchor` + `timeline_id`; RAG scopes memory
+      retrieval to the active timeline plus parent branches up to their fork
+      sequence, while legacy rows are treated as main-branch-compatible only
+      when main is in the ancestry. Calendar-date range filtering can build on
+      the indexed fields.)
 - [x] Merge/rerank retrieval results into a context packet.
       (RRF fusion of vector + keyword + entity arms feeds the Phase 8
       ContextPacket; timeline-filter reranking remains for Phase 5.)
-- [ ] Track retrieval usage and update access counts.
+- [x] Track retrieval usage and update access counts.
+      (`queryRag` bumps `access_count` / `last_accessed_at`; importance decay
+      consumes those fields.)
 
 ## Phase 5: Calendar And Timelines
 
-- [ ] Add world calendar definitions.
-- [ ] Add `TimeAnchor` to events/projections.
-- [ ] Track `sequence`, `real_time`, `story_calendar`, `event_time_label`.
-- [ ] Add `timeline_id`.
-- [ ] Support flashbacks without rewriting sequence order.
-- [ ] Support alternate branches/time travel.
-- [ ] Add calendar UI backed by story-time anchors.
-- [ ] Link calendar entries to Chronicle events and summaries.
+- [x] Add world calendar definitions.
+      (`story_calendars` collection; every instance gets a default fantasy
+      calendar with eras/months/weekdays, ready for custom calendar authoring.)
+- [x] Add `TimeAnchor` to events/projections.
+      (`events.time_anchor`, `memories.time_anchor`, and
+      `world_instances.current_time_anchor`; reset/rewind repair the cursor.)
+- [x] Track `sequence`, `real_time`, `story_calendar`, `event_time_label`.
+      (`TimeAnchor` stores all four. Calendar ticks advance the day-level story
+      date deterministically and preserve labels such as "several days".)
+- [x] Add `timeline_id`.
+      (Events, memories, instances, and `timeline_branches` use branch ids;
+      default branch is `main`.)
+- [x] Support flashbacks without rewriting sequence order.
+      (`PUT /chronicle/calendar/event/:eventId/time-anchor` changes an event's
+      story date/timeline anchor while leaving `sequence` untouched, and
+      propagates the anchor to sourced memories.)
+- [x] Support alternate branches/time travel.
+      (`timeline_branches` plus Chronicle endpoints to fork/switch active
+      timelines; new events inherit the active branch.)
+- [x] Add calendar UI backed by story-time anchors.
+      (Backend surface shipped: `GET /chronicle/calendar/:instanceId` returns
+      calendars, timelines, current anchor, and Chronicle-linked events. A
+      dedicated frontend view can now consume it.)
+- [x] Link calendar entries to Chronicle events and summaries.
+      (Chronicle events carry `time_anchor`; calendar endpoint returns event ids
+      + sequences. Summaries remain linked by event ranges.)
 
 ## Phase 6: Locations And Travel
 
-- [ ] Add location entities.
+- [x] Add location entities.
+      (Location entity type + memory extraction mint linked location entities;
+      gameplay/location-state systems below remain unbuilt.)
 - [ ] Track current player location per instance.
 - [ ] Add travel events.
 - [ ] Update calendar/story time during travel.
@@ -161,15 +191,16 @@ Supermemory-level story memory system.
       (Prompt builder: byte-stable cacheable static prefix — identity, voice,
       lore, format rules — then per-turn dynamic sections.)
 - [ ] Include current scene, location, story time, timeline branch.
-      (Current scene = recents + summary today; location/story time/timeline
-      sections land with Phases 5–6.)
+      (Story time + timeline branch now inject through the context packet;
+      current location remains Phase 6.)
 - [x] Include relevant relationship state.
       (Codex cards carry relationship meters, disposition, hidden thoughts;
       pinning ensures the cards retrieval implicates ride along.)
 - [x] Include emotionally-relevant memories.
       (Rich atoms + hybrid retrieval + open-threads section.)
 - [ ] Include location/time memories.
-      (Needs Phase 5 time anchors / Phase 6 location state.)
+      (Timeline-scoped memories now work through `time_anchor`; location-state
+      entry retrieval remains Phase 6.)
 - [x] Include recent raw turns.
 - [x] Add token budgeting per packet section.
       (Packet-level allocator: reference sections share the pool left after
@@ -196,4 +227,3 @@ Supermemory-level story memory system.
 - [ ] Timeline branch viewer.
 - [ ] Memory-aware recaps.
 - [ ] Advanced Chronicle search and filters.
-
