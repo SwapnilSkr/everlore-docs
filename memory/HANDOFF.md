@@ -19,13 +19,16 @@ task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 2. **Edit `CHECKLIST.md` BEFORE and AFTER each item.** Before: flip to
    `[~] (IN PROGRESS)` + a one-line note. After: `[x]` + commit ref(s) + 2–3 line
    summary. Commit the checklist edit as `docs(memory): ...`.
-3. **Backend first, then frontend.** Verify each: server
+3. **After completing a phase, update this `HANDOFF.md`.** Whoever reads this next
+   should see the new state, exact commits, honest gaps, and recommended next step
+   without reconstructing the prior session from git history.
+4. **Backend first, then frontend.** Verify each: server
    `cd everlore-server && npx tsc --noEmit` (expect exit 0); app
    `cd everlore && flutter analyze lib/features/<area>` (expect "No issues found!").
-4. **Commit per logical unit, directly to `main`.** Conventional commits:
+5. **Commit per logical unit, directly to `main`.** Conventional commits:
    `feat(app|server)` / `fix(...)` / `perf(...)` / `docs(memory): ...`.
    **NO AI/Claude attribution lines in commit messages.**
-5. **Report**: what shipped, how verified, honest gaps, recommended next step.
+6. **Report**: what shipped, how verified, honest gaps, recommended next step.
 
 ## Reusable patterns
 - **New Chronicle surface:** server read method (often on an existing service) →
