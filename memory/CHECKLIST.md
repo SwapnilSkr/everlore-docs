@@ -197,10 +197,20 @@ Supermemory-level story memory system.
       they are subject/object of + open threads involving them — injected as
       "what they remember" / "unresolved matters" sections. Knowledge scope
       already excludes OTHER characters' private side-chat memories.)
-- [ ] Scope secrets by who knows them.
+- [x] Scope secrets by who knows them.
+      (Server commit `526ec88`. Side-chat curation mints atoms with
+      origin 'side_chat' + `known_by_entity_ids` = player + side character
+      (+ protagonist in GM worlds, where the player speaks AS them). Side-chat
+      retrieval sees only that character's own conversations; vector metadata
+      carries the scope and survives edit re-embeds. Fails closed everywhere.)
 - [ ] Update relationship graph from side chats.
-- [ ] Let main narration retrieve side-chat memories only when canonically
+- [x] Let main narration retrieve side-chat memories only when canonically
       appropriate.
+      (Same commit `526ec88` — hard gate in queryRag: a private memory reaches
+      main narration ONLY when the protagonist is among its knowers (GM-world
+      side chats qualify; sentient-world ones don't). A secret enters the main
+      story by being SHARED there, which organically mints a new main-scoped
+      memory — deterministic, no model-judgment leak risk.)
 
 ## Phase 8: Context Packet Builder
 
