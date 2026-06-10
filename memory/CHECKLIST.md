@@ -234,7 +234,12 @@ Supermemory-level story memory system.
       story-time cursor through the world calendar plus events grouped by
       in-world date with milestone/time-jump markers. Backed by the existing
       `GET /chronicle/calendar/:instanceId`.)
-- [ ] Relationship ledger.
+- [x] Relationship ledger.
+      (Bonds tab in the Lore Tome — server commit `4e23bf4`, app commit
+      `88d6110`. Per-character trust/affection/fear/rivalry meters +
+      disposition from the codex ledger, plus the narrative `relationship`
+      edges that shifted each bond, via `GET /chronicle/relationships/
+      :instanceId`. `hidden_thought` stays private.)
 - [x] Location journal.
       (Places tab in the Lore Tome — server commit `de747cd`, app commit
       `733d598`. Lists every visited place (current location pinned first, with
