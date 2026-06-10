@@ -203,7 +203,11 @@ Supermemory-level story memory system.
       (+ protagonist in GM worlds, where the player speaks AS them). Side-chat
       retrieval sees only that character's own conversations; vector metadata
       carries the scope and survives edit re-embeds. Fails closed everywhere.)
-- [ ] Update relationship graph from side chats.
+- [x] Update relationship graph from side chats.
+      (Server commit `f17289a`. Codex-delta extraction runs on side-chat turns
+      but applies ONLY the active character's deltas; ledgered on the event
+      (rewind-exact replay), meter edges re-projected, live codex frame pushed.
+      Relationship memory atoms → narrative edges already flow via curation.)
 - [x] Let main narration retrieve side-chat memories only when canonically
       appropriate.
       (Same commit `526ec88` — hard gate in queryRag: a private memory reaches
