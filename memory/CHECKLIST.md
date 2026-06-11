@@ -439,5 +439,14 @@ Supermemory-level story memory system.
       `replay_complete` + variant-browse read them instead of clearing. Local
       SQLite cache never stored choices/variants anyway (minimal offline fallback;
       full data comes live) — no regression. tsc + flutter analyze clean. NOT yet
-      run live. Related un-fixed spot: `editEvent` also clears choices when the AI
-      text changes and doesn't regenerate — same class, separate trigger.)
+      run live.)
+- [x] Edit-AI-response produced NO choices (same class as replay, separate trigger).
+      `editEvent` blanked `data.choices`/`present_characters` on a narrative rewrite
+      without regenerating, and the optimistic client kept the stale ones.
+      (Server commit `2ed09c1`, app commit `2689a54`. `editEvent` now runs the scene
+      extractor on the rewritten prose (same protagonist anchor + roster as a primary
+      turn), stores the chips on the new `edit` replay variant + the event, and
+      RETURNS them; the edit HTTP response now carries `choices`+`present_characters`
+      (null when only player input changed). App: repo parses them, `editAiResponse`
+      swaps them onto the event over the optimistic copy. tsc + flutter analyze clean.
+      NOT yet run live.)
