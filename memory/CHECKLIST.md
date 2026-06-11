@@ -462,3 +462,22 @@ Supermemory-level story memory system.
       regenerate, store per variant, restore on select, untouched on player-only
       edit — ALL HELD. Remaining: Tier 3 end-to-end UI in the running Flutter app
       is the user's pass (chip render + tap, presence tag, regenerate/edit in-app).)
+- [x] Location/travel + presence drift (user hit a phantom "Traveled dining→great
+      room" on a turn that only DISCUSSED a gathering; sister kept flickering to
+      "Elsewhere"). Root cause: extractor allowed a "strongly implied"
+      current_location, travel fired on a bare location-id diff with no movement
+      check (+ first-mention auto-mint guarantees a diff), and present_characters
+      was a per-turn named-snapshot not a scene roster.
+      (Server commit `99781cd`. Three small-model-proof fixes at the extractor seam:
+      F1 airtight current_location (physical-presence-only + worked example, return
+      prior when unmoved); F2 new explicit `viewpoint_moved` boolean — cursor only
+      rebases + `travel` only fires when the model asserts movement, plus server
+      hysteresis so an unmoved turn keeps the prior cursor and mints nothing; F3
+      DETERMINISTIC presence carry-forward in the worker (model emits who's seen +
+      a new `characters_departed` delta; processor folds present=(prior ∪ this-turn)
+      − departed, resets on move/time-skip) — a pure-prompt carry-forward FAILED the
+      small model, so the math is server-side. Verified by `scripts/location-audit.ts`
+      (`bun run audit:location`): mentioned-venue stays put + no travel, genuine move
+      registers, unnamed character carried forward, narrated exit dropped — all held.
+      Known limits: replay/edit don't run the presence fold (single-turn regen);
+      over-persistence is the accepted gentle failure. Tier 3 UI = user's pass.)
