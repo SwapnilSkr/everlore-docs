@@ -48,7 +48,7 @@ Opens on **Recap** tab; calls `loadRecap()` on create.
 | Tab | Widget | Loads on first visit | API |
 |-----|--------|----------------------|-----|
 | **Recap** | `RecapView` | Default | `GET /chronicle/recap/:id` |
-| **Timeline** | `NarrativeBubble` list | If events empty | `GET /chronicle/events/:id` |
+| **Timeline** | `NarrativeBubble` list (travel turns show route header) | If events empty | `GET /chronicle/events/:id` |
 | **Echoes** | `MemoryCard` + filters | If memories empty | `GET /chronicle/memories/:id` |
 | **Almanac** | `AlmanacView` | If calendar null | `GET /chronicle/calendar/:id` |
 | **Places** | `PlacesView` | If locations null | `GET /chronicle/locations/:id` |
@@ -63,7 +63,7 @@ Tab switches call `ChronicleCubit.switchTab()` which lazy-loads missing data.
 
 | Screen | Entry | API |
 |--------|-------|-----|
-| `LocationJournalScreen` | Tap place in Places tab | `GET /chronicle/locations/:id/:locationEntityId` |
+| `LocationJournalScreen` | Tap place in Places tab | Sections: **What is true of this place** (`permanentFacts`), **How it stands now** (`currentState`), moments + memories |
 | `CharacterMemoryScreen` | Tap bond card | `GET /chronicle/relationships/:id/:charId/memories` |
 | `SideChatScreen` | Private chat icon on bond card | REST history + WS `side_chat` |
 
@@ -96,6 +96,16 @@ All Chronicle REST calls. Key methods:
 | `getSideChatThread` | `/chronicle/side-chats/...` |
 | `rewind` | `POST /chronicle/rewind/:instanceId` |
 | `editEvent` / `editMemory` / `editCharacter` | PUT routes |
+
+### `editEvent` return type
+
+When `ai_response` changes, the PUT response includes regenerated chips and presence. `ChronicleRepository.editEvent` returns:
+
+```dart
+({List<Choice> choices, List<String> presentCharacters})?  // null if only player_input edited
+```
+
+PlayCubit applies these onto the settled event without a refetch.
 
 ---
 

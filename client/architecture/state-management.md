@@ -57,49 +57,35 @@ BlocProvider(
 **File:** `lib/features/play/state/play_cubit.dart`
 
 **State:** `PlayState`
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `instance` | `WorldInstance?` | `null` | Current world instance with state |
-| `template` | `WorldTemplate?` | `null` | Template metadata for display |
-| `events` | `List<GameEvent>` | `[]` | Chat event history (narrative + player) |
-| `memories` | `List<Memory>` | `[]` | Curated memories for this instance |
-| `isGenerating` | `bool` | `false` | Whether AI is currently generating a response |
-| `isConnected` | `bool` | `false` | WebSocket connection status |
-| `isLoading` | `bool` | `true` | Initial data loading state |
-| `error` | `String?` | `null` | Error message |
+| Field | Type | Description |
+|-------|------|-------------|
+| `instance`, `template` | World models | Current playthrough |
+| `events`, `memories`, `characters` | Lists | Active feed data |
+| `isGenerating`, `isConnected`, `isLoading` | bool | UI flags |
+| `error` | `String?` | Error banner |
+| `totalEvents`, `hasOlderEvents` | int/bool | Pagination hints from `eventWindow` |
+| `replayingEventId` | `String?` | Turn currently streaming a replay |
+| `lastStatDeltas` | `Map?` | Animated stat bar deltas |
+| `lastMilestone`, `milestoneStamp`, `milestones` | | Milestone toast + timeline sheet |
 
 **Initialization Flow:**
 1. Constructor calls `_init()`
-2. `_loadCachedEvents()` — loads up to 50 events from local SQLite cache
-3. `_ws.loadInstance(instanceId)` — sends WebSocket `load_instance` action
-4. Subscribes to 5 WebSocket streams:
-   - `onInstanceLoaded` — full state sync (instance, template, events, memories)
-   - `onGenerationComplete` — AI narrative response + state diff
-   - `onMemoriesCurated` — new memories added by AI
-   - `onError` — generation failures, general errors
-   - `onConnectionState` — connection status toggling
+2. `_loadCachedEvents()` — SQLite cache (choices/replay variants not persisted locally)
+3. `_ws.connect(token, force: true)` + `loadInstance`
+4. Subscribes to **12** WebSocket streams: `onInstanceLoaded`, `onGenerationDelta`, `onGenerationStreamEnd`, `onGenerationComplete`, `onMemoriesCurated`, `onCharacterCodexUpdated`, `onMilestoneUnlocked`, `onReplayDelta`, `onReplayComplete`, `onError`, `onConnectionState`
 
-**Methods:**
+**Key methods:**
 | Method | Description |
 |--------|-------------|
-| `sendMessage(message)` | Creates optimistic event, sends via WebSocket |
-| `clearError()` | Clears error banner |
+| `sendMessage` | Optimistic turn + `chat` WS |
+| `continueStory({advance})` | Quiet continue or calendar tick |
+| `replayLastResponse` | WS replay of latest turn |
+| `selectReplayVariant` | Local preview of variant chips/presence; commits via REST before next send |
+| `editAiResponse` | REST edit; swaps server-returned chips when narrative changed |
 
-**Optimistic Update Flow:**
-```
-User types "I attack the dragon"
-  → GameEvent.optimistic() created (id: optimistic_*, sequence: -1)
-  → emit([...events, optimisticEvent], isGenerating: true)
-  → _ws.sendChatMessage(instanceId, message)
-  
-Server responds with generation_complete
-  → New GameEvent created from server data
-  → LocalDb.insertEvent(newEvent) — persisted to SQLite
-  → emit([...events, newEvent], isGenerating: false, instance: updated)
-```
+**Variant commit:** Browsing replay arrows is local-only. `POST /chronicle/replay/select` runs in `_flushPendingVariant()` before the next player message.
 
-**Cleanup:**
-All 5 `StreamSubscription`s are cancelled in `close()`.
+**Cleanup:** All stream subscriptions cancelled in `close()`.
 
 ---
 

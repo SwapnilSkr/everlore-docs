@@ -18,7 +18,7 @@ SideChatScreen → WsManager (side_chat actions)
 
 | File | Purpose | Optimizations |
 |------|---------|---------------|
-| `state/play_cubit.dart` | WS subscriptions, streaming, replay, milestones, rewind | **12 stream subs**; trim **100 events / 50 memories**; generation/replay **watchdogs**; stream reveal timers; `LocalDb` optimistic cache |
+| `state/play_cubit.dart` | WS subscriptions, streaming, replay, milestones, rewind | **12 stream subs**; per-variant chips/presence on replay + edit; trim **100 events / 50 memories**; generation/replay **watchdogs**; `LocalDb` cache (no choices/variants) |
 | `presentation/play_screen.dart` | Main UI shell, realm menu, settings/thoughts sheets | `BlocProvider`; auto-scroll on new events |
 | `widgets/narrative_bubble.dart` | Turn rendering, entity links, replay UI | Stateless + `_ProseText` gesture recognizers; reduced-motion aware |
 | `widgets/player_input.dart` | Composer + send | Disables while generating |
@@ -97,7 +97,7 @@ SideChatScreen → WsManager (side_chat actions)
 
 | File | Purpose |
 |------|---------|
-| `event.dart` | Turn: prose, choices, replay variants, travel |
+| `event.dart` | Turn: prose, choices, presentCharacters, per-variant replay chips, travel |
 | `memory.dart` | Memory atom; `concerns(name)` for in-play lens |
 | `world_instance.dart` | Instance snapshot + milestones |
 | `character_profile.dart` | Codex + relationship meters |

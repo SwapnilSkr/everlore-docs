@@ -15,13 +15,16 @@ One turn in the story.
 | `sequence`, `type` | Turn order; `narration`, `travel`, `calendar_tick`, … |
 | `playerInput`, `aiResponse` | Prose |
 | `sceneTag` | dialogue, romantic, combat, … |
-| `choices` | Server-suggested next actions (`Choice`: say vs action) |
-| `replayVariants` | Alternative AI responses |
-| `travel` | `{ from, to }` on travel turns |
+| `choices` | Tap-to-play chips — `Choice`: `label`, `kind` (`say`/`act`), `send` |
+| `presentCharacters` | Canonical codex names in scene (bond rail dimming, approach vs seek out) |
+| `replayVariants` | Alternative AI responses; each carries its own `choices` + `presentCharacters` |
+| `milestone`, `timeAdvanced`, `fateThread` | Almanac / time-passage UI |
+| `travel` | `TravelMove`: `{ from, to }` + `label` getter for headers |
+| `isUserEdited` | Edited-turn indicator in bubble |
 | `isTimePassage`, `isTravel` | UI header helpers |
 | `isOptimistic` | Local placeholder while generating |
 
-**Local:** `LocalDb` caches events (`toSqlite` / `fromSqlite`).
+**Local:** `LocalDb` caches events but **does not** persist `choices` or replay variants — full data from WS/REST on load.
 
 ---
 
@@ -97,7 +100,7 @@ Not in `shared/models/` but used by Lore Tome:
 |------|-------|
 | `recap_data.dart` | RecapData, RecapBond, RecapThread |
 | `calendar_data.dart` | StoryCalendar, TimelineBranch, CalendarEvent |
-| `location_journal.dart` | LocationPlace, LocationJournal |
+| `location_journal.dart` | `LocationPlace`, `LocationJournal` (`permanentFacts`, `currentState`) |
 | `relationship_ledger.dart` | RelationshipLedger, BondMoment |
 | `threads_data.dart` | StoryThread, ThreadsData |
 | `side_chat_data.dart` | SideChatThread, SideChatTurn |

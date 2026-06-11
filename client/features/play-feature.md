@@ -68,15 +68,15 @@ No `data/` layer — Play uses `WsManager` directly for real-time gameplay.
 
 ### BondRail
 
-Up to 5 side characters with relationship ring (trust/affection/fear/rivalry). Dimmed when not in current scene.
+Up to 5 side characters with relationship ring (trust/affection/fear/rivalry). **Dimmed** when not in current scene — presence matches **canonical name + aliases** against `GameEvent.presentCharacters` (null presence = no dimming). Tap → bond action sheet with **Here now / Elsewhere** tag; **Approach** vs **Seek out** based on scene presence.
 
 ### ChoiceChips
 
-Server-suggested say/action chips; tap prefills composer (player edits before send).
+Server-suggested say/action chips for the **active prose variant** (primary turn, replayed variant, or post-edit). Tap prefills composer. Chips regenerate on replay and AI-response edit; variant arrows swap stored chips locally; commit on next send via `_flushPendingVariant()`.
 
 ### AdvanceTimeButton
 
-Bottom sheet: quiet moment, hours, day, season → `continueStory(advance: ...)`.
+**Tap or long-press** opens bottom sheet: quiet moment, hours, day, days, season → `continueStory(advance: ...)`.
 
 ### WorldStateBar
 
@@ -94,14 +94,17 @@ Central orchestrator. Subscribes to **12+ WS streams**.
 | `chat` | Player sends message |
 | `continue` | Continue or time skip |
 | `replay` | Regenerate last AI reply |
+| `side_chat` | SideChatScreen private thread |
 
 | Inbound WS | Effect |
 |------------|--------|
 | `instance_loaded` | Seed events, memories (50 cap), characters, milestones |
-| `generation_delta/complete` | Stream + finalize turn |
+| `generation_delta` / `generation_stream_end` / `generation_complete` | Stream + finalize turn |
+| `replay_delta` / `replay_complete` | Replay stream; chips + presence per variant |
 | `memories_curated` | Append new memories live |
 | `character_codex_updated` | Refresh bond meters |
 | `milestone_unlocked` | Toast + timeline |
+| `validation` | Schema rejection → error banner |
 
 ### Local optimizations
 
@@ -112,11 +115,11 @@ Central orchestrator. Subscribes to **12+ WS streams**.
 
 ### REST (via ChronicleRepository / HomeRepository)
 
-| Action | Endpoint |
-|--------|----------|
-| Edit AI response | `PUT /chronicle/event/:id` |
-| Rewind | `POST /chronicle/rewind/:id` + WS reload |
-| Select replay variant | `POST /chronicle/replay/select/:id` |
+| Action | Endpoint | Notes |
+|--------|----------|-------|
+| Edit AI response | `PUT /chronicle/event/:id` | Returns regenerated `choices` + `present_characters` when prose changed |
+| Rewind | `POST /chronicle/rewind/:id` + WS reload | |
+| Select replay variant | `POST /chronicle/replay/select/:id` | Commits browsed variant before next send |
 | Edit character | `PUT /chronicle/character/:id` |
 | Set protagonist | `POST /instances/:id/protagonist` |
 | Update settings | `PATCH /instances/:id/settings` |

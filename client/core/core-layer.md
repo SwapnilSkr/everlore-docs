@@ -136,37 +136,53 @@ WsManager (singleton)
   ├── Offline Message Queue
   ├── Connectivity Listener
   ├── Keepalive Ping Timer (25s interval)
-  └── 5 Broadcast StreamControllers:
-      ├── onGenerationComplete  → AI finished generating narrative
-      ├── onMemoriesCurated     → New memories were created
-      ├── onError               → Generation failure or server error
-      ├── onConnectionState     → Connection status (bool)
-      └── onInstanceLoaded      → Full instance state response
+  ├── Handshake gate (waits for `connected` before isConnected=true)
+  └── 14 broadcast StreamControllers:
+      ├── onGenerationDelta       → token stream during generation
+      ├── onGenerationComplete    → turn finalized + state diff
+      ├── onGenerationStreamEnd   → full prose after stream ends
+      ├── onMemoriesCurated       → new memories extracted
+      ├── onError                 → failures + validation frames
+      ├── onConnectionState       → bool connected
+      ├── onInstanceLoaded        → full play bootstrap payload
+      ├── onCharacterCodexUpdated → bond meter refresh
+      ├── onReplayDelta           → streaming replay prose
+      ├── onReplayComplete        → replay variant + chips/presence
+      ├── onMilestoneUnlocked     → brass-seal moment
+      ├── onSideChatDelta         → side-chat token stream
+      ├── onSideChatComplete      → side-chat turn done
+      └── onSideChatError         → side-chat failure
 ```
 
 ### Connection Lifecycle
 
-1. **Connect:** `connect(token)` — authenticates via query param `?token=<jwt>`
-2. **Ping:** Every 25 seconds, sends `{"action": "ping"}`
-3. **Disconnect:** Triggers reconnect schedule
+1. **Connect:** `connect(token, {force: true})` — JWT in query `?token=<jwt>`; `force` closes stale sockets on play re-entry
+2. **Handshake:** Server sends `{type: "connected"}`; only then `_isConnected = true` and offline queue flushes
+3. **Ping:** Every 25 seconds, sends `{"action": "ping"}`
 4. **Reconnect:** Exponential backoff (2s × attempt, max 30s, up to 10 attempts)
-5. **Network Change:** `connectivity_plus` listener triggers reconnect on network restoration
-
-`connect()` is idempotent for the current token, so repeated auth/bootstrap calls do not spawn duplicate listeners.
+5. **Network change:** `connectivity_plus` listener reconnects when network returns
 
 ### Message Routing
 
-Incoming messages are routed by `type` field:
-```dart
-switch (msg['type']) {
-  case 'generation_complete': → _generationCompleteController.add(msg)
-  case 'memories_curated':    → _memoriesCuratedController.add(msg)
-  case 'generation_failed':
-  case 'error':               → _errorController.add(msg)
-  case 'instance_loaded':     → _instanceLoadedController.add(msg)
-  case 'pong': case 'ack': case 'connected': → (no-op)
-}
-```
+Incoming messages routed by `type`:
+
+| `type` | Stream |
+|--------|--------|
+| `connected` | Enables connection + flushes queue |
+| `generation_delta` | `onGenerationDelta` |
+| `generation_stream_end` | `onGenerationStreamEnd` |
+| `generation_complete` | `onGenerationComplete` |
+| `memories_curated` | `onMemoriesCurated` |
+| `instance_loaded` | `onInstanceLoaded` |
+| `character_codex_updated` | `onCharacterCodexUpdated` |
+| `replay_delta` | `onReplayDelta` |
+| `replay_complete` | `onReplayComplete` |
+| `milestone_unlocked` | `onMilestoneUnlocked` |
+| `side_chat_delta` | `onSideChatDelta` |
+| `side_chat_complete` | `onSideChatComplete` |
+| `side_chat_error` | `onSideChatError` |
+| `generation_failed`, `error`, `validation` | `onError` |
+| `pong`, `ack` | no-op |
 
 ### Offline Queue
 If the connection is down when `send()` is called, messages are appended to `_offlineQueue`. When reconnection succeeds, `_flushOfflineQueue()` sends all queued messages.
@@ -175,23 +191,30 @@ If the connection is down when `send()` is called, messages are appended to `_of
 
 | Method | Parameters | Description |
 |--------|-----------|-------------|
-| `connect(token)` | JWT token string | Opens connection, starts connectivity listener |
-| `send(message)` | `Map<String, dynamic>` | Sends JSON message or queues offline |
-| `sendChatMessage(instanceId, message)` | Instance ID, text | Sends `{"action": "chat", ...}` |
-| `loadInstance(instanceId)` | Instance ID | Sends `{"action": "load_instance", ...}` |
-| `disconnect()` | — | Closes connection, cancels timers |
+| `connect(token, {force})` | JWT; optional force reconnect | Opens connection, starts connectivity listener |
+| `send(message)` | `Map<String, dynamic>` | Sends JSON or queues offline |
+| `sendChatMessage(instanceId, message)` | Instance ID, text | `action: chat` |
+| `sendContinue(instanceId, {advance})` | Instance ID; optional time skip | `action: continue` |
+| `sendSideChatMessage(instanceId, characterId, message)` | Side chat turn | `action: side_chat` |
+| `sendReplay(instanceId, eventId)` | Replay a turn | `action: replay` |
+| `loadInstance(instanceId)` | Instance ID | `action: load_instance` |
+| `disconnect({clearToken})` | — | Closes connection |
 | `dispose()` | — | Closes all StreamControllers |
 
 ### Streams
 
-| Stream | Type | Description |
-|--------|------|-------------|
-| `onConnectionState` | `Stream<bool>` | True when connected |
-| `onGenerationComplete` | `Stream<Map>` | AI response with narrative + state diff |
-| `onInstanceLoaded` | `Stream<Map>` | Full instance data on load |
-| `onMemoriesCurated` | `Stream<Map>` | Newly curated memories |
-| `onError` | `Stream<Map>` | Error messages |
-| `isConnected` | `bool` getter | Current connection status |
+| Stream | Description |
+|--------|-------------|
+| `onConnectionState` | True after `connected` handshake |
+| `onGenerationDelta` / `onGenerationStreamEnd` / `onGenerationComplete` | Main story streaming |
+| `onReplayDelta` / `onReplayComplete` | Replay streaming + per-variant chips |
+| `onInstanceLoaded` | Bootstrap: instance, events, memories, characters |
+| `onMemoriesCurated` | New memories from curation job |
+| `onCharacterCodexUpdated` | Codex cards + bond meters |
+| `onMilestoneUnlocked` | Story landmark toast |
+| `onSideChatDelta` / `onSideChatComplete` / `onSideChatError` | Private character chat |
+| `onError` | Failures and schema `validation` frames |
+| `isConnected` | Current connection status |
 
 ---
 
