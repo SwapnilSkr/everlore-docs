@@ -40,7 +40,7 @@ Map of the Flutter app: screens, buttons, and when they appear.
 |----|---------------|---------------|
 | **World stat bar** | World has RPG stats | Stat-less character worlds |
 | **Bond rail** | ≥1 side character with relationship meters | No bonded NPCs yet |
-| **Choice chips** | Latest turn done, server sent choices | Generating, replaying, disconnected |
+| **Choice chips** | Latest turn done, server sent choices for active variant | Generating, replaying, disconnected |
 | **Advance time button** | Composer empty, connected | You typed text, generating |
 | **"Older history" link** | More than 20 events exist | All history loaded |
 | **Milestone toast** | Server unlocked a milestone | Auto-dismisses |
@@ -53,8 +53,8 @@ Map of the Flutter app: screens, buttons, and when they appear.
 
 - Up to **5** characters shown as circular meters
 - Color = dominant bond (trust green, affection rose, fear violet, rivalry amber)
-- **Dimmed** if character not in current scene (when scene knows who's present)
-- **Tap** → action sheet (approach, ask, seek out, "what they remember")
+- **Dimmed** if character not in current scene — matches **canonical name + aliases** against `presentCharacters` (null list = everyone present)
+- **Tap** → action sheet with **Here now / Elsewhere** tag; **Approach** when present, **Seek out** when elsewhere
 
 ### Narration bubble extras
 
@@ -90,10 +90,11 @@ Map of the Flutter app: screens, buttons, and when they appear.
 
 | Action | Effect |
 |--------|--------|
-| Edit response | REST edit → re-curates memories |
+| Edit response | REST edit → re-curates memories; **regenerates chips** when AI prose changed |
 | Rewind to here | Rolls back story from this turn |
 | Copy | Clipboard |
-| Replay | WebSocket replay → new variants |
+| Replay | WebSocket replay → new variant with its own chips + presence |
+| Replay arrows | Browse variants locally; chips/presence swap with prose; commit before next send |
 
 ### Time skip sheet
 
@@ -103,6 +104,8 @@ Map of the Flutter app: screens, buttons, and when they appear.
 |--------|---------------|
 | Quiet moment | `continue` (no advance) |
 | Hours / Day / Days / Season | `continue` + advance key |
+
+**Tap or long-press** the hourglass button to open the sheet.
 
 ---
 
@@ -207,6 +210,7 @@ Read-only in UI.
 |------|------------|
 | `generation_delta` | Text streaming |
 | `generation_complete` | Turn done |
+| `replay_delta` / `replay_complete` | Replay streaming; chips + presence per variant |
 | `memories_curated` | New memories (for tap-to-read) |
 | `character_codex_updated` | Bond meters refresh |
 | `milestone_unlocked` | Toast |

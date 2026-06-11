@@ -161,7 +161,7 @@ Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline 
 | `PUT /chronicle/calendar/:id/timeline/active` | Switch reality |
 | `GET /chronicle/side-chats/:id[/:charId]` | Side chat threads |
 | `POST /chronicle/rewind/:id` | Roll back |
-| `PUT /chronicle/event/:id` | Edit turn |
+| `PUT /chronicle/event/:id` | Edit turn; returns regenerated `choices` + `present_characters` when AI prose changes |
 | `PUT /chronicle/memory/:id` | Edit memory |
 | `POST /chronicle/replay/select/:id` | Commit replay variant |
 
@@ -207,5 +207,14 @@ Session cached in Redis — busted on rewind/reset/edit that changes canon.
 | Tool | Purpose |
 |------|---------|
 | `scripts/rewind-audit.ts` | Clone instance, rewind, assert 27+ invariants |
+| `bun run audit:choices` | Live LLM: first-person chips, canonical presence |
+| `bun run audit:location` | Live LLM: phantom travel, KNOWN PLACES returns, presence fold |
+| `bun run audit:codex-dedup` | Live LLM: kin-epithet resolves to existing codex card |
+| `bun run audit:replay-edit` | Integration: replay/edit/variant-select chip restoration |
+| `bun run merge:character` | Manual codex dedup repair |
 | `continuityAuditService` | Cross-projection consistency report |
 | `bun run typecheck` / `flutter analyze lib` | Static checks |
+
+### Scene extractor invariants (June 2026)
+
+Primary turns pass **protagonist**, **KNOWN CAST roster**, **KNOWN PLACES**, and prior presence into `metadata-extractor.ts`. The server folds presence across quiet turns, updates the location cursor from `current_location` (even on returns), and only emits travel events when `viewpoint_moved` and the place entity actually changed.
