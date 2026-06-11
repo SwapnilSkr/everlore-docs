@@ -258,7 +258,17 @@ BM25, Phase 2 memory-version links). Recommended order:
    `updates_memory_ids` / `extends_memory_ids` / `derives_from_memory_ids`, then
    decide whether links are extractor-produced, dedup/supersession-produced, or
    maintenance-derived.
-4. **Still deferred:** Phase 1 revision counters and Phase 9 cold archival. Reopen
+4. **Open-world limits — DOCUMENTED, deferred** (`LOCATION_GRAPH.md` "Open-world
+   limits" + CHECKLIST). The movement/witness/cartographer stack fits the current
+   single-scene sequential-travel loop; full open-world play has 4 logged gaps. The
+   ONE to fix proactively is **intra-world same-name collision** (a latent bug — P1
+   scoped resolution by world-root, not parent/area per design Rule 1, so two
+   same-named places in different towns would fuse + bleed place-recall; everything is
+   `world_root_id:null` today so it's live the moment multi-settlement content lands).
+   The rest (traveling-party presence as a real feature, dedup-at-scale, mobile
+   containers / parallel scenes) are content-driven. Stack degrades gracefully
+   everywhere except collision.
+5. **Still deferred:** Phase 1 revision counters and Phase 9 cold archival. Reopen
    only for a concrete consumer or real storage pressure.
 
 _Micro-opt noted, not done: 2 embeds/turn (queryRag + querySummaries run in parallel)

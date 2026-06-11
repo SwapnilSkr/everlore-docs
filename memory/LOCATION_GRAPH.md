@@ -253,6 +253,60 @@ presence fold and the codex name-grounding backstop:
 - Whether the place-recall arm includes ancestor nodes (e.g. mansion-level memories
   when standing in a room) or strictly the current node.
 
+## Open-world limits (known, deferred — documented June 2026)
+
+The witness/cartographer + movement-signal stack is sufficient for the **current
+loop**: a single protagonist, one active scene at a time, sequential named travel.
+Stress-testing it against genuine open-world play surfaced gaps that are **logged,
+not yet built** — pull each in when the *content* demands it. Ordered by severity.
+
+1. **Intra-world same-name collision (LATENT BUG — fix before multi-location content).**
+   Design Rule 1 (above) says resolution should dedup against **siblings under the
+   active area/world-root**. P1 actually scoped resolution to **`world_root_id` only**,
+   not to the immediate `parent_id`/area. In the current single-world instance every
+   place has `world_root_id: null`, so the exact-name index matches a bare name across
+   the WHOLE world: a second `"tavern"`/`"inn"`/`"gate"`/`"market"` in a different town
+   would **resolve onto the first one and fuse** → place-recall then bleeds Town-A
+   memories into Town B (the exact collision/bleed class the doc was written to
+   prevent). Dormant only because the live story is one mansion. **Fix when needed:**
+   scope `resolveLocationAnchor`'s exact+fuzzy match by immediate parent/area (with a
+   sensible fallback for unknown-parent), so identity = name + parent + root as Rule 1
+   intended. Until then, do NOT ship multi-settlement content with generic room names.
+
+2. **Traveling-party presence (MISSING MODEL — needs a feature, not a patch).** Presence
+   is a flat "who is in THIS scene", rebuilt on every move (`sceneBroke` resets it —
+   `viewpointMoved`, a time skip, or `placeEntityChanged`). That is correct for "I left
+   the dinner, my parents don't follow", but WRONG for "my companions ride to the
+   capital WITH me" — companions drop unless the arrival prose re-names them every turn
+   (the F3 "quiet character flickers to elsewhere" failure, but across a move). Open
+   world needs TWO presence sets: **co-located locals** (reset on move) vs **party /
+   travelling-with** (persist across moves until an explicit part/farewell). Build:
+   a persistent `travelling_with` set on the instance, seeded by explicit join signals
+   and cleared by explicit departures, unioned into presence after a move so the party
+   survives a scene break while locals still reset. Defer until companions are real
+   gameplay.
+
+3. **Dedup at world scale (DEGRADES, not broken).** The KNOWN PLACES roster fed to the
+   witness is capped at 30 (recency/mention-sorted) and the fuzzy pass only sees bounded
+   candidates. A world with hundreds of places means an old, long-unvisited place may be
+   off the roster → the model can mint a variant the fuzzy pass might miss. Exact returns
+   are always fine (indexed). Revisit with a smarter hot-set (spatial/recent-neighbourhood
+   bias) only if duplicate long-tail places actually appear at scale.
+
+4. **Exotic, unmodeled (lowest priority).** (a) **Multi-hop montage** ("three weeks
+   crossing the mountains to the capital") mints only the END place; intermediate places
+   never exist (fog-of-war — acceptable, but no journey place-recall). (b) **Mobile
+   containers** — a ship/airship that is itself a moving "place" (stable container,
+   changing world-position) has no representation. (c) **Parallel scenes / party split** —
+   a single instance cursor + single present-roster assume ONE active scene; a true
+   "meanwhile, elsewhere" split isn't modeled (side-chats cover only a single alt-thread).
+   Pull in per scenario if/when a world needs it.
+
+**Takeaway:** the movement-signal/witness/cartographer split is the right foundation and
+degrades GRACEFULLY (worst case: a sticky cursor or a flickered companion — never silent
+identity corruption) EXCEPT for limit #1, which can corrupt by fusing distinct places.
+#1 is the one to fix proactively; the rest are content-driven.
+
 ## Repair tooling (exists)
 
 - `bun run merge:location <iid> "<keep>" "<dupe>" [...]` — folds duplicate location

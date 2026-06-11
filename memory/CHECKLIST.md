@@ -668,3 +668,15 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       needs an extractor pass to MINT them before the atlas can surface them.
 - [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
       back"; per-realm lore at scale; optional timeline-branch what-ifs layered on top.
+- [ ] **Open-world limits — DOCUMENTED, deferred (see `LOCATION_GRAPH.md` "Open-world
+      limits").** Stress-testing the movement stack against full open-world play surfaced
+      gaps logged but not built: (1) **intra-world same-name collision** — a LATENT BUG:
+      P1 scoped resolution by `world_root_id` only, not by parent/area (design Rule 1), so
+      a second "tavern"/"inn" in another town would fuse onto the first + bleed place-recall
+      — fix (parent/area-scoped resolution) BEFORE shipping multi-settlement content; (2)
+      **traveling-party presence** — presence resets on every move, so companions who move
+      WITH the protagonist drop; needs a persistent `travelling_with` set (feature, not a
+      patch); (3) dedup degrades past ~30 places (roster cap); (4) exotic: multi-hop
+      montage / mobile containers (ships) / parallel "meanwhile" scenes. Stack degrades
+      gracefully (sticky cursor / flickered companion, never silent corruption) EXCEPT #1.
+      Pull each in when content demands it.
