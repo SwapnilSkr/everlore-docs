@@ -177,12 +177,18 @@ added. `audit:location-resolution` extended (classification + guard scenarios), 
 spine to scope by, and the cross-world bleed it guards against can't occur until
 multi-root worlds exist (P1). Shipping it in P0 would be untestable dead code.
 
-### P1 — the spine (data model + cartographer + scoped resolution)
-- Add `parent_id`, `world_root_id`, `place_kind` to location entities (+ indexes).
-- **Parent/world-root-scoped resolution** (moved from P0): scope exact + fuzzy matching
-  in `resolveLocationAnchor` to siblings under the active world-root instead of the
-  global instance set — closes the cross-realm "same-named house" bleed. Today's
-  resolver (`a12e94e`) is GLOBAL; this is exercisable once roots exist.
+### P1 — the spine (data model + cartographer + scoped resolution) — DONE (`f95099d`)
+- Added `parent_id`, `world_root_id`, `place_kind` to location entities. Unique index
+  now `idx_entities_instance_type_root_name` (includes `world_root_id`) so same-named
+  places coexist across realms; legacy/non-location/single-world rows keep
+  `world_root_id` null (constraint reduces to the old key). Added `instance+parent_id`.
+- **Parent/world-root-scoped resolution** (the moved P0(b)): `resolveLocationAnchor`
+  exact + fuzzy now scoped to one world-root — closes the cross-realm bleed.
+- Witness fields `containment_hint` + `movement` (none/deeper/out/lateral/world_shift);
+  server cartographer `placeLocation` does the placement + re-parent reveal + world-root
+  minting (self-rooted, main timeline). Audit + dev-instance backfill done.
+- KNOWN LIMIT: subtree `world_root_id` refresh on a cross-root re-parent not yet done
+  (no-op single-world; fold into P3).
 - Extraction emits `current_place` / `containment_hint` / `movement`.
 - Server cartographer logic (attach under correct parent; handle deeper/out/lateral/
   world_shift); world-root minting on `world_shift` (main timeline).

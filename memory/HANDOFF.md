@@ -205,14 +205,17 @@ Recap/Echoes/Threads/Location read filters.
 Phases 1–10 are complete. `CHECKLIST.md` now has the **Location Graph** initiative
 (full design in `LOCATION_GRAPH.md`) plus two reopened planning items (Phase 4 broader
 BM25, Phase 2 memory-version links). Recommended order:
-0. **Location Graph P0 (QUEUED — safety-critical, do FIRST).** Server-only: vague-label
-   guard (generic/relative place labels never mint) + **parent/area-scoped resolution**
-   in `resolveLocationAnchor` (today's fuzzy resolver `a12e94e` is GLOBAL → would merge
-   same-named places across cities/realms, a live bleed risk) + extend
-   `audit:location-resolution`. Then P1 (the `parent_id`/`world_root_id` spine +
-   witness/cartographer extraction) per `LOCATION_GRAPH.md`. LOCKED decisions: space vs
-   time orthogonal (world-drift = canonical space travel on MAIN timeline; branches only
-   for what-ifs); lazy/emergent depth; witness/cartographer; world-root-scoped identity.
+0. **Location Graph P0 + P1 — DONE** (`4483949`, `f95099d`). P0: vague-label guard
+   (generic/relative labels never mint). P1: the containment spine
+   (`parent_id`/`world_root_id`/`place_kind` + unique index incl. world_root_id so
+   same-named places coexist across realms), witness fields (`containment_hint`/
+   `movement`), the server cartographer (`placeLocation`: deeper/out/lateral/world_shift
+   + re-parent reveal + world-root minting), world-root-scoped resolution, audit, and a
+   dev-instance backfill (8 locations under a mansion building + exterior). **NEXT for
+   this initiative: P2** — the nested **atlas UI** (fog-of-war tree + node detail) +
+   non-containment relation edges (`mirror_of`/`allied_with`/`borders`); then P3
+   (multi-world maturity + the deferred subtree `world_root_id` refresh on cross-root
+   re-parent). Full design + locked decisions in `LOCATION_GRAPH.md`.
 1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
    code-correct but never run against a real generated turn. Start server + worker +
    app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload

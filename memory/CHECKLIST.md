@@ -586,14 +586,28 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       to P1 — it needs the `world_root_id`/`parent_id` spine to scope by, and the
       cross-world bleed it guards can't occur until multi-root worlds exist (P1). Shipping
       it now would be untestable dead code.
-- [ ] **P1 — the spine + scoped resolution.** Add `parent_id` / `world_root_id` /
-      `place_kind` to location entities (+ indexes); **make `resolveLocationAnchor`
-      exact+fuzzy matching scoped to siblings under the active world-root** (the moved
-      P0(b) — closes the cross-realm "same-named house" bleed, exercisable once roots
-      exist); extraction emits `current_place`/`containment_hint`/`movement`; server
-      cartographer (deeper/out/lateral/world_shift); world-root minting on `world_shift`
-      (main timeline); re-parenting on later reveal (+ subtree `world_root_id` refresh);
-      backfill the instance's 8 locations under a building + exterior; audits.
+- [x] **P1 — the spine + cartographer + scoped resolution (DONE, server `f95099d`).**
+      Location entities gained `parent_id` (immediate container), `world_root_id`
+      (denormalized top-of-chain world/realm; null = the single implicit world), and
+      `place_kind`. The entities **unique index now includes `world_root_id`**
+      (`idx_entities_instance_type_root_name`, old one deprecated) so the SAME place name
+      coexists across DIFFERENT realms ('house' in two worlds) — non-location + legacy +
+      single-world rows keep `world_root_id` null so the constraint reduces to the old
+      (instance, type, name). Added an `instance+parent_id` index. The scene extractor
+      emits two **witness** fields — `containment_hint` (immediate container, only when
+      the prose states it; never guessed) + `movement` (none|deeper|out|lateral|
+      world_shift). The server **cartographer** `entityGraphService.placeLocation` turns
+      them into placement (deeper→parent=where we were; out→that place's parent; lateral→
+      same parent; world_shift→mint/reuse a self-rooted world entity, hang the place under
+      it); an explicit hint overrides the inferred parent; an unmoved turn that newly
+      names the current place's container re-parents the cursor (fills an UNKNOWN parent
+      only). **`resolveLocationAnchor` exact+fuzzy is now world-root SCOPED** (the moved
+      P0(b) — closes the cross-realm bleed). `audit:location-resolution` extended
+      (deeper/out/lateral, hint override, re-parent reveal, world_shift root minting,
+      cross-world same-name coexistence) — all green. Backfilled the dev instance's 8
+      locations under a mansion building + exterior. KNOWN LIMIT: subtree `world_root_id`
+      refresh on a cross-root re-parent isn't implemented (no-op in single-world; matters
+      only once multi-root re-parenting happens — fold into P3).
 - [ ] **P2 — atlas UI + relations.** Nested atlas surface (fog-of-war) + node detail;
       non-containment relation edges (`mirror_of`/`allied_with`/`borders`) surfaced in
       place context.
