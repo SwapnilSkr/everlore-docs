@@ -71,6 +71,14 @@ task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 - **Verification harnesses (read-only, trusted):** `scripts/rewind-audit.ts`
   (27+ assertions) and `continuityAuditService`
   (`GET /admin/instances/:id/continuity-audit`).
+- **Live-turn verification (Tier 2):** see `LIVE_VERIFICATION.md` — the runbook for
+  stress-testing LLM-dependent behaviour against REAL generated turns (worker +
+  `generationService.dispatch`, inspect Mongo, `rewindToSequence` to restore). READ IT
+  before claiming any witness-seam feature works: `typecheck` + `audit:*` green is
+  necessary but NOT sufficient (the June pass found 5 bugs the audits missed). It
+  documents the false-positive traps (stale `session:<iid>` cache, stale worker code,
+  async-projection lag, extractor-sees-only-AI-prose, LLM stochasticity) and the
+  stress matrix + cleanup discipline.
 
 ## Privacy / exclusion invariant (Phase 7)
 `side_chat` events share the event ledger + sequence counter, so **any read of the
