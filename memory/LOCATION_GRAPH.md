@@ -164,22 +164,25 @@ A nested **atlas** surface (sibling of the Bonds/codex surfaces in the Lore Tome
 
 ## Rollout
 
-### P0 — safety-critical, do FIRST (server only)
-Stops fragmentation at the source AND removes the cross-world bleed risk before any
-multi-area world exists.
-- **Vague-label guard**: generic/relative place labels never mint; resolve to the
-  current cursor unless movement is narrated.
-- **Parent/area-scoped resolution**: scope exact + fuzzy matching to siblings under
-  the active area / world-root instead of the global instance set (harden
-  `resolveLocationAnchor`, [entity-graph.service.ts](../../everlore-server/src/services/entity-graph.service.ts)).
-- **Audit**: extend `audit:location-resolution` — a same-named place under a
-  different root must NOT merge; a vague label must NOT mint; a genuine return still
-  reuses the node.
-- No schema change required beyond reading `world_root_id`/`parent_id` if present
-  (tolerate absent on legacy rows).
+### P0 — vague-label guard — DONE (server only)
+Stops fragmentation at the source. `isVagueLocationLabel` classifies generic/relative
+labels ("the room", "here", "outside") matched as the WHOLE normalized label (so
+"dining room" / "great room" stay specific); `resolveLocationAnchor` takes a
+`viewpointMoved` param and returns null for a vague label on an UNMOVED turn (no match,
+no mint → caller keeps the cursor), while a SPECIFIC place on an unmoved turn still
+resolves (preserves the `a80bb10` "cursor follows on return" fix). Soft extractor nudge
+added. `audit:location-resolution` extended (classification + guard scenarios), all green.
 
-### P1 — the spine (data model + cartographer)
+**Parent/area-scoped resolution moved to P1** — it needs the `world_root_id`/`parent_id`
+spine to scope by, and the cross-world bleed it guards against can't occur until
+multi-root worlds exist (P1). Shipping it in P0 would be untestable dead code.
+
+### P1 — the spine (data model + cartographer + scoped resolution)
 - Add `parent_id`, `world_root_id`, `place_kind` to location entities (+ indexes).
+- **Parent/world-root-scoped resolution** (moved from P0): scope exact + fuzzy matching
+  in `resolveLocationAnchor` to siblings under the active world-root instead of the
+  global instance set — closes the cross-realm "same-named house" bleed. Today's
+  resolver (`a12e94e`) is GLOBAL; this is exercisable once roots exist.
 - Extraction emits `current_place` / `containment_hint` / `movement`.
 - Server cartographer logic (attach under correct parent; handle deeper/out/lateral/
   world_shift); world-root minting on `world_shift` (main timeline).

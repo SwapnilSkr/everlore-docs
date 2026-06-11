@@ -571,22 +571,29 @@ witness/cartographer (LLM emits local place + movement hints, server owns the ma
 parent/world-root-scoped identity & resolution (vague labels never mint); containment
 = `parent_id` spine, other relations = `entity_edges`.
 
-- [~] **P0 (QUEUED — do FIRST, safety-critical, server only).** Stops location
-      fragmentation at the source AND removes the cross-world bleed risk before any
-      multi-area world exists. (a) **Vague-label guard** — generic/relative labels
-      ("the room", "here", "inside", "outside") never mint; resolve to the current
-      cursor unless movement is narrated. (b) **Parent/area-scoped resolution** — scope
-      exact + fuzzy matching in `resolveLocationAnchor` to siblings under the active
-      area/world-root instead of the global instance set (today's resolver `a12e94e` is
-      GLOBAL → would merge same-named places across cities/realms). (c) **Audit** —
-      extend `audit:location-resolution`: same-named place under a different root must
-      NOT merge; a vague label must NOT mint; a genuine return still reuses the node.
-- [ ] **P1 — the spine.** Add `parent_id` / `world_root_id` / `place_kind` to location
-      entities (+ indexes); extraction emits `current_place`/`containment_hint`/
-      `movement`; server cartographer (deeper/out/lateral/world_shift); world-root
-      minting on `world_shift` (main timeline); re-parenting on later reveal (+ subtree
-      `world_root_id` refresh); backfill the instance's 8 locations under a building +
-      exterior; audits.
+- [x] **P0 — vague-label guard (DONE, server commit pending).** Stops location
+      fragmentation at the source. (a) `isVagueLocationLabel` — generic/relative labels
+      ("the room", "here", "inside", "outside", "the area") classified as vague, matched
+      as the WHOLE normalized label so a QUALIFIED name stays specific ("dining room",
+      "great room", "throne hall" are NOT vague). (b) `resolveLocationAnchor` gains a
+      `viewpointMoved` param: a vague label on an UNMOVED turn returns null (no match, no
+      mint) → the processor keeps the cursor; a SPECIFIC place on an unmoved turn STILL
+      resolves, so a return the model under-flags still updates the cursor (preserves
+      `a80bb10`). (c) Soft extractor nudge ("never report a vague/relative label"). (d)
+      `audit:location-resolution` extended: vague classification (7 vague / 6 specific),
+      vague-unmoved → null + mints nothing, specific-unmoved → still resolves, specific
+      place on a move still mints. All green. NOTE: parent/area-scoped resolution moved
+      to P1 — it needs the `world_root_id`/`parent_id` spine to scope by, and the
+      cross-world bleed it guards can't occur until multi-root worlds exist (P1). Shipping
+      it now would be untestable dead code.
+- [ ] **P1 — the spine + scoped resolution.** Add `parent_id` / `world_root_id` /
+      `place_kind` to location entities (+ indexes); **make `resolveLocationAnchor`
+      exact+fuzzy matching scoped to siblings under the active world-root** (the moved
+      P0(b) — closes the cross-realm "same-named house" bleed, exercisable once roots
+      exist); extraction emits `current_place`/`containment_hint`/`movement`; server
+      cartographer (deeper/out/lateral/world_shift); world-root minting on `world_shift`
+      (main timeline); re-parenting on later reveal (+ subtree `world_root_id` refresh);
+      backfill the instance's 8 locations under a building + exterior; audits.
 - [ ] **P2 — atlas UI + relations.** Nested atlas surface (fog-of-war) + node detail;
       non-containment relation edges (`mirror_of`/`allied_with`/`borders`) surfaced in
       place context.
