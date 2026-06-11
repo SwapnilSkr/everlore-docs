@@ -402,3 +402,21 @@ Supermemory-level story memory system.
       choices via the already-persona-shaped narrator prose). `npx tsc --noEmit`
       clean. NOT yet run against a live generated turn — verify on a real
       playthrough.)
+- [x] Other-character naming in the extractor: `extractSceneMetadata`
+      got no codex roster, so `present_characters` returned whatever names the
+      PROSE used ("the exact name as written"). The app matches that against each
+      card's canonical name with a naive lowercased exact-set check
+      (`play_screen.dart` `_presentNames`/`isPresent`), with no alias/fuzzy
+      resolution — so an alias/role/pronoun/partial reference in the prose
+      ("Vautrin" vs card "Inspector Javert", "the innkeeper" vs "Greta", "Mira"
+      vs "Mira Vell") mis-tagged a present character as "Elsewhere" and offered
+      "seek out" instead of "approach".
+      (Server commit `4a403b4`. Fix = normalize at source: thread the selected
+      codex (canonical names + aliases) as a KNOWN CAST roster into the extractor;
+      `present_characters` and choice references now come back by CANONICAL name.
+      World-aware filter: GM worlds drop the `is_protagonist` card (that's the
+      player); sentient worlds KEEP it (it's the AI character the player talks to,
+      an "other"). Roster bounded to 24. `npx tsc --noEmit` clean. NOT yet run
+      against a live turn. Residual: app-side match is still exact against
+      canonical only — defense-in-depth alias-tolerant matching in
+      `play_screen.dart` remains an optional future hardening.)
