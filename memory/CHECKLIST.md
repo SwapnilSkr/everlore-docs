@@ -608,8 +608,20 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       locations under a mansion building + exterior. KNOWN LIMIT: subtree `world_root_id`
       refresh on a cross-root re-parent isn't implemented (no-op in single-world; matters
       only once multi-root re-parenting happens — fold into P3).
-- [ ] **P2 — atlas UI + relations.** Nested atlas surface (fog-of-war) + node detail;
-      non-containment relation edges (`mirror_of`/`allied_with`/`borders`) surfaced in
-      place context.
+- [x] **P2 — atlas UI (DONE, server `e633956` + app `c8d7bbc`).** `listLocations`
+      now returns the FULL spine (every location entity incl. empty containers, each
+      with parent_id/world_root_id/place_kind) with event/memory counts overlaid. The
+      app's Places tab is a **fog-of-war nested atlas tree** (rooms under building under
+      settlement under world-root, built from parent_id): place-kind glyphs,
+      moments/echoes subtitle, current place highlighted + its branch auto-expanded,
+      fold/unfold carets (current branch can't fold shut), tap → place journal. Also
+      hardened `merge:location` to re-point the memory PLACE anchor
+      (location_entity_id/location_anchor/location_name) — it previously stranded a
+      merged-away place's memories on a deleted entity (a GHOST atlas node); added
+      `repair-orphan-place-anchors.ts` + ran it on the dev instance (11 "the room"
+      memories re-pointed into "dining room", ghost gone). DEFERRED: non-containment
+      **relation edges** (`mirror_of`/`allied_with`/`borders`) — nothing mints them yet
+      (needs an extractor pass), so surfacing would show nothing; folded into a P2.5/P3
+      follow-up.
 - [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
       back"; per-realm lore at scale; optional timeline-branch what-ifs layered on top.

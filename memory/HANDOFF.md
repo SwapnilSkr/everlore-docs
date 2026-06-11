@@ -211,11 +211,15 @@ BM25, Phase 2 memory-version links). Recommended order:
    same-named places coexist across realms), witness fields (`containment_hint`/
    `movement`), the server cartographer (`placeLocation`: deeper/out/lateral/world_shift
    + re-parent reveal + world-root minting), world-root-scoped resolution, audit, and a
-   dev-instance backfill (8 locations under a mansion building + exterior). **NEXT for
-   this initiative: P2** — the nested **atlas UI** (fog-of-war tree + node detail) +
-   non-containment relation edges (`mirror_of`/`allied_with`/`borders`); then P3
-   (multi-world maturity + the deferred subtree `world_root_id` refresh on cross-root
-   re-parent). Full design + locked decisions in `LOCATION_GRAPH.md`.
+   dev-instance backfill (8 locations under a mansion building + exterior). **P2 — atlas
+   UI — DONE** (`e633956` + app `c8d7bbc`): `listLocations` returns the full spine, the
+   Places tab is a fog-of-war nested tree (place-kind glyphs, current place highlighted +
+   auto-expanded, fold/unfold, tap → journal); also hardened `merge:location` to re-point
+   memory place-anchors (+ `repair-orphan-place-anchors.ts`). **NEXT for this initiative:
+   P2.5/P3** — non-containment relation edges (`mirror_of`/`allied_with`/`borders`; needs
+   an extractor pass to MINT them, then surface), multi-world maturity, and the deferred
+   subtree `world_root_id` refresh on cross-root re-parent. Full design + locked decisions
+   in `LOCATION_GRAPH.md`.
 1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
    code-correct but never run against a real generated turn. Start server + worker +
    app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload

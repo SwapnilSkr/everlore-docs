@@ -198,10 +198,16 @@ multi-root worlds exist (P1). Shipping it in P0 would be untestable dead code.
 - Audits: cartographer in/out/lateral/world_shift scenarios; re-parent correctness;
   rewind-safety of the spine.
 
-### P2 — the atlas UI + relations
-- Nested atlas screen; node detail; world-root grouping.
-- Non-containment relation edges (`mirror_of`, `allied_with`, `borders`, …) +
-  surfacing in the prompt's place context.
+### P2 — the atlas UI — DONE (server `e633956` + app `c8d7bbc`)
+- `listLocations` returns the full spine (every location entity incl. empty
+  containers, with parent_id/world_root_id/place_kind + counts). The Places tab is a
+  fog-of-war nested tree (place-kind glyphs, current place highlighted + auto-expanded,
+  fold/unfold, tap → journal). Hardened `merge:location` to re-point the memory PLACE
+  anchor (was stranding merged-away memories on a deleted entity → ghost atlas node);
+  added `repair-orphan-place-anchors.ts`.
+- DEFERRED to P2.5/P3: non-containment relation edges (`mirror_of`, `allied_with`,
+  `borders`, …) — nothing mints them yet (needs an extractor pass), so surfacing would
+  show nothing today.
 
 ### P3 — multi-world maturity
 - Multiple world-roots in anger; "go back across realms"; per-realm lore at scale.
