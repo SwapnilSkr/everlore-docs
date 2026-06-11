@@ -76,7 +76,7 @@ Elysia route trees — TypeBox schemas, auth plugins, delegate to controllers.
 | `generation.service.ts` | Enqueue generate/replay/side_chat; `loadInstance` bootstrap | **Thin dispatch** — no RAG here; fresh NSFW read from DB; queue retention |
 | `play-ws.service.ts` | WS registry, Redis pub/sub, locks, rate limits | In-memory socket map; 240s generation lock |
 | `context-packet.service.ts` | Build `ContextPacket` / `SideChatPacket` in worker | **`Promise.all`** RAG + summaries; codex pool 40→16; memory-driven pins; event **projection** |
-| `memory.service.ts` | Chronicle CRUD, recap, threads, rewind, replay, edit propagation | Heavy **projection**; text search; codex rebuild **in-memory bulk**; Redis session bust |
+| `memory.service.ts` | Chronicle CRUD, recap, threads, rewind, replay, edit propagation | Per-variant **choices/presence** on replay/edit/select; heavy **projection**; text search |
 | `character-codex.service.ts` | Codex deltas, ranking, protagonist seed, ledger replay | Recency ranking formula; fact caps; async compaction trigger |
 | `entity-graph.service.ts` | Entities, edges, location facts, mention match, rewind repair | Name registry scan; provenance caps on edges |
 | `memory-supersession.service.ts` | Archive vectors when codex retires facts | Pinecone similarity search per retired fact (high threshold 0.82) |
@@ -191,6 +191,11 @@ Starts 4 BullMQ workers + registers cron: decay, dedup, summary-repair, continui
 | Script | Purpose |
 |--------|---------|
 | `rewind-audit.ts` | Integration test: clone instance, rewind, 27+ assertions |
+| `choice-audit.ts` | Live audit: choice POV + canonical presence (`audit:choices`) |
+| `location-audit.ts` | Live audit: location cursor, travel gating, presence fold (`audit:location`) |
+| `codex-dedup-audit.ts` | Live audit: kin-epithet dedup (`audit:codex-dedup`) |
+| `replay-edit-audit.ts` | Integration: replay/edit variant chips (`audit:replay-edit`) |
+| `merge-character-cards.ts` | Manual codex dedup repair (`merge:character`) |
 | `test-sfw-model.ts` / `test-nsfw-model.ts` | Model A/B with TTFT metrics |
 | `seed-nsfw-lexicon.ts` | Seed classifier terms |
 | `clean-redis-jobs.ts` | Queue cleanup |

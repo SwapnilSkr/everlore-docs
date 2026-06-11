@@ -68,7 +68,9 @@ Every turn (main story, time skip, travel, side chat).
 | `data.state_mutations`, `data.flag_mutations` | Game state |
 | `data.travel` | `{ from, to }` on travel turns |
 | `data.time_advanced` | Narrated time skip amount |
-| `data.replay_variants` | Alternative AI responses |
+| `data.choices` | Tap-to-play chips (`label`, `kind`, `send`) for the active variant |
+| `data.present_characters` | Canonical codex names present at end of turn (bond rail / scene-aware actions) |
+| `data.replay_variants` | Alternative AI responses; each variant stores its own `choices` + `present_characters` |
 | `time_anchor`, `location_anchor` | When / where |
 | `side_chat` | Character ref on private chat events |
 

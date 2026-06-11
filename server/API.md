@@ -711,11 +711,20 @@ Edit an event.
 **Effects:**
 - Saves previous data to `edit_history`
 - Sets `is_user_edited: true`
+- When `ai_response` changes: regenerates `choices` + `present_characters`, stores on new `edit` variant, re-curates memories
 
 **Response:**
 ```json
-{ "success": true }
+{
+  "success": true,
+  "memories_deleted": 2,
+  "recuration_queued": true,
+  "choices": [{ "label": "…", "kind": "act", "send": "…" }],
+  "present_characters": ["Mira"]
+}
 ```
+
+`choices` and `present_characters` are `null` when only `player_input` was edited.
 
 ---
 
@@ -866,7 +875,16 @@ Permanent job failure (after retries):
   "eventId": "674a1b2c3d4e5f6071829304",
   "narrative": "…",
   "selected_index": 1,
-  "variants": [{ "id": "v1", "narrative": "…", "model_used": "gpt-4o", "created_at": "…" }]
+  "choices": [{ "label": "…", "kind": "act", "send": "…" }],
+  "present_characters": ["Mira"],
+  "variants": [{
+    "id": "v1",
+    "narrative": "…",
+    "model_used": "gpt-4o",
+    "created_at": "…",
+    "choices": [{ "label": "…", "kind": "say", "send": "…" }],
+    "present_characters": ["Mira"]
+  }]
 }
 ```
 

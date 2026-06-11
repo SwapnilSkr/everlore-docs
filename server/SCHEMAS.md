@@ -479,11 +479,22 @@ Relayed verbatim from Redis channel `user:{userId}:events`.
   "eventId": "674a1b2c3d4e5f6071829304",
   "narrative": "…",
   "selected_index": 1,
+  "choices": [{ "label": "…", "kind": "act", "send": "…" }],
+  "present_characters": ["Mira"],
   "variants": [
-    { "id": "v1", "narrative": "…", "model_used": "gpt-4o", "created_at": "…" }
+    {
+      "id": "v1",
+      "narrative": "…",
+      "model_used": "gpt-4o",
+      "created_at": "…",
+      "choices": [{ "label": "…", "kind": "say", "send": "…" }],
+      "present_characters": ["Mira", "Kael"]
+    }
   ]
 }
 ```
+
+Per-variant chips and presence are regenerated on replay and restored on variant select (no re-extraction).
 
 ### Post-turn projections
 
@@ -678,6 +689,20 @@ Body: `{ "sequence": 30 }`
   "player_input": "Updated input text"
 }
 ```
+
+**Response** (when narrative changes):
+
+```json
+{
+  "success": true,
+  "memories_deleted": 2,
+  "recuration_queued": true,
+  "choices": [{ "label": "…", "kind": "act", "send": "…" }],
+  "present_characters": ["Mira"]
+}
+```
+
+When only `player_input` is edited, `choices` and `present_characters` are `null` (chips unchanged).
 
 ### POST `/chronicle/replay/select/:eventId`
 

@@ -68,8 +68,9 @@ Worker startup also **warms NSFW lexicon** from Mongo (`loadNsfwLexicon`).
 2. buildPrompt()            ← token-budgeted sections
 3. callLLMStream()          ← stream to client via Redis pub/sub
 4. repairProseHygiene()
-5. extractSceneMetadata()   ← location, time_elapsed, present_characters, choices
-6. Persist event (+ travel detection, time anchor, location cursor)
+5. extractSceneMetadata()   ← protagonist + KNOWN CAST roster + KNOWN PLACES; choices anchored to protagonist POV; viewpoint_moved, characters_departed, present_characters
+6. Persist event (+ travel only when viewpoint_moved + different place; location cursor follows current_location whenever set)
+7. Fold presence: continuous scene = prior ∪ thisTurn − departed; scene break = fresh list
 7. Fire-and-forget: location facts, codex extract, graph sync, supersession
 8. Enqueue memory-curation (delay 1s)
 9. Enqueue scene-summary if 12-turn block complete
@@ -95,6 +96,8 @@ Worker startup also **warms NSFW lexicon** from Mongo (`loadNsfwLexicon`).
 **File:** `worker/processors/replay.processor.ts`
 
 - Streams via `memoryService.replayEvent`
+- Regenerates **choices + present_characters** for the new variant (same extractor as primary turns)
+- `replay_complete` WS includes top-level chips/presence and per-variant `choices` / `present_characters`
 - Lock released in `finally`
 
 ---
@@ -136,8 +139,8 @@ Worker startup also **warms NSFW lexicon** from Mongo (`loadNsfwLexicon`).
 
 | File | Role |
 |------|------|
-| `character-codex-extractor.ts` | LLM → per-turn codex deltas |
-| `metadata-extractor.ts` | Post-prose scene metadata (NSFW path) |
+| `character-codex-extractor.ts` | LLM → per-turn codex deltas; kin-epithets resolve to existing role cards |
+| `metadata-extractor.ts` | Post-prose scene metadata: KNOWN CAST/PLACES rosters, `viewpoint_moved`, `characters_departed`, protagonist-anchored choices |
 | `structured-output.ts` | Parse/sanitize generation JSON + choices |
 | `codex-compactor.ts` | Async shrink of long immutable fact lists |
 | `nsfw-classifier.ts` | Lexicon cache (30 min refresh) for model routing |
@@ -152,5 +155,12 @@ Failed generation jobs after retries → `dead_letter_jobs` collection + WS `gen
 
 ## Verification
 
-- `bun run scripts/rewind-audit.ts` — integration test across rewind + projections
-- `GET /admin/instances/:id/continuity-audit` — on-demand audit
+| Command | Purpose |
+|---------|---------|
+| `bun run scripts/rewind-audit.ts` | Integration: clone instance, rewind, 27+ projection assertions |
+| `bun run audit:choices` | Live LLM audit: first-person chips, canonical presence names |
+| `bun run audit:location` | Live audit: phantom travel, returns reuse KNOWN PLACES, presence fold |
+| `bun run audit:codex-dedup` | Live audit: kin-epithet resolves to existing codex card |
+| `bun run audit:replay-edit` | Integration: replay + edit + variant select restore per-variant chips |
+| `bun run merge:character` | Manual repair: merge duplicate codex cards (`<instanceId> "<keep>" "<dupe>"`) |
+| `GET /admin/instances/:id/continuity-audit` | On-demand drift audit |
