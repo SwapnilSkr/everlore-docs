@@ -83,14 +83,22 @@ Supermemory-level story memory system.
       lineage per atom, gated by `allowsKnowledge` (fail closed — a private linked
       atom's text is hidden). VERIFIED: `audit:memory-links` (Tier 1, throwaway
       instance: reconcile + both prunes + idempotency) 9/9; tsc clean; rewind-audit
-      unbroken (one PRE-EXISTING unrelated protagonist-alias assertion red, see
-      Bug Fixes/handoff). HONEST GAP: Tier-2 live trigger NOT exercised — the dev
-      instance lacks a reversible codex-state-with-matching-memory to fire a real
-      supersession, and forcing one means burning many stochastic real turns
-      (LIVE_VERIFICATION Trap E). The deterministic core + the reconcile job
-      (functionally identical to the inline curator materialization) are green and
-      backstop correctness; verify inline timing on the next NATURAL fact-reversal
-      during play. Slice 2 `extends_memory_ids` (needs a refine-not-replace
+      green (fixed an over-strict protagonist-alias assertion, `d0c4831`).
+      **TIER-2 LIVE-VERIFIED (June 12 2026)** — drove real turns through the worker
+      against the dev instance: (a) a natural fact-reversal fired the codex
+      `retire_state` → supersession invoked WITH the event id (`eventId` threading
+      works), but its ≥0.82 vector match found no atom (short retired-state phrasing
+      vs long memory sentences) → archived 0 → correctly wrote no marks/links (a
+      property of pre-existing supersession, not the link code); (b) the full
+      archive→mark→materialize chain was then exercised on LIVE infra via a throwaway
+      atom — real embed → real Pinecone ≥0.82 match → `superseded_by_event_ids`
+      stamped → `repair_memory_links` reconcile materialized the forward
+      `updates_memory_ids`; (c) the live rewind-to-baseline pruned a dangling
+      version-link (`pruneMemoryVersionLinks` confirmed live), restoring exact
+      baseline. HONEST RESIDUAL: end-to-end linking on a NATURAL turn is probabilistic
+      — gated on supersession's existing 0.82 match, which short retired-state
+      phrasings may not trip; the link code itself is fully exercised. Slice 2
+      `extends_memory_ids` (needs a refine-not-replace
       judgment) + Slice 3 `derives_from_memory_ids` (no inference producer yet)
       remain deferred. BM25 measurement plan captured as the scale-gated gate —
       see `RETRIEVAL_MEASUREMENT.md`.)
@@ -291,8 +299,13 @@ Supermemory-level story memory system.
       thread screen loads `GET /chronicle/side-chats/:instanceId/:characterId`,
       sends WS `side_chat`, and streams `side_chat_delta` /
       `side_chat_complete` / `side_chat_error` frames. Verified by
-      `flutter analyze lib`; live LLM-path verification still needs a running
-      server + one real side chat.)
+      `flutter analyze lib`. **SERVER PATH LIVE-VERIFIED (June 12 2026):** drove a
+      real side chat through the worker — `type:'side_chat'` in the shared ledger
+      (seq advanced), story DATE + location cursor FROZEN (only the sequence/real-time
+      anchor moves, per design), memory minted `origin:'side_chat'` with
+      `known_by_entity_ids = [player, character, protagonist]` (GM-world scoping), in
+      -character reply streamed. Remaining: the in-app Flutter stream render (Tier 3,
+      user's pass).)
 
 ## Phase 8: Context Packet Builder
 

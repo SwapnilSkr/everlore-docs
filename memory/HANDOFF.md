@@ -133,13 +133,17 @@ Recap/Echoes/Threads/Location read filters.
   idempotent. `GET /admin/events/:eventId/projections` surfaces the lineage per
   atom, **`allowsKnowledge`-gated (fail closed)**. Verified: `audit:memory-links`
   (Tier 1, throwaway instance — reconcile + both prunes + idempotency) 9/9; tsc
-  clean; rewind-audit unbroken. **HONEST GAP (Tier 2):** the live supersession
-  TRIGGER was not exercised — the dev instance has no reversible codex-state-with-
-  matching-memory, and forcing one means burning many stochastic real turns
-  (LIVE_VERIFICATION Trap E). The deterministic core + the reconcile job (which is
-  functionally identical to the inline curator materialization — same query, same
-  `$addToSet`) are green and backstop correctness; verify inline timing on the next
-  NATURAL fact-reversal during play. **Phase 4 BM25 deferred-with-a-gate:** the
+  clean; rewind-audit green. **TIER-2 LIVE-VERIFIED (June 12 2026):** drove real
+  turns through the worker — (a) a natural fact-reversal fired the codex `retire_state`
+  → supersession invoked WITH the event id (threading works), but its ≥0.82 match found
+  nothing for the short retired-state phrasings → archived 0 → correctly no marks/links;
+  (b) the full archive→mark→materialize chain run on LIVE infra via a throwaway atom
+  (real embed → Pinecone ≥0.82 match → `superseded_by_event_ids` stamped →
+  `repair_memory_links` reconcile materialized the forward `updates_memory_ids`); (c) the
+  live rewind pruned a dangling link (`pruneMemoryVersionLinks` confirmed live) and
+  restored EXACT baseline. HONEST RESIDUAL: end-to-end linking on a NATURAL turn is
+  probabilistic (gated on supersession's pre-existing 0.82 match); the link code itself is
+  fully exercised. **Phase 4 BM25 deferred-with-a-gate:** the
   recall-gap measurement, decision rule, and scale gate are captured in
   `RETRIEVAL_MEASUREMENT.md` (do NOT run the eval on the 26-turn instance — false
   negative). Slice 2 `extends` + Slice 3 `derives_from` remain deferred (no producer).
@@ -297,9 +301,15 @@ buildable-without-content done; P2.5/P3/open-world-limits content-gated with reo
 triggers in `LOCATION_GRAPH.md`); **both reopened planning items are resolved** —
 Phase 2 version-links Slice 1 shipped (`f6a1e81`), Phase 4 BM25 deferred with a
 measurement gate (`RETRIEVAL_MEASUREMENT.md`). What's genuinely OPEN now:
-- **Tier-2 live checks still pending** (unchanged by this pass): a NATURAL fact-reversal
-  to exercise the version-link supersession trigger; and the older Phase 7 side-chat
-  stream + Phase 6B time-advance / location_state already noted below.
+- **Tier-2 live checks — DONE (June 12 2026 live pass).** Drove real worker turns
+  against the dev instance, restored to exact baseline (rewind to seq 27 + cache bust):
+  version-link supersession trigger + full archive→mark→materialize chain + live
+  link-prune on rewind; Phase 7 side-chat (shared-ledger event, frozen story date +
+  cursor, `origin:'side_chat'` memory with `known_by=[player,character,protagonist]`,
+  streamed reply); Phase 6B time-advance ("Weeks pass" → calendar D1→D8) — bonus:
+  re-confirmed P2.6 movement (room→hallway travel, cursor moved, presence reset, entity
+  reused). Remaining live gap = **Tier 3 only** (in-app Flutter UI — the user's pass).
+  `location_state` positive-transformation remains probabilistic (not re-tested here).
 - **Content-gated, pull in on demand:** Location Graph P2.5 relation edges, P3
   multi-world, open-world limits #2–4 (travelling-party presence, dedup-at-scale, mobile
   containers, parallel scenes); Phase 2 version-link Slices 2/3 (`extends`/`derives_from`,
