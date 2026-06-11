@@ -480,7 +480,15 @@ Supermemory-level story memory system.
       (`bun run audit:location`): mentioned-venue stays put + no travel, genuine move
       registers, unnamed character carried forward, narrated exit dropped — all held.
       Known limits: replay/edit don't run the presence fold (single-turn regen);
-      over-persistence is the accepted gentle failure. Tier 3 UI = user's pass.)
+      over-persistence is the accepted gentle failure. Tier 3 UI = user's pass.
+      FOLLOW-UP `a80bb10`: the first F4 gated the cursor REBASE on viewpoint_moved,
+      which over-corrected — the model reports current_location='mansion' on a
+      "came back inside" turn but viewpoint_moved=false, stranding the cursor at the
+      place left (user went outside→returned, location stuck "outside"). Fix: cursor
+      now FOLLOWS current_location (F1 already makes it trustworthy, so F1 not the
+      gate is what stops the phantom); travel MARKER stays gated on viewpoint_moved.
+      Broadened viewpoint_moved to include returns/re-entries. Audit gained B2
+      (return indoors). A stuck cursor self-heals on the next turn under new code.)
 - [x] Duplicate codex cards from kin-epithet splits (thoughts sheet showed both
       "Twin Sister" and a stray "Sister" for the same person; the dupe read
       "Elsewhere"). Root cause = the OTHER extractor, `character-codex-extractor.ts`
