@@ -417,6 +417,9 @@ Supermemory-level story memory system.
       World-aware filter: GM worlds drop the `is_protagonist` card (that's the
       player); sentient worlds KEEP it (it's the AI character the player talks to,
       an "other"). Roster bounded to 24. `npx tsc --noEmit` clean. NOT yet run
-      against a live turn. Residual: app-side match is still exact against
-      canonical only — defense-in-depth alias-tolerant matching in
-      `play_screen.dart` remains an optional future hardening.)
+      against a live turn. App-side hardening shipped too — app commit `f774bd2`:
+      a shared `_scenePresent` helper in `play_screen.dart` matches presence
+      against each card's `aliases` as well as the canonical name (data already
+      on `CharacterProfile`), unifying the two prior exact-match sites, so
+      presence stays correct even if an alias slips through (LLM hiccup, legacy
+      event, not-yet-re-seeded world). `flutter analyze` clean.)
