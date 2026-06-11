@@ -511,3 +511,39 @@ Supermemory-level story memory system.
       `scripts/merge-character-cards.ts` (`bun run merge:character`) — folds dupe
       card + re-points its entity's memory/edge refs into the canonical card, then
       deletes it; ran on the reported instance (Sister → Twin Sister, 0 orphans).)
+- [x] Codex extractor INVENTED a duplicate character ("Mysterious Man"). A
+      secretive father referred to in the prose only as "the man" was minted as a
+      separate "Mysterious Man" card (role unknown) on the turns he was cagey about
+      his work — a name that appears NOWHERE in any prose, coined from the scene's
+      mood. Worse than the kin-epithet miss: a hallucinated identity, not just a
+      reconcile slip. (Server commit `9101349`. Made NON-NEGOTIABLE per user: (1)
+      prompt rules — never invent a name (a card's name must literally appear in the
+      turn text; bans coining "Mysterious Man"/"The Stranger"/"Hooded Figure") + a
+      bare descriptor ("the man") resolves to the matching present-cast member, each
+      with a worked example; (2) new `presentCast` param threaded from the generation
+      + side-chat processors so descriptors have an unambiguous referent; (3)
+      DETERMINISTIC backstop — drop any new-card delta whose name/aliases aren't
+      grounded as a phrase in the turn text once a roster exists (protagonist exempt),
+      so a coined dup can't be minted even if the prompt drifts. `codex-dedup-audit.ts`
+      gains scenario B (secretive "the man" → Father, no invented card) + C (a
+      genuinely new NAMED stranger still mints a fresh card — natural flow preserved),
+      both green. Data repaired with the hardened `merge:character` + a ledger/presence
+      scrub: merged Mysterious Man → Father, scrubbed the events' present_characters +
+      codex_deltas, stripped the alias → zero trace. Hardened `merge-character-cards.ts`:
+      per-edge re-point with 11000-collision handling + idempotent card fold (safe to
+      re-run after a partial failure). KNOWN LIMIT: the memory-curation entity path
+      (`resolveOrCreateEntities`) can still mint an un-carded character ENTITY from a
+      raw memory mention — graph-only, roster-nudged, not a visible card; deferred.)
+- [x] Location resolution didn't scale + couldn't dedupe long-tail returns.
+      `resolveLocationAnchor` loaded the FULL entity registry every turn (O(all
+      entities)) and matched by exact name/alias only, so a return to a place outside
+      the 30-name extractor roster ("the garden" when the world knows "Night Garden")
+      minted a near-duplicate. (Server commit `a12e94e`. Indexed exact-name lookup
+      first, then a bounded token-similarity pass over location candidates — no
+      full-registry load. Conservative Jaccard threshold + token-containment guard
+      keeps distinct places apart ("dining hall" vs "dining room"). New
+      `audit:location-resolution` — pure scoring + DB integration on a throwaway
+      instance, all invariants held: long-tail fuzzy return reuses the entity, exact
+      match still works, distinct places stay distinct, genuinely-new places still
+      mint. This is the server-side resolution layer; the KNOWN PLACES roster `a27cc8f`
+      stays as the cheap hot-set nudge.)

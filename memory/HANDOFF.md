@@ -1,9 +1,11 @@
 # Everlore build — handoff
 
-_As of June 10 2026, post Phase 6B (travel + location state/facts + travel UI marker),
-Phase 7 (server + app surface + audit follow-ups), and scheduled continuity drift
-detection. Phases 1–10 are complete; Phase 2 memory-version links and Phase 4
-broader BM25 are intentionally reopened for the next planning pass._
+_As of June 11 2026, post Phase 6B (travel + location state/facts + travel UI marker),
+Phase 7 (server + app surface + audit follow-ups), scheduled continuity drift
+detection, and a June-11 extractor-drift / dedup hardening pass (duplicate-character
+fix `9101349` + scale-robust location resolution `a12e94e`). Phases 1–10 are complete;
+Phase 2 memory-version links and Phase 4 broader BM25 are intentionally reopened for
+the next planning pass._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -177,6 +179,27 @@ Recap/Echoes/Threads/Location read filters.
 - Phases 1–5, 6A, 8: done earlier. Phase 2 memory→memory version links and Phase 4
   broader BM25 are now reopened for discussion/planning. Phase 1 revision counters
   and Phase 9 cold archival remain closed as deferred-by-design.
+- **Extractor-drift / dedup hardening pass (June 11 2026) — DONE.** All in the
+  `CHECKLIST.md` Bug Fixes section with detail:
+  - `9101349` — **codex extractor inventing duplicate character cards.** A secretive
+    father called only "the man" in the prose was minted as a separate "Mysterious
+    Man" card (a name found NOWHERE in the prose, coined from mood). Fix made
+    non-negotiable: prompt rules (never invent a name; bare descriptor → present-cast
+    member) + `presentCast` threaded from the generation + side-chat processors + a
+    DETERMINISTIC backstop that drops any new-card delta whose name isn't grounded as
+    a phrase in the turn text once a roster exists. `codex-dedup-audit.ts` gains
+    scenario B (secretive "the man" → Father) + C (a new NAMED stranger still mints a
+    card). Live instance repaired (merge + ledger/presence scrub → zero trace);
+    `merge-character-cards.ts` hardened (per-edge collision handling + idempotent fold).
+    KNOWN LIMIT: the memory-curation path can still mint an un-carded character ENTITY
+    (graph-only, roster-nudged) — deferred with user's OK.
+  - `a12e94e` — **scale-robust location resolution.** `resolveLocationAnchor` no
+    longer loads the full entity registry per turn: indexed exact lookup + a bounded
+    token-similarity pass so long-tail returns ("the garden" → "Night Garden") dedupe
+    outside the 30-name roster, with a conservative threshold keeping distinct places
+    apart. New `audit:location-resolution` (pure scoring + DB integration on a
+    throwaway instance, all invariants held). Complements the `a27cc8f` KNOWN PLACES
+    roster (the hot-set nudge).
 
 ## Next (recommended order)
 Phases 1–10 are complete, but `CHECKLIST.md` now intentionally has two reopened
