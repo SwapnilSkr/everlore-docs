@@ -423,3 +423,21 @@ Supermemory-level story memory system.
       on `CharacterProfile`), unifying the two prior exact-match sites, so
       presence stays correct even if an alias slips through (LLM hiccup, legacy
       event, not-yet-re-seeded world). `flutter analyze` clean.)
+- [x] Replay/regenerate produced NO choices. `memoryService.replayEvent`
+      generated new prose + hygiene-repaired it but never ran `extractSceneMetadata`,
+      and set `data.choices: []` / `data.present_characters: []` (correctly dropping
+      the stale chips from the OLD prose) without regenerating; `selectReplayVariant`
+      cleared them on variant switch too. Root cause: choices lived only on
+      `event.data` (single), not per variant.
+      (Server commit `5f48a2c`, app commit `15bf02c`. `replayEvent` now runs the
+      scene extractor on the new variant (same protagonist anchor + roster as a
+      primary turn). `ReplayVariantDoc` gains `choices`+`present_characters`,
+      populated on the base variant (generation.processor + `baseReplayVariantFor`),
+      the replay variant, so `selectReplayVariant` restores the chosen variant's
+      OWN chips with no extractor call. `replay_complete` ships per-variant choices
+      + the selected turn's choices. App: `ReplayVariant` carries choices/presence,
+      `replay_complete` + variant-browse read them instead of clearing. Local
+      SQLite cache never stored choices/variants anyway (minimal offline fallback;
+      full data comes live) — no regression. tsc + flutter analyze clean. NOT yet
+      run live. Related un-fixed spot: `editEvent` also clears choices when the AI
+      text changes and doesn't regenerate — same class, separate trigger.)
