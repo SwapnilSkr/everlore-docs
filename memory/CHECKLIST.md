@@ -481,3 +481,16 @@ Supermemory-level story memory system.
       registers, unnamed character carried forward, narrated exit dropped — all held.
       Known limits: replay/edit don't run the presence fold (single-turn regen);
       over-persistence is the accepted gentle failure. Tier 3 UI = user's pass.)
+- [x] Duplicate codex cards from kin-epithet splits (thoughts sheet showed both
+      "Twin Sister" and a stray "Sister" for the same person; the dupe read
+      "Elsewhere"). Root cause = the OTHER extractor, `character-codex-extractor.ts`
+      (NPC carding), reconciliation-missed and minted "Sister" instead of resolving
+      it to "Twin Sister". Identity-drift fragmentation class, for an NPC.
+      (Server commit `7a51c7a`. Concrete kin/role-epithet reconcile rule + worked
+      example in the codex extractor (vague label + specific label for the same
+      family role = same person → resolved_name, never a 2nd card). Verified by
+      `scripts/codex-dedup-audit.ts` (`bun run audit:codex-dedup`): "his sister" →
+      "Twin Sister", no standalone card, all samples. Data repaired via reusable
+      `scripts/merge-character-cards.ts` (`bun run merge:character`) — folds dupe
+      card + re-points its entity's memory/edge refs into the canonical card, then
+      deletes it; ran on the reported instance (Sister → Twin Sister, 0 orphans).)
