@@ -197,7 +197,17 @@ Recap/Echoes/Threads/Location read filters.
   Live dev instance repaired with `repair-bedroom-anchor.ts` (minted "Swapnil
   Sarkar's room" under the mansion, re-anchored seq 25-26, cleared stale presence,
   repointed cursor). typecheck + `audit:location` + `audit:location-resolution`
-  green. **KNOWN GAP:** not yet run against a live generated turn (seq 27+).
+  green. **LIVE-VERIFIED** (drove real LLM turns through the worker): "I go to my room
+  and shut the door" → cursor → "Swapnil Sarkar's room", `present:[]`, correct travel
+  marker, entity reused (no dup); round-trip + stay-put feint all correct. Verification
+  CAUGHT + fixed three flaws unit audits missed — (a) possessive namer grabbed the
+  ORIGIN room ("leave my room and head to the dining room") → departure-context guard;
+  (b) `isVagueLocationLabel` missed possessive-pronoun rooms ("his room") so the
+  memory-curation resolver minted ghost atlas nodes → broadened guard + applied it in
+  `resolveOrCreateEntities`; (c) `repair-bedroom-anchor` didn't bust the Redis
+  `session:<iid>` cache (stale cursor for the next turn). All fixed/committed; dev
+  instance rewound to seq 26. STILL UNVERIFIED LIVE: Phase 7 side-chat + Phase 6B
+  time-advance / location_state-facts.
 - **Extractor-drift / dedup hardening pass (June 11 2026) — DONE.** All in the
   `CHECKLIST.md` Bug Fixes section with detail:
   - `9101349` — **codex extractor inventing duplicate character cards.** A secretive
@@ -241,16 +251,17 @@ BM25, Phase 2 memory-version links). Recommended order:
    in `LOCATION_GRAPH.md`. **P2.6 — resolution accuracy / movement hardening — DONE**
    (movement-signal backstops; see State above): inserted before P2.5 because a wrong
    cursor poisons place-recall RAG, so accuracy precedes relation-edge cosmetics.
-1. **Live-turn verification pass (RECOMMENDED, now also covers P2.6).** Several
-   LLM-dependent paths are code-correct but never run against a real generated turn.
-   Start server + worker + app and confirm: **(P2.6)** from the repaired bedroom,
-   play seq 27+ and a fresh "I go to my room"/"I leave" turn — cursor moves to the
-   owner-scoped room, presence resets (no parents in the bedroom), no phantom travel
-   on a stay-put turn; **(Phase 7)** Bonds → private chat streams a reply, REST reload
-   shows it, side-chat curation doesn't leak into the main Lore Tome tabs;
-   **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
+1. **Live-turn verification pass (PARTIALLY DONE).** **(P2.6) — DONE & verified**
+   (drove real worker turns: cursor/presence/travel/dedup all correct, 3 bugs found +
+   fixed; see State above). **STILL TODO:** **(Phase 7)** Bonds → private chat streams a
+   reply, REST reload shows it, side-chat curation doesn't leak into the main Lore Tome
+   tabs; **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
-   (visible in the journal).
+   (visible in the journal). Pattern that worked for P2.6: start the worker
+   (`bun run worker/index.ts`), enqueue via `generationService.dispatch(...)` from a
+   throwaway script, poll Mongo for the new event, then `rewindToSequence` to restore.
+   The worker streams via `redis.publish` (fire-and-forget) so NO HTTP server/WS is
+   needed; remember to `del session:<iid>` after any out-of-band instance write.
 2. **Discuss Phase 4 broader BM25 first.** Define target surfaces (Echoes only vs
    prompt RAG too), index shape, measurement plan, and how to avoid polluting
    private `side_chat` boundaries.

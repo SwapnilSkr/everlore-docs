@@ -661,9 +661,22 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       sail/cross/venture/voyage/teleport/…, `audit:movement` 40/40), and possessive
       name-recovery covers personal dwellings but NOT settlements ("my village" =
       origin, not ownership). Presence reset on a named city move already rides
-      `placeEntityChanged`, independent of the verb list. KNOWN GAP: not yet run
-      against a LIVE generated turn (seq 27+) — the witness-prompt path still needs
-      one real playthrough to confirm end-to-end.
+      `placeEntityChanged`, independent of the verb list. **LIVE-VERIFIED** (drove real
+      LLM turns via the worker against the dev instance): "I go to my room and shut the
+      door" → cursor moves to "Swapnil Sarkar's room", `present:[]` (parents do NOT
+      follow), travel marker correct direction, bedroom entity REUSED (no duplicate);
+      bedroom→dining→bedroom round-trip correct; a stay-put turn with a "thinking about
+      going to the garden" feint did NOT false-trigger a move. Verification CAUGHT +
+      fixed three flaws the unit audits missed: (a) the possessive namer grabbed the
+      ORIGIN room ("leave my room and head to the dining room" named the destination as
+      the bedroom) → departure-context guard; (b) `isVagueLocationLabel` didn't cover
+      possessive-pronoun rooms ("his room"/"my chamber") so the memory-curation entity
+      resolver minted ghost atlas nodes → broadened the guard + applied it in
+      `resolveOrCreateEntities`; (c) `repair-bedroom-anchor` didn't bust the 1h Redis
+      `session:<iid>` cache, so an out-of-band cursor write was stale for the next turn.
+      All fixed, all audits green, dev instance rewound back to seq 26 (verification
+      turns removed). STILL UNVERIFIED LIVE: Phase 7 side-chat streaming + Phase 6B
+      calendar time-advance / location_state-facts (separate paths, not exercised here).
 - [ ] **P2.5 — non-containment relation edges.** `mirror_of`/`allied_with`/`borders`;
       needs an extractor pass to MINT them before the atlas can surface them.
 - [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
