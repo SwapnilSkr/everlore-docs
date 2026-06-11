@@ -95,6 +95,25 @@ gated separately by `origin:'side_chat'` / `known_by_entity_ids` in `queryRag`
 Recap/Echoes/Threads/Location read filters.
 
 ## State (what's done)
+- **Location Graph — closed out (June 12 2026).** Everything buildable + verifiable
+  without new content is DONE; the rest is content-gated with concrete reopen triggers.
+  - **Subtree `world_root_id` refresh on cross-root re-parent — DONE (server `c3b04f0`).**
+    The shipped P1 KNOWN LIMIT: the cartographer set `parent_id` on a re-parent but never
+    refreshed the denormalized top-of-chain `world_root_id` down the subtree, so a future
+    cross-root re-parent would strand descendants on a stale realm and bleed place-recall
+    (no-op in single-world → LATENT; fixed before it can corrupt — same call as the
+    intra-world collision fix). `entityGraphService.refreshSubtreeWorldRoot`: deterministic,
+    idempotent BFS down `parent_id`; a self-rooted DESCENDANT (nested world) is never
+    rerooted + stops the descent; only the start node sheds its root; bounded depth guards
+    cycles; null target = implicit single world. The re-parent reveal in `placeLocation`
+    now calls it (parent's `world_root_id`, or null — never the parent's bare id), making
+    "re-parent keeps `world_root_id` correct" an enforced invariant. Verified:
+    `audit:location-resolution` +8 cases + full suite + rewind-audit + location-audit green.
+  - **P2.5 relation edges, P3 multi-world, open-world limits #2–4 — DEFERRED, content-gated.**
+    Each has a concrete reopen trigger in `LOCATION_GRAPH.md` (P2.5/P3 sections +
+    "Open-world limits"). NOT built ahead of content (same discipline as Phase 4 BM25):
+    the relation-edge producer would show nothing + be unverifiable today; the multi-world
+    spine is ready to be *exercised* when a second realm appears, not built speculatively.
 - **Phase 2 memory version-links (Slice 1) — DONE (server `f6a1e81`, June 12 2026).**
   Captures the write-time supersession lineage the codex-retirement path was
   discarding (chosen FIRST over Phase 4 BM25: the BM25 gap is scale-gated +
@@ -273,9 +292,21 @@ Recap/Echoes/Threads/Location read filters.
     roster (the hot-set nudge).
 
 ## Next (recommended order)
-Phases 1–10 are complete. `CHECKLIST.md` now has the **Location Graph** initiative
-(full design in `LOCATION_GRAPH.md`) plus two reopened planning items (Phase 4 broader
-BM25, Phase 2 memory-version links). Recommended order:
+Phases 1–10 are complete; the **Location Graph** initiative is closed out (everything
+buildable-without-content done; P2.5/P3/open-world-limits content-gated with reopen
+triggers in `LOCATION_GRAPH.md`); **both reopened planning items are resolved** —
+Phase 2 version-links Slice 1 shipped (`f6a1e81`), Phase 4 BM25 deferred with a
+measurement gate (`RETRIEVAL_MEASUREMENT.md`). What's genuinely OPEN now:
+- **Tier-2 live checks still pending** (unchanged by this pass): a NATURAL fact-reversal
+  to exercise the version-link supersession trigger; and the older Phase 7 side-chat
+  stream + Phase 6B time-advance / location_state already noted below.
+- **Content-gated, pull in on demand:** Location Graph P2.5 relation edges, P3
+  multi-world, open-world limits #2–4 (travelling-party presence, dedup-at-scale, mobile
+  containers, parallel scenes); Phase 2 version-link Slices 2/3 (`extends`/`derives_from`,
+  no producer); Phase 4 BM25 (run the gate eval only at scale).
+- **Still deferred-by-design:** Phase 1 revision counters, Phase 9 cold archival.
+
+Historical order (kept for context):
 0. **Location Graph P0 + P1 — DONE** (`4483949`, `f95099d`). P0: vague-label guard
    (generic/relative labels never mint). P1: the containment spine
    (`parent_id`/`world_root_id`/`place_kind` + unique index incl. world_root_id so

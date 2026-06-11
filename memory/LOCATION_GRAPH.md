@@ -187,8 +187,12 @@ multi-root worlds exist (P1). Shipping it in P0 would be untestable dead code.
 - Witness fields `containment_hint` + `movement` (none/deeper/out/lateral/world_shift);
   server cartographer `placeLocation` does the placement + re-parent reveal + world-root
   minting (self-rooted, main timeline). Audit + dev-instance backfill done.
-- KNOWN LIMIT: subtree `world_root_id` refresh on a cross-root re-parent not yet done
-  (no-op single-world; fold into P3).
+- ~~KNOWN LIMIT: subtree `world_root_id` refresh on a cross-root re-parent not yet
+  done~~ — **RESOLVED (server `c3b04f0`, June 12 2026).** `refreshSubtreeWorldRoot`
+  reroots a re-parented node + its descendants (self-rooted nested worlds stop the
+  descent); the re-parent reveal now calls it so the denormalized root stays
+  consistent with the spine by construction. Deterministic + audited; no-op in the
+  single-world dev instance.
 - Extraction emits `current_place` / `containment_hint` / `movement`.
 - Server cartographer logic (attach under correct parent; handle deeper/out/lateral/
   world_shift); world-root minting on `world_shift` (main timeline).
@@ -230,10 +234,34 @@ presence fold and the codex name-grounding backstop:
 - Live instance repaired (`repair-bedroom-anchor.ts`). KNOWN GAP: no live generated
   turn yet (seq 27+).
 
-### P3 — multi-world maturity
+### P3 — multi-world maturity — DEFERRED (content-gated)
 - Multiple world-roots in anger; "go back across realms"; per-realm lore at scale.
 - Timeline-branch what-ifs layered on top (optional per scenario) — e.g. a vision /
   dream realm that must not rejoin canon.
+- **Status (June 12 2026):** the SPINE is complete and root-consistent — world-roots,
+  world-root/area-scoped resolution + the unique index, `world_shift` minting, and the
+  subtree `world_root_id` refresh. P3 is now an *exercise-when-content-arrives* item,
+  not unbuilt infrastructure: the first time a world introduces a second realm, drive
+  it through the existing cartographer and verify, rather than building speculative
+  multi-world machinery ahead of any realm.
+
+### P2.5 — non-containment relation edges — DEFERRED (content-gated)
+`mirror_of` / `allied_with` / `borders` need an extractor pass to MINT them, and the
+single-world content produces none — building the producer + atlas surface now shows
+nothing and can't be live-verified (same call as Phase 4 BM25). Reopen when content
+introduces cross-place relations. **Trigger prompt:** _"Everlore content now needs a
+non-containment place relation (e.g. allied kingdoms / a mirror realm / bordering
+regions). Read `LOCATION_GRAPH.md` — this is the deferred P2.5 item. Add the witness
+field + cartographer edge mint on `entity_edges`, surface it in the atlas node detail,
+then verify per `LIVE_VERIFICATION.md`."_
+
+### Location Graph — close-out (June 12 2026)
+Everything buildable AND verifiable without new content is DONE: P0–P2.6, the
+intra-world same-name collision fix, and the subtree `world_root_id` refresh. The
+remaining items (P2.5 relation edges, P3 multi-world, open-world limits #2–4) are all
+**content-gated** — each has a concrete reopen trigger above / in "Open-world limits".
+The stack degrades gracefully on every one of them, so they are pulled in when content
+demands, not ahead.
 
 ## Locked decisions
 

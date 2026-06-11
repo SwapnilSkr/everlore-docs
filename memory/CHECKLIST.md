@@ -721,10 +721,34 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       All fixed, all audits green, dev instance rewound back to seq 26 (verification
       turns removed). STILL UNVERIFIED LIVE: Phase 7 side-chat streaming + Phase 6B
       calendar time-advance / location_state-facts (separate paths, not exercised here).
-- [ ] **P2.5 — non-containment relation edges.** `mirror_of`/`allied_with`/`borders`;
-      needs an extractor pass to MINT them before the atlas can surface them.
-- [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
-      back"; per-realm lore at scale; optional timeline-branch what-ifs layered on top.
+- [x] **Subtree `world_root_id` refresh on cross-root re-parent (P1 KNOWN LIMIT) —
+      DONE (server `c3b04f0`, June 12 2026).** The cartographer set `parent_id` on a
+      re-parent but never refreshed the denormalized `world_root_id` down the
+      subtree, so a future cross-root re-parent would strand descendants on a stale
+      root and bleed place-recall (no-op in single-world today → LATENT; fixed before
+      it can corrupt). `entityGraphService.refreshSubtreeWorldRoot` — deterministic,
+      idempotent BFS down `parent_id` that reroots a node + descendants to its new
+      parent's root; a self-rooted DESCENDANT (nested world) is never rerooted and
+      stops the descent; only the start node may shed its root; bounded depth guards
+      cycles; null target = back to the implicit single world. The re-parent reveal in
+      `placeLocation` now keeps the moved subtree consistent with its new parent's root
+      (parent's `world_root_id`, or null — never the parent's bare id), making
+      "re-parent keeps `world_root_id` correct" an enforced invariant. Verified:
+      `audit:location-resolution` +8 cases (reroot, descent-stop at nested world-root,
+      modifiedCount, idempotency, drop-to-single-world); full suite + rewind-audit +
+      location-audit green; tsc clean.
+- [ ] **P2.5 — non-containment relation edges — DEFERRED (content-gated, June 12 2026).**
+      `mirror_of`/`allied_with`/`borders` need an extractor pass to MINT them, and the
+      current single-world content produces none — so building the producer + atlas
+      surface now shows NOTHING and can't be live-verified (same discipline as Phase 4
+      BM25). REOPEN when content introduces cross-place relations (allied kingdoms,
+      mirror realms): add the witness field + cartographer edge mint, then surface.
+      Trigger prompt + design in `LOCATION_GRAPH.md` "Open-world limits".
+- [ ] **P3 — multi-world maturity — DEFERRED (content-gated, June 12 2026).** Multiple
+      world-roots in anger; cross-realm "go back"; per-realm lore at scale; optional
+      timeline-branch what-ifs. The SPINE is ready (world-roots, scoped resolution +
+      index, world_shift minting, and now subtree root refresh), so this is exercised —
+      not built ahead — when a world actually introduces a second realm. REOPEN then.
 - [ ] **Open-world limits — DOCUMENTED, deferred (see `LOCATION_GRAPH.md` "Open-world
       limits").** Stress-testing the movement stack against full open-world play surfaced
       gaps logged but not built: (1) **intra-world same-name collision** — a LATENT BUG:
