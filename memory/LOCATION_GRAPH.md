@@ -260,18 +260,24 @@ loop**: a single protagonist, one active scene at a time, sequential named trave
 Stress-testing it against genuine open-world play surfaced gaps that are **logged,
 not yet built** — pull each in when the *content* demands it. Ordered by severity.
 
-1. **Intra-world same-name collision (LATENT BUG — fix before multi-location content).**
-   Design Rule 1 (above) says resolution should dedup against **siblings under the
-   active area/world-root**. P1 actually scoped resolution to **`world_root_id` only**,
-   not to the immediate `parent_id`/area. In the current single-world instance every
-   place has `world_root_id: null`, so the exact-name index matches a bare name across
-   the WHOLE world: a second `"tavern"`/`"inn"`/`"gate"`/`"market"` in a different town
-   would **resolve onto the first one and fuse** → place-recall then bleeds Town-A
-   memories into Town B (the exact collision/bleed class the doc was written to
-   prevent). Dormant only because the live story is one mansion. **Fix when needed:**
-   scope `resolveLocationAnchor`'s exact+fuzzy match by immediate parent/area (with a
-   sensible fallback for unknown-parent), so identity = name + parent + root as Rule 1
-   intended. Until then, do NOT ship multi-settlement content with generic room names.
+1. **Intra-world same-name collision — FIXED (area-scoped, June 2026).** Was a latent
+   bug: P1 scoped resolution to `world_root_id` only, AND the unique index was
+   `(instance,type,world_root_id,name)` — so within one world a name was unique at the
+   DB level, a 2nd `"tavern"` in another town couldn't even mint (insert failed → FUSED
+   onto the first → place-recall bled Town-A memories into Town B). Fixed in two coupled
+   parts: (a) the unique index gained `parent_id`
+   (`idx_entities_instance_type_root_parent_name`, old one deprecated/dropped at
+   startup — looser key, no migration violation); (b) `resolveLocationAnchor` gained
+   `areaScope` — a name match counts only if the candidate shares the intended
+   placement's **AREA** (its nearest world/region/settlement/building ancestor, via
+   `resolveAreaId`). So `"tavern"@Ashford` ≠ `"tavern"@Riverton`, while `dining room`
+   and `hallway` in one mansion still resolve (no regression to returns) — and area
+   (not immediate parent) scoping deliberately absorbs movement mislabels within a
+   building. The cartographer passes the intended parent's area; with no area anchor it
+   falls back to the lenient world-root match. Inert for the single-building dev world.
+   `audit:location-resolution` covers collision/reuse/deeper-safety. KNOWN RESIDUAL: a
+   same-name place introduced with NO container signal at all still uses the lenient
+   match (genuinely ambiguous). Multi-settlement content is now safe to ship.
 
 2. **Traveling-party presence (MISSING MODEL — needs a feature, not a patch).** Presence
    is a flat "who is in THIS scene", rebuilt on every move (`sceneBroke` resets it —

@@ -703,3 +703,21 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       montage / mobile containers (ships) / parallel "meanwhile" scenes. Stack degrades
       gracefully (sticky cursor / flickered companion, never silent corruption) EXCEPT #1.
       Pull each in when content demands it.
+- [x] **Intra-world same-name collision fix (open-world limit #1) — DONE.**
+      Area-scoped approach (chosen over immediate-parent to avoid regressing
+      same-building returns). Two coupled parts: (1) the unique entity index gains
+      `parent_id` → `idx_entities_instance_type_root_parent_name` (old
+      `idx_entities_instance_type_root_name` deprecated/dropped at startup;
+      `world_root_id` alone made a name unique per world, so a 2nd "tavern" couldn't
+      even mint — the insert failed and FUSED onto the first; live migration verified,
+      no dup-key violation since the new key is looser); (2) `resolveLocationAnchor`
+      gains `areaScope` — a name match counts only if the candidate shares the intended
+      placement's AREA (nearest world/region/settlement/building ancestor, new
+      `resolveAreaId` walk). So taverns in two towns stay distinct while dining-room/
+      hallway in one mansion still resolve; area-scoping also absorbs movement mislabels
+      WITHIN a building (a "deeper" misread of a sibling move can't duplicate). Inert for
+      the current single-building world (everything is area=mansion → returns reuse;
+      confirmed live, no dup). `audit:location-resolution` +collision/reuse/deeper-safety
+      scenarios; full audit suite + rewind-audit green. KNOWN RESIDUAL: a same-name place
+      introduced with NO container signal at all (no hint, area can't be anchored) still
+      falls to the lenient world-root match — genuinely ambiguous, accepted.

@@ -286,16 +286,15 @@ BM25, Phase 2 memory-version links). Recommended order:
    `updates_memory_ids` / `extends_memory_ids` / `derives_from_memory_ids`, then
    decide whether links are extractor-produced, dedup/supersession-produced, or
    maintenance-derived.
-4. **Open-world limits — DOCUMENTED, deferred** (`LOCATION_GRAPH.md` "Open-world
-   limits" + CHECKLIST). The movement/witness/cartographer stack fits the current
-   single-scene sequential-travel loop; full open-world play has 4 logged gaps. The
-   ONE to fix proactively is **intra-world same-name collision** (a latent bug — P1
-   scoped resolution by world-root, not parent/area per design Rule 1, so two
-   same-named places in different towns would fuse + bleed place-recall; everything is
-   `world_root_id:null` today so it's live the moment multi-settlement content lands).
-   The rest (traveling-party presence as a real feature, dedup-at-scale, mobile
-   containers / parallel scenes) are content-driven. Stack degrades gracefully
-   everywhere except collision.
+4. **Open-world limits** (`LOCATION_GRAPH.md` "Open-world limits" + CHECKLIST). The
+   intra-world same-name **collision is now FIXED** (area-scoped resolution + the
+   unique index gained `parent_id`; `idx_entities_instance_type_root_parent_name`, old
+   one dropped at startup — live-migrated, no dup-key; `resolveAreaId` walks to the
+   nearest settlement/building so `tavern@Ashford` ≠ `tavern@Riverton` while
+   same-building returns still resolve). Multi-settlement content is safe to ship. The
+   REMAINING limits are content-driven: traveling-party presence (a real feature —
+   `travelling_with` set), dedup-at-scale (30-roster cap), mobile containers / parallel
+   "meanwhile" scenes. Stack degrades gracefully on all of them.
 5. **Still deferred:** Phase 1 revision counters and Phase 9 cold archival. Reopen
    only for a concrete consumer or real storage pressure.
 
