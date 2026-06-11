@@ -627,5 +627,34 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       **relation edges** (`mirror_of`/`allied_with`/`borders`) — nothing mints them yet
       (needs an extractor pass), so surfacing would show nothing; folded into a P2.5/P3
       follow-up.
+- [x] **P2.6 — resolution accuracy / movement hardening (DONE, server `repair` +
+      backstop commit).** Inserted BEFORE P2.5 because location precision IS
+      place-recall precision (LOCATION_GRAPH "Why") — a wrong cursor poisons the RAG
+      place arm, so relation-edge cosmetics can't go first. Root cause of the user's
+      "I go to my room but I'm still in the dining room (with my parents)": the small
+      model under-reports BOTH that the viewpoint moved AND the name of a personal
+      space, so the cursor stuck on the place left and presence carry-forward never
+      reset (one detection failure, two symptoms — location + present_characters are
+      coupled via the F3 `sceneBroke` reset). Fuzzy matching was NOT the culprit (it
+      never got a fair input); the fix is at the WITNESS seam, server-side, matching
+      the F3 / codex-name-grounding "corroborate the small model with deterministic
+      math" pattern. Shipped: (a) `worker/lib/movement-signal.ts` —
+      `detectNarratedMovement` (locomotion in the player's own narrated action) +
+      `resolvePossessiveRoomName` ("my room" → "<owner>'s room", first-person only),
+      pure + audited (`audit:movement`, 25/25 incl. "leave me alone"→false, "think
+      about the garden"→false, "her chambers"→null); (b) `generation.processor` —
+      override a vague/absent/cursor-equal place name with the owner-scoped room when
+      the player retreats to their own space (placed laterally), corroborate
+      `viewpoint_moved` from the narrated move BUT only when the resolved name is a
+      real different place (so an ambiguous "going to" on a stay-put turn can't reset
+      the scene), and reset presence whenever the resolved location ENTITY changes
+      (deterministic, independent of the model flag). Also repaired the live instance's
+      stuck seq 25-26 (`repair-bedroom-anchor.ts`: minted "Swapnil Sarkar's room" under
+      the mansion, re-anchored both turns, cleared the stale Father/Mother presence,
+      repointed the cursor). typecheck + `audit:location` + `audit:location-resolution`
+      green. KNOWN GAP: not yet run against a LIVE generated turn (seq 27+) — the
+      witness-prompt path still needs one real playthrough to confirm end-to-end.
+- [ ] **P2.5 — non-containment relation edges.** `mirror_of`/`allied_with`/`borders`;
+      needs an extractor pass to MINT them before the atlas can surface them.
 - [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
       back"; per-realm lore at scale; optional timeline-branch what-ifs layered on top.

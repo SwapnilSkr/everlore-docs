@@ -3,9 +3,11 @@
 _As of June 11 2026, post Phase 6B (travel + location state/facts + travel UI marker),
 Phase 7 (server + app surface + audit follow-ups), scheduled continuity drift
 detection, and a June-11 extractor-drift / dedup hardening pass (duplicate-character
-fix `9101349` + scale-robust location resolution `a12e94e`). Phases 1–10 are complete;
-Phase 2 memory-version links and Phase 4 broader BM25 are intentionally reopened for
-the next planning pass._
+fix `9101349` + scale-robust location resolution `a12e94e`), plus Location Graph
+P0–P2 (nested atlas) and a **P2.6 movement/presence accuracy hardening** pass
+(deterministic backstops for the "I go to my room but I'm still in the dining room"
+class). Phases 1–10 are complete; Phase 2 memory-version links and Phase 4 broader
+BM25 are intentionally reopened for the next planning pass._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
@@ -179,6 +181,23 @@ Recap/Echoes/Threads/Location read filters.
 - Phases 1–5, 6A, 8: done earlier. Phase 2 memory→memory version links and Phase 4
   broader BM25 are now reopened for discussion/planning. Phase 1 revision counters
   and Phase 9 cold archival remain closed as deferred-by-design.
+- **Location Graph P2.6 — resolution accuracy / movement hardening — DONE
+  (June 11 2026).** Fixes the user's "I go to my room but I'm still in the dining
+  room (with my parents)". Root cause: the small-model witness under-reports BOTH
+  `viewpoint_moved` AND the name of a personal space, so the cursor stuck on the
+  place left and presence carry-forward never reset — location + `present_characters`
+  are ONE detection failure coupled through the F3 `sceneBroke` reset, not two bugs.
+  Fuzzy matching was a red herring (it never got a fair input); the fix is at the
+  witness seam with deterministic server math (same pattern as F3 presence + codex
+  name-grounding). `worker/lib/movement-signal.ts` (`detectNarratedMovement` +
+  `resolvePossessiveRoomName`, pure + `audit:movement` 25/25) feeds
+  `generation.processor`: owner-scoped name override on a possessive retreat
+  ("my room" → "<owner>'s room", placed lateral), `viewpoint_moved` corroboration
+  gated on a real place change, and presence reset on any resolved-ENTITY change.
+  Live dev instance repaired with `repair-bedroom-anchor.ts` (minted "Swapnil
+  Sarkar's room" under the mansion, re-anchored seq 25-26, cleared stale presence,
+  repointed cursor). typecheck + `audit:location` + `audit:location-resolution`
+  green. **KNOWN GAP:** not yet run against a live generated turn (seq 27+).
 - **Extractor-drift / dedup hardening pass (June 11 2026) — DONE.** All in the
   `CHECKLIST.md` Bug Fixes section with detail:
   - `9101349` — **codex extractor inventing duplicate character cards.** A secretive
@@ -219,11 +238,16 @@ BM25, Phase 2 memory-version links). Recommended order:
    P2.5/P3** — non-containment relation edges (`mirror_of`/`allied_with`/`borders`; needs
    an extractor pass to MINT them, then surface), multi-world maturity, and the deferred
    subtree `world_root_id` refresh on cross-root re-parent. Full design + locked decisions
-   in `LOCATION_GRAPH.md`.
-1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
-   code-correct but never run against a real generated turn. Start server + worker +
-   app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload
-   shows it, and side-chat curation doesn't leak into the main Lore Tome tabs;
+   in `LOCATION_GRAPH.md`. **P2.6 — resolution accuracy / movement hardening — DONE**
+   (movement-signal backstops; see State above): inserted before P2.5 because a wrong
+   cursor poisons place-recall RAG, so accuracy precedes relation-edge cosmetics.
+1. **Live-turn verification pass (RECOMMENDED, now also covers P2.6).** Several
+   LLM-dependent paths are code-correct but never run against a real generated turn.
+   Start server + worker + app and confirm: **(P2.6)** from the repaired bedroom,
+   play seq 27+ and a fresh "I go to my room"/"I leave" turn — cursor moves to the
+   owner-scoped room, presence resets (no parents in the bedroom), no phantom travel
+   on a stay-put turn; **(Phase 7)** Bonds → private chat streams a reply, REST reload
+   shows it, side-chat curation doesn't leak into the main Lore Tome tabs;
    **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
    the calendar date, and records `location_state` / `location_facts` on the place
    (visible in the journal).

@@ -209,6 +209,27 @@ multi-root worlds exist (P1). Shipping it in P0 would be untestable dead code.
   `borders`, …) — nothing mints them yet (needs an extractor pass), so surfacing would
   show nothing today.
 
+### P2.6 — resolution accuracy / movement hardening — DONE
+The witness/cartographer split only works if the witness reliably reports movement
+and place names — and the small model does NOT. "I go to my room and shut the door"
+came back with `viewpoint_moved:false` and a vague/cursor-equal place, so the cursor
+stuck on the dining room and presence never reset (parents bled into the bedroom).
+**Location precision IS place-recall precision** (see "Why"), so this hardening goes
+BEFORE P2.5's relation-edge cosmetics. Fuzzy matching was not at fault — the fix is
+at the witness seam with deterministic server math, the same pattern as the F3
+presence fold and the codex name-grounding backstop:
+- `worker/lib/movement-signal.ts` — `detectNarratedMovement` (locomotion in the
+  player's own narrated action, the most reliable move signal) + `resolvePossessiveRoomName`
+  ("my room" → "<owner>'s room", first-person only). Pure + `audit:movement` (25/25).
+- `generation.processor` — owner-scoped name override when the player retreats to
+  their own space and the model whiffed (placed lateral); `viewpoint_moved`
+  corroborated from the narrated move ONLY when the resolved name is a real different
+  place (an ambiguous "going to" on a stay-put turn can't reset the scene); presence
+  resets whenever the resolved location ENTITY changes (deterministic). Location +
+  `present_characters` are thus fixed by one coupled change.
+- Live instance repaired (`repair-bedroom-anchor.ts`). KNOWN GAP: no live generated
+  turn yet (seq 27+).
+
 ### P3 — multi-world maturity
 - Multiple world-roots in anger; "go back across realms"; per-realm lore at scale.
 - Timeline-branch what-ifs layered on top (optional per scenario) — e.g. a vision /
