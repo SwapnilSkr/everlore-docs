@@ -652,8 +652,18 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       stuck seq 25-26 (`repair-bedroom-anchor.ts`: minted "Swapnil Sarkar's room" under
       the mansion, re-anchored both turns, cleared the stale Father/Mother presence,
       repointed the cursor). typecheck + `audit:location` + `audit:location-resolution`
-      green. KNOWN GAP: not yet run against a LIVE generated turn (seq 27+) — the
-      witness-prompt path still needs one real playthrough to confirm end-to-end.
+      green. **Open-world scope:** the GENERAL movement engine is the witness/
+      cartographer (P1 world-roots; `movement:world_shift` for realms), NOT regex —
+      "I travel to Veliscourt" is named by the model + placed by the cartographer,
+      scaling to city/kingdom/planet/realm. The movement-signal regex only backstops
+      the model's blind spots (vague personal spaces + under-flagged moves); its verb
+      set was broadened from room-scale to open-world locomotion (travel/journey/ride/
+      sail/cross/venture/voyage/teleport/…, `audit:movement` 40/40), and possessive
+      name-recovery covers personal dwellings but NOT settlements ("my village" =
+      origin, not ownership). Presence reset on a named city move already rides
+      `placeEntityChanged`, independent of the verb list. KNOWN GAP: not yet run
+      against a LIVE generated turn (seq 27+) — the witness-prompt path still needs
+      one real playthrough to confirm end-to-end.
 - [ ] **P2.5 — non-containment relation edges.** `mirror_of`/`allied_with`/`borders`;
       needs an extractor pass to MINT them before the atlas can surface them.
 - [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
