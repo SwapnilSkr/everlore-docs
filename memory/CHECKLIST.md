@@ -450,3 +450,15 @@ Supermemory-level story memory system.
       (null when only player input changed). App: repo parses them, `editAiResponse`
       swaps them onto the event over the optimistic copy. tsc + flutter analyze clean.
       NOT yet run live.)
+- [x] Live audit pass (server backend/LLM behaviour) for all of the above.
+      (Server commit `ae9a64b` + `382af29`. Two reusable scripts, also `bun run
+      audit:choices` / `audit:replay-edit`. `scripts/choice-audit.ts` (LLM-only)
+      calls the real extractor on GM + sentient prose, 3 samples × 2 cases — every
+      `send` first-person, no 3rd-person self-reference, `present_characters`
+      canonical not aliases: ALL HELD (GM "Unseen Child" shape returned first-person
+      chips + present=[Doran, Mother Vella], no "Observe the son" slip).
+      `scripts/replay-edit-audit.ts` clones instance `6a2869768f7446e38bdb6fce`
+      (rewind-audit pattern, deletes clone), exercises replay/select/edit: chips
+      regenerate, store per variant, restore on select, untouched on player-only
+      edit — ALL HELD. Remaining: Tier 3 end-to-end UI in the running Flutter app
+      is the user's pass (chip render + tap, presence tag, regenerate/edit in-app).)
