@@ -488,7 +488,16 @@ Supermemory-level story memory system.
       now FOLLOWS current_location (F1 already makes it trustworthy, so F1 not the
       gate is what stops the phantom); travel MARKER stays gated on viewpoint_moved.
       Broadened viewpoint_moved to include returns/re-entries. Audit gained B2
-      (return indoors). A stuck cursor self-heals on the next turn under new code.)
+      (return indoors). A stuck cursor self-heals on the next turn under new code.
+      FOLLOW-UP `a27cc8f`: the location AI only saw the PRIOR place, not the world's
+      known places, and resolution dedups by exact name/alias only — so a variant on
+      RETURN ("the garden" vs "Night Garden") minted a duplicate location, splitting
+      the Places journal + breaking "go back" (frontend keys off the entity). Fix:
+      new `entityGraphService.listKnownLocations` feeds a KNOWN PLACES roster into
+      the extractor; current_location reuses a known place's canonical name on
+      return → resolveLocationAnchor hits the existing entity. Audit scenario E
+      verifies reuse. Limit: pre-existing duplicate location entities aren't
+      auto-merged (no location-merge tool yet).)
 - [x] Duplicate codex cards from kin-epithet splits (thoughts sheet showed both
       "Twin Sister" and a stray "Sister" for the same person; the dupe read
       "Elsewhere"). Root cause = the OTHER extractor, `character-codex-extractor.ts`
