@@ -614,7 +614,11 @@ parent/world-root-scoped identity & resolution (vague labels never mint); contai
       app's Places tab is a **fog-of-war nested atlas tree** (rooms under building under
       settlement under world-root, built from parent_id): place-kind glyphs,
       moments/echoes subtitle, current place highlighted + its branch auto-expanded,
-      fold/unfold carets (current branch can't fold shut), tap → place journal. Also
+      fold/unfold carets, tap → place journal. **UI polish** (`d0fc837`, `3be74de`,
+      `3892986`): made parent nodes foldable (the current branch was wrongly locked open,
+      disabling its caret), and the place journal's "MOMENTS HERE" timeline now leads each
+      beat with a real caption — what the player did/said that turn (else a narration
+      snippet) — instead of a column of generic "Mundane/Dialogue" type tags. Also
       hardened `merge:location` to re-point the memory PLACE anchor
       (location_entity_id/location_anchor/location_name) — it previously stranded a
       merged-away place's memories on a deleted entity (a GHOST atlas node); added
