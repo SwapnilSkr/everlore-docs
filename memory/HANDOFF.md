@@ -1,6 +1,7 @@
 # Everlore build — handoff
 
-_As of June 11 2026, post Phase 6B (travel + location state/facts + travel UI marker),
+_As of June 12 2026, post **Phase 2 memory version-links (Slice 1)** — see latest
+State bullet — and (June 11) Phase 6B (travel + location state/facts + travel UI marker),
 Phase 7 (server + app surface + audit follow-ups), scheduled continuity drift
 detection, and a June-11 extractor-drift / dedup hardening pass (duplicate-character
 fix `9101349` + scale-robust location resolution `a12e94e`), plus Location Graph
@@ -94,6 +95,35 @@ gated separately by `origin:'side_chat'` / `known_by_entity_ids` in `queryRag`
 Recap/Echoes/Threads/Location read filters.
 
 ## State (what's done)
+- **Phase 2 memory version-links (Slice 1) — DONE (server `f6a1e81`, June 12 2026).**
+  Captures the write-time supersession lineage the codex-retirement path was
+  discarding (chosen FIRST over Phase 4 BM25: the BM25 gap is scale-gated +
+  unmeasurable at ~26 turns, while this signal is lost on every deferred turn).
+  `memory.model` gains `updates_/extends_/derives_from_memory_ids` (only `updates`
+  has a producer; the other two reserved/inert) + a `superseded_by_event_ids`
+  backward mark. The supersession service stamps that race-free single-writer mark
+  on archived atoms, returns the superseded ids, and **scopes Pinecone matches to
+  MAIN origin** so a main codex retirement never evicts/links a private side-chat
+  secret (a privacy improvement on top of the feature). The curator
+  (`memory.processor`) materializes the forward `updates_memory_ids` on the turn's
+  new correcting atoms from those marks. Lifecycle (links are a projection):
+  `pruneMemoryVersionLinks` `$pull`s removed ids from surviving atoms on rewind +
+  edit-recuration; rewind also drops backward marks for removed events;
+  `repair_memory_links` maintenance task reconciles the supersession/curation race
+  (materialize forward links from backward marks) + prunes dangling links/marks,
+  idempotent. `GET /admin/events/:eventId/projections` surfaces the lineage per
+  atom, **`allowsKnowledge`-gated (fail closed)**. Verified: `audit:memory-links`
+  (Tier 1, throwaway instance — reconcile + both prunes + idempotency) 9/9; tsc
+  clean; rewind-audit unbroken. **HONEST GAP (Tier 2):** the live supersession
+  TRIGGER was not exercised — the dev instance has no reversible codex-state-with-
+  matching-memory, and forcing one means burning many stochastic real turns
+  (LIVE_VERIFICATION Trap E). The deterministic core + the reconcile job (which is
+  functionally identical to the inline curator materialization — same query, same
+  `$addToSet`) are green and backstop correctness; verify inline timing on the next
+  NATURAL fact-reversal during play. **Phase 4 BM25 deferred-with-a-gate:** the
+  recall-gap measurement, decision rule, and scale gate are captured in
+  `RETRIEVAL_MEASUREMENT.md` (do NOT run the eval on the 26-turn instance — false
+  negative). Slice 2 `extends` + Slice 3 `derives_from` remain deferred (no producer).
 - **Phase 6B (Travel + location state/facts) — COMPLETE.** Extraction-driven
   (confirmed with the user), NOT an explicit travel action — it matches how
   `scene_tag` / `present_characters` / `current_location` are already derived from
@@ -279,13 +309,17 @@ BM25, Phase 2 memory-version links). Recommended order:
    poll Mongo, then `rewindToSequence` to restore + `del session:<iid>` after any
    out-of-band instance write. **Everything Phases 1–10 + Location Graph P0–P2.6 is now
    live-verified.**
-2. **Discuss Phase 4 broader BM25 first.** Define target surfaces (Echoes only vs
-   prompt RAG too), index shape, measurement plan, and how to avoid polluting
-   private `side_chat` boundaries.
-3. **Discuss Phase 2 memory-version links second.** Define schema and lifecycle for
-   `updates_memory_ids` / `extends_memory_ids` / `derives_from_memory_ids`, then
-   decide whether links are extractor-produced, dedup/supersession-produced, or
-   maintenance-derived.
+2. **Phase 2 memory-version links — Slice 1 DONE** (`f6a1e81`; supersession-produced
+   `updates_memory_ids` + prune lifecycle + `repair_memory_links` reconcile + admin
+   lineage). Remaining for this item: a NATURAL-fact-reversal Tier-2 live check
+   (preconditions absent in the dev instance — see State), and Slices 2/3
+   (`extends_memory_ids` needs a refine-not-replace judgment; `derives_from_memory_ids`
+   needs an inference producer that doesn't exist yet).
+3. **Phase 4 broader BM25 — DEFERRED with a gate.** Decided not to build ahead of a
+   demonstrable recall gap, which is scale-gated and unmeasurable on the 26-turn dev
+   instance. The measurement, decision rule (≥10pp slice lift, no precision regress),
+   scale gate, and privacy scoping are in `RETRIEVAL_MEASUREMENT.md`. Pull in when a
+   real instance reaches scale; first slice = eval harness + baseline, not the index.
 4. **Open-world limits** (`LOCATION_GRAPH.md` "Open-world limits" + CHECKLIST). The
    intra-world same-name **collision is now FIXED** (area-scoped resolution + the
    unique index gained `parent_id`; `idx_entities_instance_type_root_parent_name`, old

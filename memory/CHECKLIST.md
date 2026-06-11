@@ -59,13 +59,41 @@ Supermemory-level story memory system.
 - [x] Add `unresolved_thread` and `current_status`.
       (`unresolved_thread` + `resolved_at` power the open-threads prompt
       section; lifecycle is the shared `status` from projection provenance.)
-- [ ] Add `updates_memory_ids`, `extends_memory_ids`,
-      `derives_from_memory_ids`.
-      (REOPENED for next planning pass. Goal: make memory evolution explicit
-      enough for explainability/admin inspection and future retrieval prompts:
-      which memory updates, extends, or derives from which earlier atom.
-      Current supersession/dedup still works at vector/text level; this is an
-      additive version graph, not a replacement.)
+- [x] Add `updates_memory_ids`, `extends_memory_ids`,
+      `derives_from_memory_ids`. (Slice 1 DONE — server `f6a1e81`, June 12 2026.)
+      (REOPENED, then chosen FIRST over Phase 4 BM25: the BM25 recall gap is
+      scale-gated + unmeasurable on the ~26-turn dev instance, while the
+      supersession lineage is a WRITE-TIME-ONLY signal lost on every deferred
+      turn. Additive version graph, not a replacement for vector/text dedup.
+      SHIPPED (Slice 1 = `updates_memory_ids`, wired into the EXISTING codex-
+      retirement supersession seam — no new LLM judgment): memory.model gains the
+      three forward link arrays (only `updates` has a producer; `extends`/
+      `derives_from` are reserved/inert) + `superseded_by_event_ids` backward
+      mark. The supersession service stamps that race-free single-writer mark on
+      the atoms it archives, returns the superseded ids, and scopes its Pinecone
+      matches to MAIN origin so a main retirement never evicts/links a private
+      side-chat secret. The curator (`memory.processor`) materializes the forward
+      `updates_memory_ids` on the turn's new correcting atoms from those marks.
+      Lifecycle (links are a projection): `pruneMemoryVersionLinks` `$pull`s
+      removed atom ids from surviving atoms on rewind + edit-recuration, rewind
+      also drops backward marks for removed events; `repair_memory_links`
+      maintenance task reconciles the supersession/curation race (materialize
+      forward links from backward marks) + prunes dangling links/marks,
+      idempotent. Surface: `GET /admin/events/:eventId/projections` shows the
+      lineage per atom, gated by `allowsKnowledge` (fail closed — a private linked
+      atom's text is hidden). VERIFIED: `audit:memory-links` (Tier 1, throwaway
+      instance: reconcile + both prunes + idempotency) 9/9; tsc clean; rewind-audit
+      unbroken (one PRE-EXISTING unrelated protagonist-alias assertion red, see
+      Bug Fixes/handoff). HONEST GAP: Tier-2 live trigger NOT exercised — the dev
+      instance lacks a reversible codex-state-with-matching-memory to fire a real
+      supersession, and forcing one means burning many stochastic real turns
+      (LIVE_VERIFICATION Trap E). The deterministic core + the reconcile job
+      (functionally identical to the inline curator materialization) are green and
+      backstop correctness; verify inline timing on the next NATURAL fact-reversal
+      during play. Slice 2 `extends_memory_ids` (needs a refine-not-replace
+      judgment) + Slice 3 `derives_from_memory_ids` (no inference producer yet)
+      remain deferred. BM25 measurement plan captured as the scale-gated gate —
+      see `RETRIEVAL_MEASUREMENT.md`.)
 - [x] Update memory extraction prompt to resolve pronouns/entities explicitly.
       (Extraction is grounded in the codex roster; atoms must be
       self-contained with explicit names.)
@@ -112,10 +140,16 @@ Supermemory-level story memory system.
 
 - [ ] Add BM25/text index over memory text, entity names, places, promises, and
       event labels.
-      (REOPENED for next planning pass. Goal: broaden exact lexical retrieval
-      beyond memory text/subjects/objects to entity names, places, promises, and
-      event labels, then measure whether it improves Echoes search / prompt RAG
-      before increasing prompt recall surface.)
+      (REOPENED, then DEFERRED-with-a-gate (June 12 2026) in favour of Phase 2
+      version-links. Goal: broaden exact lexical retrieval beyond memory text/
+      subjects/objects to entity names, places, promises, and event labels, then
+      measure whether it improves Echoes search / prompt RAG before increasing
+      prompt recall surface. RATIONALE FOR DEFERRAL: the recall gap is a SCALE
+      phenomenon (long-tail entities over thousands of turns) and is unmeasurable
+      on the ~26-turn dev instance — an eval today is a false negative. The
+      measurement to run BEFORE building the index, plus the decision rule and the
+      scale gate, are captured in `RETRIEVAL_MEASUREMENT.md`. First slice when
+      pulled in = the eval harness + baseline, NOT the index.)
 - [x] Retrieve by vector similarity.
       (Pinecone memory/lore search remains the semantic arm.)
 - [x] Retrieve by exact names/keywords.
