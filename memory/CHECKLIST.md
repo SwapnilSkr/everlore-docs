@@ -547,3 +547,48 @@ Supermemory-level story memory system.
       match still works, distinct places stay distinct, genuinely-new places still
       mint. This is the server-side resolution layer; the KNOWN PLACES roster `a27cc8f`
       stays as the cheap hot-set nudge.)
+- [x] Duplicate LOCATION entities in the live instance (fragmentation repair). The
+      instance had 12 locations including obvious fragments: "the room" ⊂ "dining room"
+      (same dinner setting), "the mansion"/"mansion" (article variant), and
+      "outside"/"street"/"pavement" (same exterior). All minted BEFORE the fuzzy
+      resolver `a12e94e`, which prevents new dupes but doesn't fold existing ones —
+      and there was no location-merge tool (character-only). (Built `merge:location`
+      = `scripts/merge-location-entities.ts`, the sibling of `merge:character`: folds
+      dupe location entities' aliases/mentions/facts/state into KEEP, re-points memory
+      + edge refs (per-edge collision handling), rewrites stored event `location_anchor`s
+      + travel labels, **repoints the instance cursor** if it sat on a dupe, deletes the
+      dupe. Ran on the instance: 12 → 8 locations [dining room←the room, mansion←the
+      mansion, street←outside+pavement]; cursor healed from the stranded "the room" onto
+      "dining room"; 11 event anchors rewritten.)
+
+## Location Graph (nested, world-scoped places) — PLANNED
+
+Full design in `LOCATION_GRAPH.md` (operationalizes the `CALENDAR_TIMELINES_AND_LOCATIONS.md`
+vision). Locked decisions: space vs time are orthogonal (world-drift = canonical space
+travel on the MAIN timeline via world-roots; timeline branches reserved for true
+what-ifs); lazy/emergent depth (never invent ancestors; partial ancestry is valid);
+witness/cartographer (LLM emits local place + movement hints, server owns the map);
+parent/world-root-scoped identity & resolution (vague labels never mint); containment
+= `parent_id` spine, other relations = `entity_edges`.
+
+- [~] **P0 (QUEUED — do FIRST, safety-critical, server only).** Stops location
+      fragmentation at the source AND removes the cross-world bleed risk before any
+      multi-area world exists. (a) **Vague-label guard** — generic/relative labels
+      ("the room", "here", "inside", "outside") never mint; resolve to the current
+      cursor unless movement is narrated. (b) **Parent/area-scoped resolution** — scope
+      exact + fuzzy matching in `resolveLocationAnchor` to siblings under the active
+      area/world-root instead of the global instance set (today's resolver `a12e94e` is
+      GLOBAL → would merge same-named places across cities/realms). (c) **Audit** —
+      extend `audit:location-resolution`: same-named place under a different root must
+      NOT merge; a vague label must NOT mint; a genuine return still reuses the node.
+- [ ] **P1 — the spine.** Add `parent_id` / `world_root_id` / `place_kind` to location
+      entities (+ indexes); extraction emits `current_place`/`containment_hint`/
+      `movement`; server cartographer (deeper/out/lateral/world_shift); world-root
+      minting on `world_shift` (main timeline); re-parenting on later reveal (+ subtree
+      `world_root_id` refresh); backfill the instance's 8 locations under a building +
+      exterior; audits.
+- [ ] **P2 — atlas UI + relations.** Nested atlas surface (fog-of-war) + node detail;
+      non-containment relation edges (`mirror_of`/`allied_with`/`borders`) surfaced in
+      place context.
+- [ ] **P3 — multi-world maturity.** Multiple world-roots in anger; cross-realm "go
+      back"; per-realm lore at scale; optional timeline-branch what-ifs layered on top.

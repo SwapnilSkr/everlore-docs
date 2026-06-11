@@ -202,9 +202,17 @@ Recap/Echoes/Threads/Location read filters.
     roster (the hot-set nudge).
 
 ## Next (recommended order)
-Phases 1–10 are complete, but `CHECKLIST.md` now intentionally has two reopened
-planning items: Phase 4 broader BM25 and Phase 2 memory-version links. Recommended
-order:
+Phases 1–10 are complete. `CHECKLIST.md` now has the **Location Graph** initiative
+(full design in `LOCATION_GRAPH.md`) plus two reopened planning items (Phase 4 broader
+BM25, Phase 2 memory-version links). Recommended order:
+0. **Location Graph P0 (QUEUED — safety-critical, do FIRST).** Server-only: vague-label
+   guard (generic/relative place labels never mint) + **parent/area-scoped resolution**
+   in `resolveLocationAnchor` (today's fuzzy resolver `a12e94e` is GLOBAL → would merge
+   same-named places across cities/realms, a live bleed risk) + extend
+   `audit:location-resolution`. Then P1 (the `parent_id`/`world_root_id` spine +
+   witness/cartographer extraction) per `LOCATION_GRAPH.md`. LOCKED decisions: space vs
+   time orthogonal (world-drift = canonical space travel on MAIN timeline; branches only
+   for what-ifs); lazy/emergent depth; witness/cartographer; world-root-scoped identity.
 1. **Live-turn verification pass (RECOMMENDED).** Several LLM-dependent paths are
    code-correct but never run against a real generated turn. Start server + worker +
    app and confirm: **(Phase 7)** Bonds → private chat streams a reply, REST reload
