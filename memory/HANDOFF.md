@@ -120,9 +120,13 @@ Recap/Echoes/Threads/Location read filters.
     to Y" in Almanac dated events and above travel turns in the main
     Timeline/NarrativeBubble. Verified with server `bun run typecheck` and app
     `flutter analyze lib`.
-  - **Known gap (honest):** the new extractor fields (`time_elapsed`, travel-via-location,
-    `location_*_changes`) are schema/prompt-correct + apply-path-tested but never run
-    against a live generated turn.
+  - **LIVE-VERIFIED (June 11 2026):** the new extractor fields were finally driven
+    against real generated turns and exposed two gaps, both fixed: `time_elapsed` is
+    lost when the player narrates a skip the AI prose doesn't restate (extractor sees
+    only AI prose) → deterministic `time-skip-signal.ts` backstop over player input
+    (calendar D1→D8 on "Weeks pass"); `location_state_changes` under-detected positive
+    transformations → broadened prompt (garden → "roses have revived and bloom").
+    travel-via-location already worked (cursor + travel markers fired correctly).
 - **Phase 7 (Side-Character Chats) — SERVER + APP SURFACE COMPLETE, audited.** Commits:
   - `e07a6b6` — `side_chat` event type; shared ledger/sequence; streamed in-character
     reply built from the codex card; **story time does not advance**. Excluded from
@@ -251,17 +255,22 @@ BM25, Phase 2 memory-version links). Recommended order:
    in `LOCATION_GRAPH.md`. **P2.6 — resolution accuracy / movement hardening — DONE**
    (movement-signal backstops; see State above): inserted before P2.5 because a wrong
    cursor poisons place-recall RAG, so accuracy precedes relation-edge cosmetics.
-1. **Live-turn verification pass (PARTIALLY DONE).** **(P2.6) — DONE & verified**
-   (drove real worker turns: cursor/presence/travel/dedup all correct, 3 bugs found +
-   fixed; see State above). **STILL TODO:** **(Phase 7)** Bonds → private chat streams a
-   reply, REST reload shows it, side-chat curation doesn't leak into the main Lore Tome
-   tabs; **(Phase 6B)** a turn that narrates travel/time produces a `travel` event, moves
-   the calendar date, and records `location_state` / `location_facts` on the place
-   (visible in the journal). Pattern that worked for P2.6: start the worker
-   (`bun run worker/index.ts`), enqueue via `generationService.dispatch(...)` from a
-   throwaway script, poll Mongo for the new event, then `rewindToSequence` to restore.
-   The worker streams via `redis.publish` (fire-and-forget) so NO HTTP server/WS is
-   needed; remember to `del session:<iid>` after any out-of-band instance write.
+1. **Live-turn verification pass — DONE.** All three targets driven through the real
+   worker. **(P2.6)** cursor/presence/travel/dedup correct (3 bugs found + fixed).
+   **(Phase 7)** side-chat: in-character reply, story time + cursor FROZEN, main reads
+   skip the `side_chat` event, memory scoped `origin:side_chat` + `known_by=[player,
+   character,protagonist]` (GM world) — clean. **(Phase 6B)** travel/cursor work; found
+   + fixed two extraction gaps — time-advance was lost when the player narrated a skip
+   the AI prose didn't restate (extractor reads only AI prose), fixed with
+   `time-skip-signal.ts` deterministic backstop over player input (verified: "Weeks
+   pass" → calendar D1→D8); and `location_state` under-detected positive
+   transformations (destructive-only prompt examples), fixed with a broadened prompt
+   (verified: garden → "the roses have revived and bloom vibrantly"). Recipe that
+   worked: start `bun run worker/index.ts` (streams via `redis.publish`, NO HTTP/WS
+   needed), enqueue via `generationService.dispatch(...)` / `dispatchSideChat(...)`,
+   poll Mongo, then `rewindToSequence` to restore + `del session:<iid>` after any
+   out-of-band instance write. **Everything Phases 1–10 + Location Graph P0–P2.6 is now
+   live-verified.**
 2. **Discuss Phase 4 broader BM25 first.** Define target surfaces (Echoes only vs
    prompt RAG too), index shape, measurement plan, and how to avoid polluting
    private `side_chat` boundaries.

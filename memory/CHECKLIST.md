@@ -187,7 +187,14 @@ Supermemory-level story memory system.
       advances the day-level calendar via `data.time_advanced`, not just the
       explicit wait/continue tick. `advanceDays` rewritten to parse explicit
       amounts + worded numbers across day/week/month/season/year so travel time
-      is precise.)
+      is precise. LIVE-VERIFIED June 11 + HARDENED: the extractor reads only AI prose,
+      so a skip the PLAYER wrote ("Weeks pass.") that the narrator didn't restate was
+      lost → calendar stuck. Added `worker/lib/time-skip-signal.ts` `detectNarratedTimeSkip`
+      — deterministic backstop over the player's input feeding `advanceDays` (time twin
+      of the P2.6 movement backstop; `narratedTimeLabel` fallback, model wins if it
+      reports `time_elapsed`). Conservative (explicit duration in a passage context or
+      named period; "for years I've wanted this"/"I train every day" don't fire).
+      `audit:time-skip` 17/17; live: "Weeks pass" → calendar D1→D8.)
 - [x] Store location state and permanent location facts.
       (Server commit `3e71e4b`, app commit `c8cd9a1`. Location
       entities carry provenance-tracked `location_state` (mutable condition) +
@@ -197,7 +204,10 @@ Supermemory-level story memory system.
       a place never asserts a fact whose source turn no longer happened. Surfaced
       in the prompt's CURRENT LOCATION section and the place journal. Verified by
       a throwaway smoke (apply/dedup/edit-prune/rewind-prune, 8/8) + rewind-audit
-      27/27 unbroken.)
+      27/27 unbroken. LIVE-VERIFIED June 11: a live garden-restoration turn minted
+      `location_state` ["the roses have revived and bloom vibrantly"] — but only after
+      broadening the extractor prompt, which had destructive-only examples and missed
+      positive transformations 3/3. Probabilistic nudge, not a guarantee.)
 - [x] Retrieve location memories when entering a place.
       (Events and memories now carry `location_anchor`; RAG fuses a current
       location memory arm with vector/keyword/entity/timeline retrieval.)
