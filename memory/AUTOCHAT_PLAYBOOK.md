@@ -226,7 +226,7 @@ Record, per world: which probes were **GREEN** vs the exact payload that was wro
 Four merged-report findings were patched deterministically (typecheck + `audit:*`
 green) but **NOT yet live-WS-verified**. Your run is the live proof. For each, run
 the repro and assert the NEW behavior; if it regresses, file it HIGH with "regressed
-fix" in the title. (Source: `PLAYTEST_FINDINGS_MERGED_2026-06-12.md`.)
+fix" in the title. (Source: `../playtest/PLAYTEST_FINDINGS_MERGED_2026-06-12.md`.)
 
 1. **Event-edit wrong/empty field now 400 (Cluster I).** `PUT /chronicle/event/:id`
    with `{"narrative":"..."}` (wrong key) OR with `{"ai_response":"<unchanged text>"}`
@@ -327,8 +327,9 @@ The `session:<iid>` cache bust is mandatory after **any** direct DB/instance mut
 4. New worlds you intend to KEEP + their ids belong in the session handoff so the next agent knows they're intentional, not test litter.
 
 ### Findings log
-Append every flaw to a dated report so the user/next agent can triage:
-`everlore-docs/PLAYTEST_FINDINGS_<YYYY-MM-DD>.md`, one entry each:
+Append every flaw to a dated report **in `everlore-docs/playtest/`** (keep the doc
+root clean) so the user/next agent can triage:
+`everlore-docs/playtest/PLAYTEST_FINDINGS_<YYYY-MM-DD>__agent<N>.md`, one entry each:
 
 ```md
 ### [SEV: high|med|low] <one-line title>
@@ -360,8 +361,8 @@ two facts to design around, both stemming from the **single shared dev account**
   instance; *different* instances run truly concurrently. Give every agent its own
   instance(s) — never two agents on one instance.
 - **Own WS connection**, filtered by `instanceId` (above).
-- **Own findings file** — `PLAYTEST_FINDINGS_<date>__agent<N>.md` — so parallel
-  writers don't clobber each other; merge at the end.
+- **Own findings file** — `everlore-docs/playtest/PLAYTEST_FINDINGS_<date>__agent<N>.md`
+  — so parallel writers don't clobber each other; merge at the end.
 - Reuse ONE shared `TOKEN` across all agents (same account anyway) — avoids
   hammering the OTP endpoint and is simplest.
 
