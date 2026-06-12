@@ -11,6 +11,25 @@
 - `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md` — how turns become memories/codex/summaries/entities (what each turn SHOULD project).
 - The condensed **"gaps to verify"** + known-product-gaps lists are in §4 and the Reference section below — an agent that has read those can self-check every turn.
 
+## ⛔ WORLD LIFECYCLE POLICY — READ THIS (real money + real data at stake)
+1. **Worlds and instances PERSIST by default. NEVER delete them.** Do not delete any
+   template/instance/world unless the user EXPLICITLY told you, for this run, to
+   create "deletable" / "throwaway" worlds. Silent cleanup has wasted the user's
+   money and data — do not do it.
+2. **Do NOT generate cover images for test worlds.** Image generation costs real
+   money. Leave the default cover. Generate a cover (§2a) ONLY when the user
+   explicitly says these are **publish-ready / real** worlds.
+3. **If — and only if — the user said "deletable/throwaway"**, then: skip images,
+   play, and at the end ACTUALLY delete what you made (full cascade, §7).
+4. When in doubt: **keep the world, skip the image, delete nothing.** Record ids in
+   your findings file so the user can decide.
+
+| User intent | Cover image? | Delete after? |
+|---|---|---|
+| (default) testing | NO | NO — persist |
+| "deletable/throwaway worlds" | NO | YES — full cascade |
+| "publish-ready / real worlds" | YES (§2a) | NO — persist |
+
 ---
 
 ## 0. Preconditions
@@ -52,7 +71,9 @@ echo "$TOKEN"
 
 A playable world = **template → publish → instance**. As of June 12 2026 a creator can also start an instance on their OWN *unpublished* template (playtest before publishing); a non-owner trying an unpublished template gets a clear `403 "This world has not been published yet"` (was previously an opaque 404).
 
-### 2a. (optional) Generate a cover image first
+### 2a. Cover image — SKIP for test worlds (costs real money)
+**Default: do NOT do this step.** Test worlds keep the default cover. Run this ONLY
+when the user explicitly said these are publish-ready/real worlds (Lifecycle Policy).
 ```bash
 IMG=$(curl -sX POST "$BASE/templates/image/generate" -H "authorization: Bearer $TOKEN" \
   -H 'content-type: application/json' \
@@ -269,7 +290,7 @@ The `session:<iid>` cache bust is mandatory after **any** direct DB/instance mut
 ## 7. Clean up + hand off
 
 1. The harness (`scripts/agent-chat.ts`) is **committed** — leave it; don't re-create a throwaway copy.
-2. **Revert any QA-only config edits** — if you lifted the `template_create` cap (or `worker` concurrency / `chat` limit) for the run, restore `rate-limit.ts` / `worker/index.ts` and restart. Delete throwaway worlds/instances you created (`DELETE /templates/:id` cascades its instances).
+2. **Worlds + instances you created PERSIST — do NOT delete them** (Lifecycle Policy). Delete ONLY if the user explicitly asked for "deletable/throwaway" worlds this run; then `DELETE /templates/:id` (cascades its instances) for each one you made. Revert any QA-only config edits — if you lifted the `template_create` cap (or `worker` concurrency / `chat` limit), restore `rate-limit.ts` / `worker/index.ts` and restart.
 3. **Record every dev-state mutation** in your handoff: created template/instance ids, any `token_balance` bump, any `rl:template_create` reset, any cap edit, whether you left servers running.
 4. New worlds you intend to KEEP + their ids belong in the session handoff so the next agent knows they're intentional, not test litter.
 
