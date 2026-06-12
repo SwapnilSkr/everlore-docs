@@ -326,6 +326,35 @@ The `session:<iid>` cache bust is mandatory after **any** direct DB/instance mut
 3. **Record every dev-state mutation** in your handoff: created template/instance ids, any `token_balance` bump, any `rl:template_create` reset, any cap edit, whether you left servers running.
 4. New worlds you intend to KEEP + their ids belong in the session handoff so the next agent knows they're intentional, not test litter.
 
+### ⚠️ Reporting rigor — a wrong FAIL is worse than a miss
+A previous run marked 3 working fixes as FAIL and 1 intended behavior as a high-sev
+bug. Those false findings waste the fixing agent's time. **Before you write any
+PASS/FAIL, follow these rules. If you cannot capture the raw proof, mark it
+`UNVERIFIED`, never `FAIL`.**
+
+- **Paste RAW evidence, not a paraphrase.** Every finding must include the actual API
+  JSON or the actual Mongo doc (`db.<coll>.findOne(...)`). "It looked wrong" is not a finding.
+- **Edit-unchanged check:** first `GET /chronicle/events/:iid`, copy the event's
+  EXACT `ai_response` string, then PUT that exact string back. Do NOT retype/reconstruct
+  it — a one-character difference counts as a real change and returns 200 (correctly).
+- **Supersession / "deleted" memory check:** a superseded atom is `status:"superseded"`
+  + `is_archived:true` and is HIDDEN from the default `GET /chronicle/memories` list.
+  "Not in the active list" ≠ "deleted / not retired." Confirm in Mongo
+  (`db.memories.findOne({_id})`) — check `status` and `superseded_by_event_ids` directly.
+- **Cursor / location:** judge `current_location` against the LAST narrated place
+  (the latest event's `location_anchor`), not against some earlier travel event.
+- **Always check the DB for state claims**, the rendered surface can lag or filter.
+
+### 🟢 Known by-design — do NOT file these as bugs
+- **GM-world side-chat surfacing.** In a GM world the player IS the protagonist, so a
+  `/side` secret has the protagonist in its `known_by_entity_ids` and CORRECTLY appears
+  in the protagonist's own Threads/Recap/Echoes (the gate intentionally passes it). A
+  REAL side-chat leak must be shown in a **sentient** world (protagonist is NOT a
+  knower → must be excluded) OR by a **different character/NPC** acting on knowledge
+  they shouldn't have. Surfacing in the player's own Lore Tome in a GM world is not a leak.
+- **`world_root_id: null`** on locations = the implicit single world. Not a bug.
+- **Replay only on the latest turn** = product constraint, not a bug.
+
 ### Findings log
 Append every flaw to a dated report **in `everlore-docs/playtest/`** (keep the doc
 root clean) so the user/next agent can triage:
@@ -333,13 +362,14 @@ root clean) so the user/next agent can triage:
 
 ```md
 ### [SEV: high|med|low] <one-line title>
-- **World/instance:** <kind> "<title>" iid=<IID> (throwaway? yes/no)
+- **World/instance:** <kind> "<title>" iid=<IID>
 - **Repro:** exact messages/actions (or the agent-chat.ts invocation)
 - **Expected vs got:** …
-- **Evidence:** frame dump / log excerpt (/tmp/everlore-*.log) / audit output
-- **Known gap?** link to a CHECKLIST/HANDOFF item, or "NEW"
+- **Evidence (RAW):** paste the actual API JSON / Mongo doc / log line that proves it
+- **Verified how:** which DB doc or endpoint you confirmed against
+- **Known gap?** link to a CHECKLIST/HANDOFF/merged-findings item, or "NEW"
 ```
-Triage order: **silent data corruption > soft-lock / dead stream > wrong chip/POV > cosmetic.** Lead with corruption-class findings.
+Triage order: **silent data corruption > soft-lock / dead stream > wrong chip/POV > cosmetic.** Lead with corruption-class findings. For regression checks, state PASS/FAIL/UNVERIFIED with the raw proof inline.
 
 ## 8. Parallel agents — independent processes, each with its own world
 
