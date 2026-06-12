@@ -207,8 +207,8 @@ Don't just chat aimlessly — drive turns that stress the systems most likely to
 7. **Calendar genre-fit** — check `time_anchor` / Almanac (§5): a **modern** world must show Gregorian months (January…December), a **fantasy** world a themed calendar. A cyberpunk/noir world showing invented months ("Neonrise") is a bug.
 8. **Side-character chat** — pick a `character_id` from `present_characters`, `/side` them a few turns. Assert: the in-character reply fits the card; story time + `location` do NOT advance (side chats are frozen — check the next MAIN turn's `time_anchor`/`location` are unchanged); the side thread shows in `GET /chronicle/side-chats/:iid`. Then tell the NPC a **secret** in side-chat and confirm it does NOT leak into the next main-story narration unless you SHARE it there.
 9. **NPC codex** — after introducing an NPC, confirm a `character_codex_updated` fired and no duplicate/"Mysterious Man" phantom card was minted (`GET /chronicle/relationships/:iid`).
-10. **Replay + edit** — `/replay <eventId>` a turn → assert the variant comes back WITH `choices`/`present_characters` (not blank). Then `PUT /chronicle/event/:eventId` (edit the AI response) and `PUT /chronicle/memory/:memoryId` / `PUT /chronicle/character/:characterId` → assert the edit re-curates (memories/chips regenerate, no stale chips).
-11. **Rewind** — `POST /chronicle/rewind/:iid {to_sequence}` back a few turns → assert later events/memories/codex deltas are gone and state recomputed (this is the invariant `rewind-audit.ts` checks; here you're confirming it through the real API). **Always `redis-cli del session:<iid>` after.**
+10. **Replay + edit** — `/replay <eventId>` a turn → assert the variant comes back WITH `choices`/`present_characters` (not blank). Then `PUT /chronicle/event/:eventId` with body `{"ai_response":"..."}` (the field is **`ai_response`**, NOT `narrative` — a wrong key is silently accepted as a no-op) and `PUT /chronicle/memory/:memoryId` / `PUT /chronicle/character/:characterId` → assert the edit re-curates (memories/chips regenerate, no stale chips).
+11. **Rewind** — `POST /chronicle/rewind/:iid` with body `{"sequence": N}` (the field is **`sequence`**, NOT `to_sequence`) back a few turns → assert later events/memories/codex deltas are gone and state recomputed (the invariant `rewind-audit.ts` checks; here through the real API). **Always `redis-cli del session:<iid>` after.**
 12. **Timeline branch** — `POST /chronicle/calendar/:iid/timeline` (fork) + `PUT .../timeline/active` → assert new turns land on the branch and the parent is unaffected.
 13. **Failure UX** — (destructive) kill the worker mid-turn (`pkill -f worker/index.ts`) and confirm you get `generation_retrying`/`generation_failed` and the lock frees within ~90s (not a ~4min soft-lock). Restart the worker after. Also send two turns fast → expect a clean `GENERATION_IN_PROGRESS`.
 14. **Continuity** — after ~15–30 turns, `GET /admin/instances/:iid/continuity-audit` → any warn/fail is a finding.
@@ -250,13 +250,13 @@ after a charged interaction.
 
 **Mutation surfaces (exercise these too — §4 steps 10–12):**
 ```
-PUT  /chronicle/event/:eventId            # edit AI response (re-curates)
+PUT  /chronicle/event/:eventId            # edit AI response (re-curates); body {"ai_response":"..."} — NOT "narrative"
 PUT  /chronicle/memory/:memoryId          # edit a memory atom (re-embeds)
 DELETE /chronicle/memory/:memoryId
 PUT  /chronicle/character/:characterId     # edit a codex card
 POST /chronicle/replay/:eventId            # regenerate a turn
 POST /chronicle/replay/select/:eventId     # pick a variant
-POST /chronicle/rewind/:instanceId         # rewind to a sequence  (bust session: after!)
+POST /chronicle/rewind/:instanceId         # rewind; body {"sequence":N} — NOT "to_sequence"  (bust session: after!)
 POST /chronicle/calendar/:instanceId/timeline + PUT .../timeline/active  # fork/switch reality
 PUT  /chronicle/calendar/event/:eventId/time-anchor                      # flashback re-anchor
 ```
