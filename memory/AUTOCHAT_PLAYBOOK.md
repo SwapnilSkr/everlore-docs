@@ -312,43 +312,46 @@ two facts to design around, both stemming from the **single shared dev account**
 - Reuse ONE shared `TOKEN` across all agents (same account anyway) — avoids
   hammering the OTP endpoint and is simplest.
 
-### Letting each agent create its OWN worlds (beat the 5/24h cap)
-The `template_create` cap blocks "5 agents each make a world" out of the box. For a
-QA run, pick one:
-- **(recommended) Temporarily lift the cap for the run.** In
-  `everlore-server/src/middleware/rate-limit.ts` set
-  `template_create: { max: 1000, windowSeconds: 86400 }`, restart the API, run the
-  fleet, then revert. Clean and lets every agent create freely. **Record this in the
-  handoff** (it's a dev-state change).
-- **Reset the counter between creates:**
-  `redis-cli del rl:template_create:6a210ba38e6db660dc8ef6a3` (each agent runs this
-  before its create — racy but fine for QA).
-- **Bootstrap once:** one setup agent creates all the worlds up front (varied
-  archetypes/genres via `/templates/autofill`), publishes them, and creates one
-  instance per playing agent; the players just chat. Stays within 5 worlds.
+### Throughput + caps are ENV-TUNABLE (no source edits, no revert)
+Four env vars on the **API + worker** processes raise the ceilings for a fleet.
+Defaults are the safe production values, so you only set them for a QA run:
 
-Use `autofill` for variety so the fleet covers GM / sentient / character × multiple
-genres (modern, fantasy, noir, slice-of-life), which surfaces genre-specific bugs
-(e.g. calendar genre-fit, NSFW routing).
+| Env var | Default | Set for a fleet | Controls |
+|---|---|---|---|
+| `GENERATION_CONCURRENCY` | 3 | ~10 | simultaneous turns the worker runs |
+| `GENERATION_RATE_MAX` | 10 | ~60 | turns/min the worker accepts |
+| `CHAT_RATE_MAX` | 10 | ~60 | player turns/60s (per account) |
+| `TEMPLATE_CREATE_RATE_MAX` | 5 | ~100 | worlds created per 24h |
 
-### Worker throughput
-The generation worker runs `concurrency:3` (limiter 10/min). More than ~3
-simultaneous turns just queue — slower, not broken. For a big fleet, raise
-`concurrency` in `worker/index.ts` (and `chat` rate limit) for the run, or accept
-the queue. With the default, ~3 agents play smoothly in parallel; more still works,
-just paced.
+Launch the stack with them set (this is all "bumping that shit" requires now):
+```bash
+cd everlore-server
+pkill -f "src/index.ts"; pkill -f "worker/index.ts"; sleep 1
+export GENERATION_CONCURRENCY=10 GENERATION_RATE_MAX=60 CHAT_RATE_MAX=60 TEMPLATE_CREATE_RATE_MAX=100
+nohup bun run src/index.ts    > /tmp/everlore-api.log    2>&1 &
+nohup bun run worker/index.ts > /tmp/everlore-worker.log 2>&1 &
+```
+With these, each agent can create its OWN worlds and ~10 play concurrently without
+queueing. (No code to revert — just relaunch without the exports for prod-like limits.)
+You can still `redis-cli del rl:template_create:6a210ba38e6db660dc8ef6a3` to clear the
+counter mid-run if needed.
+
+Use `/templates/autofill` for variety so the fleet covers GM / sentient / character
+× multiple genres (modern, fantasy, noir, slice-of-life), which surfaces
+genre-specific bugs (calendar genre-fit, NSFW routing).
 
 ### Minimal fleet recipe
 ```bash
-# 1. (once) lift template_create cap + restart API (see above), get a shared token.
-# 2. spawn N independent player processes, each with its own instance + script:
+# 1. launch the stack with the env knobs above; grab one shared token (§1).
+# 2. each agent creates its own world (§2) -> its own instance id ($IID).
+# 3. spawn N independent player processes, each driving its own instance:
 for IID in "$IID_A" "$IID_B" "$IID_C"; do
   TOKEN=$TOKEN bun run scripts/agent-chat.ts "$IID" \
     "Opening move in character." "/side <charId> A private word?" "/continue day" \
     > "/tmp/agent_${IID}.log" 2>&1 &
 done
 wait
-# 3. each agent then reads its instance's Chronicle surfaces (§5) + logs findings (§7).
+# 4. each agent then reads its instance's Chronicle surfaces (§5) + logs findings (§7).
 ```
 Each backgrounded run is an independent process driving its own instance; frame
 filtering keeps them from cross-talking on the shared socket fanout.
