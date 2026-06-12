@@ -207,7 +207,7 @@ Don't just chat aimlessly — drive turns that stress the systems most likely to
 7. **Calendar genre-fit** — check `time_anchor` / Almanac (§5): a **modern** world must show Gregorian months (January…December), a **fantasy** world a themed calendar. A cyberpunk/noir world showing invented months ("Neonrise") is a bug.
 8. **Side-character chat** — pick a `character_id` from `present_characters`, `/side` them a few turns. Assert: the in-character reply fits the card; story time + `location` do NOT advance (side chats are frozen — check the next MAIN turn's `time_anchor`/`location` are unchanged); the side thread shows in `GET /chronicle/side-chats/:iid`. Then tell the NPC a **secret** in side-chat and confirm it does NOT leak into the next main-story narration unless you SHARE it there.
 9. **NPC codex** — after introducing an NPC, confirm a `character_codex_updated` fired and no duplicate/"Mysterious Man" phantom card was minted (`GET /chronicle/relationships/:iid`).
-10. **Replay + edit** — `/replay <eventId>` a turn → assert the variant comes back WITH `choices`/`present_characters` (not blank). Then `PUT /chronicle/event/:eventId` with body `{"ai_response":"..."}` (the field is **`ai_response`**, NOT `narrative` — a wrong key is silently accepted as a no-op) and `PUT /chronicle/memory/:memoryId` / `PUT /chronicle/character/:characterId` → assert the edit re-curates (memories/chips regenerate, no stale chips).
+10. **Replay + edit** — `/replay <eventId>` a turn → assert the variant comes back WITH `choices`/`present_characters` (not blank). Then `PUT /chronicle/event/:eventId` with body `{"ai_response":"..."}` (the field is **`ai_response`**, NOT `narrative`; a wrong key must 400) and `PUT /chronicle/memory/:memoryId` / `PUT /chronicle/character/:characterId` → assert the edit re-curates (memories/chips regenerate, no stale chips).
 11. **Rewind** — `POST /chronicle/rewind/:iid` with body `{"sequence": N}` (the field is **`sequence`**, NOT `to_sequence`) back a few turns → assert later events/memories/codex deltas are gone and state recomputed (the invariant `rewind-audit.ts` checks; here through the real API). **Always `redis-cli del session:<iid>` after.**
 12. **Timeline branch** — `POST /chronicle/calendar/:iid/timeline` (fork) + `PUT .../timeline/active` → assert new turns land on the branch and the parent is unaffected.
 13. **Failure UX** — (destructive) kill the worker mid-turn (`pkill -f worker/index.ts`) and confirm you get `generation_retrying`/`generation_failed` and the lock frees within ~90s (not a ~4min soft-lock). Restart the worker after. Also send two turns fast → expect a clean `GENERATION_IN_PROGRESS`.
@@ -221,6 +221,38 @@ Don't just chat aimlessly — drive turns that stress the systems most likely to
 - **Travel marker + calendar advance, POV/identity, presence carry-forward** — per steps 2–7 above.
 
 Record, per world: which probes were **GREEN** vs the exact payload that was wrong. That delta is the deliverable.
+
+### 🔁 Regression checks — verify the 2026-06-12 fix batch landed LIVE
+Four merged-report findings were patched deterministically (typecheck + `audit:*`
+green) but **NOT yet live-WS-verified**. Your run is the live proof. For each, run
+the repro and assert the NEW behavior; if it regresses, file it HIGH with "regressed
+fix" in the title. (Source: `PLAYTEST_FINDINGS_MERGED_2026-06-12.md`.)
+
+1. **Event-edit wrong/empty field now 400 (Cluster I).** `PUT /chronicle/event/:id`
+   with `{"narrative":"..."}` (wrong key) OR with `{"ai_response":"<unchanged text>"}`
+   → **expect HTTP 400**, event NOT marked edited, NO re-curation. Then a real edit
+   `{"ai_response":"<changed text>"}` → expect 200 + re-curation. (PASS = the wrong
+   key is rejected, not silently no-op'd.)
+2. **Bonds shows the companion in sentient/character worlds (Cluster L).**
+   character/sentient lane: after charged turns, `GET /chronicle/relationships/:iid`
+   → **expect the companion/protagonist card present with its meters**, with the
+   player as the "self" side (not self-matched). (PASS = companion visible in Bonds.)
+3. **Player-card guard in sentient worlds (Cluster B2).** sentient lane: introduce
+   yourself / state player identity → **expect NO codex/Bonds card minted for the
+   player** (name/alias-normalized guard). (PASS = no player card.)
+4. **Explicit-correction supersession (Cluster E).** state "my X is A", later "it's
+   B, not A" → **expect the old A memories retired (`status` superseded,
+   `superseded_by_event_ids` stamped, vectors gone) and `updates_memory_ids` linked**
+   on the new atom. (PASS = old atoms no longer active + linked.)
+
+### 🚧 STILL OPEN (NOT fixed yet — keep hunting these hard)
+These P0/P1 clusters were NOT in the fix batch — expect them to still fail, capture
+fresh evidence:
+- **A — side-chat secret leak** into Threads / Recap / main narration (the open-thread + RAG path).
+- **B1 — sentient/character memory IDENTITY attribution**: player self-facts still mis-attributed to the AI character in curated memories (the *carding* guard B2 was fixed; the *attribution* inversion was not).
+- **C — presence** conflates recall with co-location (absent NPCs present; on-scene NPCs missing under a dominant sentient entity).
+- **D — location fragmentation** (article/variant duplicate nodes; no world-root on plane shift; cursor lag/freeze/reset on continue).
+Plus everything else in §4 + new bugs you discover.
 
 ---
 
