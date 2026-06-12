@@ -56,9 +56,9 @@ A playable world = **template → publish → instance**. As of June 12 2026 a c
 ```bash
 IMG=$(curl -sX POST "$BASE/templates/image/generate" -H "authorization: Bearer $TOKEN" \
   -H 'content-type: application/json' \
-  -d '{"prompt":"rain-slicked neon alley, cyber-noir, cinematic, moody"}' | jq -r '.image_url')
+  -d '{"prompt":"rain-slicked neon alley, cyber-noir, cinematic, moody"}' | jq -r '.url')
 ```
-Returns a CDN URL. Image gen costs money and runs **before** any validation — generate only when the template body is otherwise ready.
+**The response shape is `{ "url", "key" }` — read `.url`, NOT `.image_url`** (a common bug: `.image_url` is null, so the template ends up with no cover). Then pass that value as the template's `image_url` field (§2b). Image gen costs money and runs **before** any validation — generate only when the template body is otherwise ready.
 
 ### 2b. Create the template
 Schema = `everlore-server/src/schemas/template.schema.ts → CreateTemplateBody`. The three **world archetypes** are set by `kind` + `is_sentient`:
