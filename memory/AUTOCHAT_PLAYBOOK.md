@@ -344,6 +344,15 @@ PASS/FAIL, follow these rules. If you cannot capture the raw proof, mark it
 - **Cursor / location:** judge `current_location` against the LAST narrated place
   (the latest event's `location_anchor`), not against some earlier travel event.
 - **Always check the DB for state claims**, the rendered surface can lag or filter.
+- **Side-chat-leak test methodology (do it right or you'll false-positive):** reveal the
+  secret ONLY inside `/side`. Do NOT type the secret (or ask about it by name) in a MAIN
+  turn — the player's own typed words legitimately enter the prompt, so that "leak" is a
+  test artifact. To prove a real leak: after the `/side` reveal, take a normal main turn
+  that does NOT mention the secret, and check (a) the secret does NOT appear in main
+  narration prose, and (b) the side character's **codex card** (`hidden_thought`,
+  `mutable_state`, `immutable_facts`, `persona` — query `db.characters`) does NOT carry
+  the secret (that card is injected verbatim into the main prompt). Only in a **sentient**
+  world (protagonist ∉ `known_by`) does a surfaced secret = a real leak.
 
 ### 🟢 Known by-design — do NOT file these as bugs
 - **GM-world side-chat surfacing.** In a GM world the player IS the protagonist, so a
