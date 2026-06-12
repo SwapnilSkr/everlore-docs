@@ -14,6 +14,13 @@ This is the durable, in-repo handoff for whoever (human or AI agent) picks up th
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
 task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 
+> **🐞 Open bug backlog (2026-06-12 QA run):** `PLAYTEST_FINDINGS_MERGED_2026-06-12.md`
+> — ~48 live findings from the 6-agent parallel playtest, deduped into 13 root-cause
+> clusters with the suspected code seam + fix per cluster. **P0 = side-chat secret
+> leak into main projections + identity-boundary collapse (player facts/cards in
+> sentient/character worlds).** Structural audits stayed 8/8 green throughout — the
+> corruption is semantic and live-only. Run the loop via `AUTOCHAT_PLAYBOOK.md`.
+
 ## Repos
 - `everlore/` — Flutter/BLoC app.
 - `everlore-server/` — Bun/Elysia server + BullMQ workers.
