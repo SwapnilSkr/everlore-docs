@@ -4,6 +4,13 @@
 
 **Audience:** an autonomous agent with Bash + the running Everlore server. Everything here runs against the **local dev stack** (`localhost:3000`). Do not point it at anything else.
 
+**Read for full system context BEFORE you play** (so you know what "correct" looks like and which gaps to verify, not just chat blindly):
+- `CHECKLIST.md` — every built feature (Phases 1–10) + what's deferred.
+- `HANDOFF.md` — current state, recent fixes, honest gaps.
+- `LOCATION_GRAPH.md` — the place/movement model + its known limits.
+- `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md` — how turns become memories/codex/summaries/entities (what each turn SHOULD project).
+- The condensed **"gaps to verify"** + known-product-gaps lists are in §4 and the Reference section below — an agent that has read those can self-check every turn.
+
 ---
 
 ## 0. Preconditions
@@ -98,8 +105,20 @@ Chat is **WS-only** — there is no REST "send message". The synchronous handler
 ### The contract
 - **Connect:** `ws://localhost:3000/ws/play?token=<JWT>`
 - **Wait for** the `{"type":"connected"}` frame **before sending anything** — sending earlier races and gets `{"type":"error","message":"Not authenticated"}`.
-- **Send a turn:** `{"action":"chat","instance_id":"<INST>","payload":{"message":"..."}}`
-- **Inbound actions** you can send: `chat`, `continue` (`payload.advance` = `hours|day|days|season` to skip time), `side_chat` (`{character_id,message}` — private aside to one NPC), `replay`, `load_instance`, `ping`.
+- **⚠️ Filter by `instanceId`.** The server fans EVERY frame out to ALL of the account's open sockets (`for (const ws of connections)` over the user's connections). Parallel agents share one account, so your socket will also receive other agents' frames. **Drop any frame whose `instanceId` ≠ your instance.** The committed harness already does this.
+- **The full turn surface (exercise ALL of these, not just `chat`):**
+  | Send | Effect |
+  |---|---|
+  | `{action:"chat", instance_id, payload:{message}}` | a normal turn |
+  | `{action:"continue", instance_id, payload:{advance?}}` | world moves on its own; `advance` ∈ `hours\|day\|days\|season` = time skip |
+  | `{action:"side_chat", instance_id, payload:{character_id, message}}` | **private 1:1 with a side character** — same ledger/sequence, but story time + location cursor FROZEN; secrets scoped |
+  | `{action:"replay", instance_id, event_id}` | regenerate an existing turn (alternative variant) |
+  | `{action:"load_instance", instance_id}` | re-fetch state (recovery test) |
+  | `{action:"ping"}` | keepalive → `pong` |
+- **Getting a `character_id` for side-chat:** read it off a turn's `present_characters[].id`, or
+  `GET /chronicle/relationships/:instanceId` (the Bonds ledger), or query
+  `db.characters.find({instance_id, is_protagonist:{$ne:true}})`.
+- **Side-chat / replay frames:** `side_chat_delta` → `side_chat_complete` (or `side_chat_error`); `replay_delta` → `replay_complete`. They carry `instanceId` too — filter the same way.
 
 ### Frames you will receive (in order, per turn)
 | Frame | Meaning / what to assert |
@@ -120,21 +139,32 @@ Chat is **WS-only** — there is no REST "send message". The synchronous handler
 
 ### Harness (`everlore-server/scripts/agent-chat.ts` — committed, verified)
 A committed multi-turn driver lives at `everlore-server/scripts/agent-chat.ts`. It
-logs in as the dev owner (or reuses a `TOKEN` env var), plays each message in
-sequence on one socket, streams the prose, and dumps the structured tail of every
-turn so flaws are visible.
+logs in as the dev owner (or reuses a `TOKEN` env var), **filters frames to its own
+instance** (so it's parallel-safe), exercises the full turn surface via a small
+step syntax, and dumps the structured tail of every turn.
 
 ```bash
 cd everlore-server
-bun run scripts/agent-chat.ts <INSTANCE_ID> "first message" "second message" ...
-# or reuse a token:  TOKEN=<jwt> bun run scripts/agent-chat.ts <INSTANCE_ID> "..."
+# each <step> is one of:
+#   "plain text"            -> chat turn
+#   "/continue [span]"      -> continue (span = hours|day|days|season time skip)
+#   "/side <charId> <msg>"  -> private side-chat with one character
+#   "/replay <eventId>"     -> regenerate an existing turn
+bun run scripts/agent-chat.ts <INSTANCE_ID> \
+  "I look around and take stock." \
+  "/side <charId> Can we talk?" \
+  "/continue day" \
+  "/replay <eventId>"
+# reuse a token across many invocations (recommended in a parallel run):
+TOKEN=<jwt> bun run scripts/agent-chat.ts <INSTANCE_ID> "..."
 ```
 
-Per turn it prints: `NARRATIVE` (streamed prose), then
-`[seq N] scene=… tone=… time=…`, `location`, `present`, `choices`, plus async
-`[codex]` / `[memory]` lines as they land. It waits for `generation_complete`
-before sending the next turn (the per-instance lock requires this anyway) and
-leaves a 1.5 s gap so the async codex/memory projections land first.
+Per turn it prints `NARRATIVE` (streamed prose), then
+`[seq N] event=<id> scene=… tone=… time=…`, `location`, `present`, `choices`, plus
+async `[codex]` / `[memory]` / `[milestone]` lines as they land (the `event=<id>`
+is what you feed to `/replay` or the edit endpoints). It waits for the turn to
+complete before the next step (the per-instance lock requires this) with a gap so
+async projections land first.
 
 > Only send the **next** turn after `generation_complete` — sending while a turn is
 > in flight returns `error GENERATION_IN_PROGRESS`. If turns hang with only an
@@ -154,9 +184,20 @@ Don't just chat aimlessly — drive turns that stress the systems most likely to
 5. **Memory recall** — state a durable fact ("My sister's name is Mara"), play 2–3 unrelated turns, then ask about it. Assert it's remembered (memory atoms in §5).
 6. **Time** — send `{"action":"continue","payload":{"advance":"days"}}` and assert `time_advanced` is set and `time_anchor` rolls forward.
 7. **Calendar genre-fit** — check `time_anchor` / Almanac (§5): a **modern** world must show Gregorian months (January…December), a **fantasy** world a themed calendar. A cyberpunk/noir world showing invented months ("Neonrise") is a bug.
-8. **Side-chat privacy** — `side_chat` an NPC with a secret, then in the main thread confirm the secret didn't leak into world-visible narration.
-9. **NPC codex** — after introducing an NPC, confirm a `character_codex_updated` fired and no duplicate/"Mysterious Man" phantom card was minted.
-10. **Failure UX** — (optional, destructive) kill the worker mid-turn and confirm the client surfaces a failure rather than soft-locking. Restart the worker after.
+8. **Side-character chat** — pick a `character_id` from `present_characters`, `/side` them a few turns. Assert: the in-character reply fits the card; story time + `location` do NOT advance (side chats are frozen — check the next MAIN turn's `time_anchor`/`location` are unchanged); the side thread shows in `GET /chronicle/side-chats/:iid`. Then tell the NPC a **secret** in side-chat and confirm it does NOT leak into the next main-story narration unless you SHARE it there.
+9. **NPC codex** — after introducing an NPC, confirm a `character_codex_updated` fired and no duplicate/"Mysterious Man" phantom card was minted (`GET /chronicle/relationships/:iid`).
+10. **Replay + edit** — `/replay <eventId>` a turn → assert the variant comes back WITH `choices`/`present_characters` (not blank). Then `PUT /chronicle/event/:eventId` (edit the AI response) and `PUT /chronicle/memory/:memoryId` / `PUT /chronicle/character/:characterId` → assert the edit re-curates (memories/chips regenerate, no stale chips).
+11. **Rewind** — `POST /chronicle/rewind/:iid {to_sequence}` back a few turns → assert later events/memories/codex deltas are gone and state recomputed (this is the invariant `rewind-audit.ts` checks; here you're confirming it through the real API). **Always `redis-cli del session:<iid>` after.**
+12. **Timeline branch** — `POST /chronicle/calendar/:iid/timeline` (fork) + `PUT .../timeline/active` → assert new turns land on the branch and the parent is unaffected.
+13. **Failure UX** — (destructive) kill the worker mid-turn (`pkill -f worker/index.ts`) and confirm you get `generation_retrying`/`generation_failed` and the lock frees within ~90s (not a ~4min soft-lock). Restart the worker after. Also send two turns fast → expect a clean `GENERATION_IN_PROGRESS`.
+14. **Continuity** — after ~15–30 turns, `GET /admin/instances/:iid/continuity-audit` → any warn/fail is a finding.
+
+### Gaps to verify (mapped to the docs — confirm these specifically)
+- **Location `state` (probabilistic, Phase 6B):** do a turn that visibly transforms a place → does `location_state` update on the place entity / journal? (Often under-fires.)
+- **Memory version-linking (probabilistic, Phase 2 Slice 1):** state a fact, later contradict it → does the old memory get superseded/linked? (Gated on a 0.82 match; may not fire — `audit:memory-links` proves the code, you're checking the live emit rate.)
+- **Same-name place collision (Location Graph open-limit #1):** only testable once a world has TWO same-named places (e.g. a "tavern" in two towns) — they must stay distinct, never fuse.
+- **Calendar genre-fit (June 12):** modern/cyberpunk worlds → Gregorian months; only true fantasy → themed calendar.
+- **Travel marker + calendar advance, POV/identity, presence carry-forward** — per steps 2–7 above.
 
 Record, per world: which probes were **GREEN** vs the exact payload that was wrong. That delta is the deliverable.
 
@@ -164,10 +205,41 @@ Record, per world: which probes were **GREEN** vs the exact payload that was wro
 
 ## 5. Read the projections (audit surfaces)
 
-After playing, verify the side-effects, not just the prose:
+After playing, verify the side-effects, not just the prose. **Hit every Chronicle
+surface — these back the 7 in-app Lore Tome tabs; a tab that renders garbage is a
+real bug even if the chat felt fine.** All take the same bearer token.
 
-- **Chronicle read endpoints** (REST, same bearer token) — recap, timeline, echoes, **almanac** (calendar), places, bonds, threads. Browse `everlore-server/src/routes/chronicle.routes.ts` for exact paths.
-- **Memory atoms / entity graph** — query Mongo directly: `db.memories.find({instance_id: <oid>})`, `db.entities.find({instance_id: <oid>})`.
+**Read surfaces (GET):**
+```
+/chronicle/recap/:instanceId                                  # "story so far" (Recap tab)
+/chronicle/events/:instanceId                                 # Timeline (main story; excludes side_chat)
+/chronicle/memories/:instanceId?q=&type=&min_importance=&unresolved=   # Echoes (search + filters)
+/chronicle/calendar/:instanceId                               # Almanac (calendar + timelines)
+/chronicle/threads/:instanceId                                # Threads (promises/quests)
+/chronicle/relationships/:instanceId                          # Bonds (meters + disposition)
+/chronicle/relationships/:instanceId/:characterId/memories    # "what they remember about you"
+/chronicle/locations/:instanceId                              # Places (nested atlas)
+/chronicle/locations/:instanceId/:locationEntityId            # "what happened here before?"
+/chronicle/side-chats/:instanceId[/:characterId]             # side-chat threads
+```
+Assert each reflects what you actually played: Recap names the right people/place/time;
+Timeline excludes your side-chats; Echoes search finds a fact you stated; Almanac shows
+the right calendar + any time jumps; Places shows your movements as a tree; Bonds shifted
+after a charged interaction.
+
+**Mutation surfaces (exercise these too — §4 steps 10–12):**
+```
+PUT  /chronicle/event/:eventId            # edit AI response (re-curates)
+PUT  /chronicle/memory/:memoryId          # edit a memory atom (re-embeds)
+DELETE /chronicle/memory/:memoryId
+PUT  /chronicle/character/:characterId     # edit a codex card
+POST /chronicle/replay/:eventId            # regenerate a turn
+POST /chronicle/replay/select/:eventId     # pick a variant
+POST /chronicle/rewind/:instanceId         # rewind to a sequence  (bust session: after!)
+POST /chronicle/calendar/:instanceId/timeline + PUT .../timeline/active  # fork/switch reality
+PUT  /chronicle/calendar/event/:eventId/time-anchor                      # flashback re-anchor
+```
+- **Memory atoms / entity graph** — query Mongo directly: `db.memories.find({instance_id: <oid>})`, `db.entities.find({instance_id: <oid>})`, `db.characters.find({instance_id: <oid>})`.
 - **Deterministic audits** (run from `everlore-server`):
   ```bash
   bun run audit:location            # presence/movement carry-forward
@@ -197,8 +269,9 @@ The `session:<iid>` cache bust is mandatory after **any** direct DB/instance mut
 ## 7. Clean up + hand off
 
 1. The harness (`scripts/agent-chat.ts`) is **committed** — leave it; don't re-create a throwaway copy.
-2. **Record every dev-state mutation** in your handoff: created template/instance ids, any `token_balance` bump, any `rl:template_create` reset, whether you left servers running.
-3. The new worlds + their ids belong in the session handoff so the next agent knows they're intentional keepers, not test litter.
+2. **Revert any QA-only config edits** — if you lifted the `template_create` cap (or `worker` concurrency / `chat` limit) for the run, restore `rate-limit.ts` / `worker/index.ts` and restart. Delete throwaway worlds/instances you created (`DELETE /templates/:id` cascades its instances).
+3. **Record every dev-state mutation** in your handoff: created template/instance ids, any `token_balance` bump, any `rl:template_create` reset, any cap edit, whether you left servers running.
+4. New worlds you intend to KEEP + their ids belong in the session handoff so the next agent knows they're intentional, not test litter.
 
 ### Findings log
 Append every flaw to a dated report so the user/next agent can triage:
@@ -214,10 +287,71 @@ Append every flaw to a dated report so the user/next agent can triage:
 ```
 Triage order: **silent data corruption > soft-lock / dead stream > wrong chip/POV > cosmetic.** Lead with corruption-class findings.
 
-## 8. Running several agents at once
-- Give each agent its **own throwaway instance** — the per-instance lock serializes one instance, so separate instances run truly in parallel.
-- `template_create` (5/24h) and `chat` (10/60s) limits are **per-account = global across all your agents.** Coordinate: have ONE agent create a batch of worlds up front, the rest reuse instances; stagger turns or you'll hit `RATE_LIMITED`.
-- The worker is `concurrency:3` (limiter 10/min) — more than ~3 simultaneous turns just queue (slower, not broken).
+## 8. Parallel agents — independent processes, each with its own world
+
+The goal: N agents, each running as its **own process**, each creating its **own
+world(s)**, playing **independently**, hunting flaws in parallel. That works — with
+two facts to design around, both stemming from the **single shared dev account**.
+
+### The two shared-account facts
+1. **One WS pub/sub channel for the whole account** (`user:<uid>:events`). Every
+   frame fans out to ALL of the account's open sockets. → **Each agent MUST filter
+   frames by its own `instanceId`** (the harness does). Each agent opens its own WS
+   connection; it'll see siblings' frames and must ignore them.
+2. **Rate limits are per-account, i.e. GLOBAL across all agents** (`rate-limit.ts`):
+   `template_create` **5/24h**, `chat` **10/60s**, `image_generate` 40/60min,
+   `autofill` 30/60min. With many agents these are the real contention point.
+
+### Isolation model (what "independent" means here)
+- **Own instance = own world state.** The per-instance lock serializes a single
+  instance; *different* instances run truly concurrently. Give every agent its own
+  instance(s) — never two agents on one instance.
+- **Own WS connection**, filtered by `instanceId` (above).
+- **Own findings file** — `PLAYTEST_FINDINGS_<date>__agent<N>.md` — so parallel
+  writers don't clobber each other; merge at the end.
+- Reuse ONE shared `TOKEN` across all agents (same account anyway) — avoids
+  hammering the OTP endpoint and is simplest.
+
+### Letting each agent create its OWN worlds (beat the 5/24h cap)
+The `template_create` cap blocks "5 agents each make a world" out of the box. For a
+QA run, pick one:
+- **(recommended) Temporarily lift the cap for the run.** In
+  `everlore-server/src/middleware/rate-limit.ts` set
+  `template_create: { max: 1000, windowSeconds: 86400 }`, restart the API, run the
+  fleet, then revert. Clean and lets every agent create freely. **Record this in the
+  handoff** (it's a dev-state change).
+- **Reset the counter between creates:**
+  `redis-cli del rl:template_create:6a210ba38e6db660dc8ef6a3` (each agent runs this
+  before its create — racy but fine for QA).
+- **Bootstrap once:** one setup agent creates all the worlds up front (varied
+  archetypes/genres via `/templates/autofill`), publishes them, and creates one
+  instance per playing agent; the players just chat. Stays within 5 worlds.
+
+Use `autofill` for variety so the fleet covers GM / sentient / character × multiple
+genres (modern, fantasy, noir, slice-of-life), which surfaces genre-specific bugs
+(e.g. calendar genre-fit, NSFW routing).
+
+### Worker throughput
+The generation worker runs `concurrency:3` (limiter 10/min). More than ~3
+simultaneous turns just queue — slower, not broken. For a big fleet, raise
+`concurrency` in `worker/index.ts` (and `chat` rate limit) for the run, or accept
+the queue. With the default, ~3 agents play smoothly in parallel; more still works,
+just paced.
+
+### Minimal fleet recipe
+```bash
+# 1. (once) lift template_create cap + restart API (see above), get a shared token.
+# 2. spawn N independent player processes, each with its own instance + script:
+for IID in "$IID_A" "$IID_B" "$IID_C"; do
+  TOKEN=$TOKEN bun run scripts/agent-chat.ts "$IID" \
+    "Opening move in character." "/side <charId> A private word?" "/continue day" \
+    > "/tmp/agent_${IID}.log" 2>&1 &
+done
+wait
+# 3. each agent then reads its instance's Chronicle surfaces (§5) + logs findings (§7).
+```
+Each backgrounded run is an independent process driving its own instance; frame
+filtering keeps them from cross-talking on the shared socket fanout.
 
 ---
 
