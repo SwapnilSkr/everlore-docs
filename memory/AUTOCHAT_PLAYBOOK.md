@@ -45,7 +45,7 @@
 2. **Mongo + Redis** reachable (the server's `.env` already points at the dev instances).
 
 3. **Auth is mocked.** No real phone/OTP. Single dev user:
-   - phone `+19474877175`, OTP `123456` (any code works when Twilio env vars are empty), user id `6a210ba38e6db660dc8ef6a3`, tier `creator`, `nsfw_enabled:true`.
+   - phone `+919474877175`, OTP `123456` (any code works when Twilio env vars are empty), user id `6a210ba38e6db660dc8ef6a3`, tier `creator`, `nsfw_enabled:true`.
 
 > ⚠️ This loop **mutates real dev data** (creates templates/instances, appends real turns). New worlds are keepers; if you auto-play the user's *existing* save, restore it afterwards (see §6).
 
@@ -55,7 +55,7 @@
 
 ```bash
 BASE=http://localhost:3000
-PHONE="+19474877175"
+PHONE="+919474877175"
 
 curl -sX POST "$BASE/auth/otp/send"   -H 'content-type: application/json' -d "{\"phone\":\"$PHONE\"}" >/dev/null
 TOKEN=$(curl -sX POST "$BASE/auth/otp/verify" -H 'content-type: application/json' \

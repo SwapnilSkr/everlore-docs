@@ -32,7 +32,7 @@ Record every `template_id` (and `instance_id` if you make one) in a handoff note
    ```
    (Worker isn't needed to *create* a world, but is needed the moment the user plays a turn.)
 2. **Mongo + Redis** reachable (`.env` already points at dev).
-3. **Auth is mocked.** Single dev user — phone `+19474877175`, OTP `123456` (any code works while Twilio env is empty), user id `6a210ba38e6db660dc8ef6a3`, tier `creator` (image gen requires `creator`/`premium` ✓), `nsfw_enabled:true`.
+3. **Auth is mocked.** Single dev user — phone `+919474877175`, OTP `123456` (any code works while Twilio env is empty), user id `6a210ba38e6db660dc8ef6a3`, tier `creator` (image gen requires `creator`/`premium` ✓), `nsfw_enabled:true`.
 
 ---
 
@@ -40,7 +40,7 @@ Record every `template_id` (and `instance_id` if you make one) in a handoff note
 
 ```bash
 BASE=http://localhost:3000
-PHONE="+19474877175"
+PHONE="+919474877175"
 curl -sX POST "$BASE/auth/otp/send" -H 'content-type: application/json' -d "{\"phone\":\"$PHONE\"}" >/dev/null
 TOKEN=$(curl -sX POST "$BASE/auth/otp/verify" -H 'content-type: application/json' \
   -d "{\"phone\":\"$PHONE\",\"code\":\"123456\"}" | jq -r '.token')
