@@ -90,7 +90,7 @@ Character draft returns: `name, tagline, persona, greeting, backstory, narrative
 Pull the ready image prompt: `IMGP=$(echo "$DRAFT" | jq -r '.draft.image_prompt')`.
 
 ### Path B — Manual
-Write the fields yourself and build the decorated image prompt by hand (§4). Use this when you want exact control. Caps (`FIELD_LIMITS`): title ≤80, description ≤600, seed_prompt 10–2500, global_lore ≤3000, opening_line ≤600, image_prompt ≤1200, protagonist name ≤80 / text ≤400.
+Write the fields yourself and build the decorated image prompt by hand (§4). Use this when you want exact control. Caps (`FIELD_LIMITS`): title ≤80, description ≤600, seed_prompt 10–2500, global_lore ≤3000, opening_line ≤600, image_prompt ≤1400, protagonist name ≤80 / text ≤400.
 
 ---
 
@@ -99,8 +99,10 @@ Write the fields yourself and build the decorated image prompt by hand (§4). Us
 **The `/templates/image/generate` endpoint sends your prompt RAW — it does NOT decorate it.** So either use the autofill `image_prompt` (already decorated), or decorate a manual prompt yourself in this exact shape (mirrors `decorateImagePrompt`):
 
 ```
-<concrete visual core, ≤400 chars>. <STYLE HINT for your narrative_style>. vertical portrait composition suited to a phone background, single clear focal subject, atmospheric depth, no text, no watermark, no logo, no UI.
+<concrete visual core, ≤500 chars>. <STYLE HINT for your narrative_style>. tall vertical 9:16 full-bleed illustration filling the entire frame edge to edge with no letterboxing, single clear focal subject, atmospheric depth, pure artwork only — absolutely no phone, no smartphone, no device, no screen, no bezel, no notch, no status bar, no frame, no border, no mockup, no UI chrome, no text, no watermark, no logo.
 ```
+
+Never write “phone background / phone wallpaper / phone screen” — image models render a smartphone mockup. Autofill already returns a decorated `image_prompt` via `decorateImagePrompt` (which also scrubs device-leakage wording).
 
 **STYLE HINT** is chosen by `narrative_style` (one portrait image serves as BOTH the listing avatar AND the in-chat background, so always vertical/portrait). Pick the `narrative_style` that matches the world and the matching hint auto-applies. Available keys:
 `tsundere, romcom, flirty, noir, slice_of_life, whimsical, epic_fantasy, grimdark, modern_casual, yandere, dark_romance, shonen, cyberpunk, kdrama, cozy_comfort, dark_academia, regency, horror, litrpg, chaotic_comedy` (anything else → a generic "high-quality character illustration, cinematic lighting").
