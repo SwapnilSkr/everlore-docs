@@ -1,9 +1,9 @@
 # Chronicle Feature (Lore Tome)
 
-The **Lore Tome** is the player's library over their story: seven tabs plus drill-down screens for places, character memories, and private side chats.
+The **Lore Tome** is the player's library over their story: seven tabs plus drill-down screens for places, character memories, and private side chats. Play’s **World Actions** also call Chronicle kinship / relation-candidate REST APIs (documented below).
 
-**Route:** `/chronicle/:instanceId`  
-**See also:** [../../system-guide/04-frontend-where-things-live.md](../../system-guide/04-frontend-where-things-live.md)
+**Route:** `/chronicle/:instanceId` (`?section=` optional)  
+**See also:** [../../system-guide/04-frontend-where-things-live.md](../../system-guide/04-frontend-where-things-live.md) · server [API.md](../../server/API.md) · [KINSHIP_GRAPH.md](../../memory/KINSHIP_GRAPH.md)
 
 ---
 
@@ -12,7 +12,7 @@ The **Lore Tome** is the player's library over their story: seven tabs plus dril
 ```
 features/chronicle/
 ├── data/
-│   ├── chronicle_repository.dart   # REST API client
+│   ├── chronicle_repository.dart   # REST API client (incl. kinship / candidates)
 │   ├── calendar_data.dart
 │   ├── location_journal.dart
 │   ├── relationship_ledger.dart
@@ -36,6 +36,8 @@ features/chronicle/
 └── state/
     └── chronicle_cubit.dart
 ```
+
+Shared DTO used by Play World Actions: `shared/models/relation_candidate.dart`.
 
 ---
 
@@ -71,6 +73,25 @@ Side chat is **not** in the main Timeline — separate thread surface.
 
 ---
 
+## Kinship & relation candidates (World Actions)
+
+Used by Play’s `WorldActionsButton` via `PlayCubit` → `ChronicleRepository`. These are **not** Lore Tome tabs; they are authorial / review APIs over the kinship graph and narrator proposal queue.
+
+| Method | Endpoint | Role |
+|--------|----------|------|
+| `getConfirmedKinship` | `GET /chronicle/kinship/:instanceId` | Map of confirmed ties to self (character → relation label) for the Set Relationship UI |
+| `setKinship` | `POST /chronicle/kinship/:instanceId` | Player-authored kinship write — body: `character`, `relation`, `correction`, optional `replaces_relation` |
+| `getRelationCandidates` | `GET /chronicle/relation-candidates/:instanceId` | Open review items (`RelationCandidate`: `kind`, names, `relation`, `evidence`, …) |
+| `resolveRelationCandidate` | `POST /chronicle/relation-candidate/:candidateId/resolve` | Body: `action` = `accept` \| `reject` \| `defer`, optional `relation` on accept |
+
+**Candidate kinds** (server): `kinship`, `identity_rename`, `identity_merge`, `kinship_revision`. Candidates are **not canon** until the player accepts.
+
+**Related:** `trackEntity` → `POST /chronicle/track/:instanceId` promotes a prose-visible character into the codex and may assert kinship (bond sheet / track flows).
+
+Server detail: [API.md — Kinship & relation review](../../server/API.md), [DATA_MODEL.md](../../server/DATA_MODEL.md) (`entity_edges` type `kinship`, `relation_candidates`).
+
+---
+
 ## Echoes tab
 
 - **Search** — submit triggers `q` param (full-text on server)
@@ -91,9 +112,12 @@ All Chronicle REST calls. Key methods:
 | `getThreads` | `/chronicle/threads/:instanceId` |
 | `getRelationships` | `/chronicle/relationships/:instanceId` |
 | `getCharacterMemories` | `/chronicle/relationships/:id/:charId/memories` |
+| `getConfirmedKinship` / `setKinship` | `/chronicle/kinship/...` |
+| `getRelationCandidates` / `resolveRelationCandidate` | `/chronicle/relation-candidates/...`, `/chronicle/relation-candidate/:id/resolve` |
 | `getLocations` / `getLocationJournal` | `/chronicle/locations/...` |
 | `getCalendar` / `setActiveTimeline` | `/chronicle/calendar/...` |
 | `getSideChatThread` | `/chronicle/side-chats/...` |
+| `trackEntity` | `POST /chronicle/track/:instanceId` |
 | `rewind` | `POST /chronicle/rewind/:instanceId` |
 | `editEvent` / `editMemory` / `editCharacter` | PUT routes |
 

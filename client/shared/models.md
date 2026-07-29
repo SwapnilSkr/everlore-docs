@@ -78,11 +78,29 @@ Creator/discovery blueprint: seed, lore, stats, flags, cover URL, `isSentient`, 
 
 Auth user + `UserPreferences` (nsfw, theme). Includes `interests`, `playerName`, `playerGender` for onboarding.
 
+May still deserialize a legacy `token_balance` field. **Story Ink** for Membership UI comes from `GET /billing/me` via `BillingRepository` — see [billing-feature.md](../features/billing-feature.md).
+
 ---
 
 ## Persona (`persona.dart`)
 
-Reusable player identity overlay selected per instance.
+Reusable player identity overlay selected per instance (`persona_id` on instance settings).
+
+---
+
+## RelationCandidate (`relation_candidate.dart`)
+
+Open kinship proposal for World Actions review.
+
+| Field | Notes |
+|-------|-------|
+| `id` | Candidate id for `POST /chronicle/relation-candidate/:id/resolve` |
+| `kind` | Usually `kinship` |
+| `characterName`, `counterpartCharacterName` | Parties |
+| `relation`, `proposedName`, `replacesRelation` | Proposed edge |
+| `evidence` | Short justification string |
+
+List from `GET /chronicle/relation-candidates/:instanceId`. Accept / reject / defer via resolve API.
 
 ---
 
@@ -105,4 +123,4 @@ Not in `shared/models/` but used by Lore Tome:
 | `threads_data.dart` | StoryThread, ThreadsData |
 | `side_chat_data.dart` | SideChatThread, SideChatTurn |
 
-All use `Equatable` + `fromJson`.
+All use `Equatable` + `fromJson`. Kinship confirmations and relation-candidate lists are also fetched from chronicle APIs for World Actions (see [chronicle-feature.md](../features/chronicle-feature.md), [play-feature.md](../features/play-feature.md)).
