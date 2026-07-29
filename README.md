@@ -33,12 +33,17 @@ everlore-docs/
 | Doc | Topic |
 |-----|-------|
 | [server/README.md](./server/README.md) | Index |
+| [server/OVERVIEW.md](./server/OVERVIEW.md) | Architecture, routes, collections, narration pipeline |
 | [server/SERVICES.md](./server/SERVICES.md) | All services (current) |
 | [server/DATA_MODEL.md](./server/DATA_MODEL.md) | Mongo collections |
+| [server/WORLD_MODEL.md](./server/WORLD_MODEL.md) | Witness / entity / canon model |
 | [server/API.md](./server/API.md) | HTTP + WebSocket |
 | [server/SCHEMAS.md](./server/SCHEMAS.md) | Request/response JSON shapes (canonical) |
 | [server/WORKERS.md](./server/WORKERS.md) | Queues & processors |
-| [server/NSFW_MODELS.md](./server/NSFW_MODELS.md) | Model routing |
+| [server/BILLING.md](./server/BILLING.md) | Story Ink + Google Play (canonical) |
+| [server/DEPLOYMENT.md](./server/DEPLOYMENT.md) | Cheap AWS prod deploy + scaling |
+| [server/CONFIGURATION.md](./server/CONFIGURATION.md) | Environment variables |
+| [server/NSFW_MODELS.md](./server/NSFW_MODELS.md) | NSFW routing + intent deferral |
 
 ## Client (`everlore/`)
 
@@ -46,6 +51,7 @@ everlore-docs/
 |-----|-------|
 | [client/README.md](./client/README.md) | Index |
 | [client/features/play-feature.md](./client/features/play-feature.md) | Play screen |
+| [client/features/billing-feature.md](./client/features/billing-feature.md) | Membership / Story Ink UI |
 | [client/features/chronicle-feature.md](./client/features/chronicle-feature.md) | Lore Tome (7 tabs) |
 | [client/architecture/routing.md](./client/architecture/routing.md) | Routes |
 
@@ -56,6 +62,13 @@ everlore-docs/
 | [memory/CHECKLIST.md](./memory/CHECKLIST.md) | Phases 1–10 status |
 | [memory/HANDOFF.md](./memory/HANDOFF.md) | Agent handoff |
 | [memory/MEMORY_ARCHITECTURE.md](./memory/MEMORY_ARCHITECTURE.md) | Target vision |
+| [memory/KINSHIP_GRAPH.md](./memory/KINSHIP_GRAPH.md) | Typed kinship / entity edges |
+
+## Playtest
+
+| Doc | Topic |
+|-----|-------|
+| [playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md](./playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md) | Regression matrix (runs a–d) |
 
 ---
 

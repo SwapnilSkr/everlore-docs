@@ -455,7 +455,7 @@ filtering keeps them from cross-talking on the shared socket fanout.
 
 These are *expected findings* — if a run rediscovers them, they're already logged, not new:
 - **Auth is mocked** (OTP `123456` works for any phone; JWT no expiry; default `JWT_SECRET`; WS token in query string) — not launch-ready. STILL OPEN.
-- **`token_balance` is displayed but never read/decremented** — monetization is a no-op. STILL OPEN.
+- **Story Ink / monetization** — server ledger + Play verify exist; spend is gated by `BILLING_ENFORCEMENT_ENABLED` (default `false`, so reserve is a no-op until flipped). See [server/BILLING.md](../server/BILLING.md). Confirm client wallet UI and enforcement before treating as launch-ready.
 - **Free tier can't create** (creator/premium gated) — product decision, not a bug.
 
 **Fixed June 12 2026 — verify they hold, don't re-file:**

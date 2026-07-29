@@ -1,6 +1,7 @@
 # Backend & Workers
 
-Server architecture, data stores, queues, and key services.
+Server architecture, data stores, queues, and key services.  
+Authoritative deep docs: [API.md](../server/API.md) · [SERVICES.md](../server/SERVICES.md) · [WORKERS.md](../server/WORKERS.md) · [BILLING.md](../server/BILLING.md) · [DATA_MODEL.md](../server/DATA_MODEL.md).
 
 ---
 
@@ -13,6 +14,7 @@ Server architecture, data stores, queues, and key services.
 | Vector search | Pinecone |
 | Job queues | BullMQ + Redis |
 | AI calls | OpenAI / OpenRouter (centralized in `src/ai/`) |
+| Billing | Story Ink ledger + Google Play verify / RTDN |
 | File storage | S3 + CloudFront (avatars, covers) |
 
 ---
@@ -23,12 +25,14 @@ Server architecture, data stores, queues, and key services.
 ┌─────────────┐     WebSocket/REST      ┌──────────────────┐
 │ Flutter app │ ◄──────────────────────►│  everlore-server │
 └─────────────┘                         │  (API process)   │
+                                        │  + Ink reserve   │
                                         └────────┬─────────┘
                                                  │ enqueue
                                                  ▼
                                         ┌──────────────────┐
                                         │  worker process  │
                                         │  BullMQ consumers│
+                                        │  settle / release│
                                         └────────┬─────────┘
                     ┌────────────────────────────┼────────────────────────────┐
                     ▼                            ▼                            ▼
@@ -37,28 +41,27 @@ Server architecture, data stores, queues, and key services.
               └──────────┘               └──────────────┘              └───────────┘
 ```
 
-Two processes typically run: **API** (handles HTTP/WS) and **worker** (handles AI jobs).
+Two processes typically run: **API** (handles HTTP/WS + Ink reserve) and **worker** (AI jobs + settle/release).
 
 ---
 
-## MongoDB collections (memory-related)
+## MongoDB collections (memory-related + billing)
 
 | Collection | Role |
 |------------|------|
 | `events` | Every turn — source of truth |
-| `memories` | Long-term fact atoms |
+| `memories` | Long-term fact atoms (+ `updates_memory_ids` Slice 1) |
 | `characters` | Codex cards |
 | `entities` | Graph nodes (people, places, …) |
-| `entity_edges` | Graph relationships |
-| `scene_summaries` | 12-turn blocks |
-| `chapter_summaries` | 8-scene rollups |
-| `arc_summaries` | 4-chapter rollups |
-| `story_calendars` | In-world calendar defs |
-| `timeline_branches` | Alternate realities |
-| `world_instances` | Play session state + cursors |
-| `world_templates` | World blueprint + global lore |
+| `entity_edges` | Graph relationships incl. **kinship** |
+| `relation_candidates` | Narrator review queue (not canon) |
+| `signal_ledger` | Per-turn FP/FN detector metrics |
+| `scene_summaries` / `chapter_summaries` / `arc_summaries` | Summary tiers |
+| `story_calendars` / `timeline_branches` | Time |
+| `world_instances` / `world_templates` | Sessions + blueprints |
+| `ink_ledger` / `billing_entitlements` / `store_purchases` | Story Ink |
 
-Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline fields, etc.).
+Indexes defined in `config/mongo-indexes.ts`.
 
 ---
 
@@ -79,10 +82,10 @@ Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline 
 
 | Queue | Concurrency | Processor | Jobs |
 |-------|-------------|-----------|------|
-| `generation` | 3 | `generation.processor.ts` | Main turns, replay, side chat |
+| `generation` | 3 | `generation.processor.ts` | Main turns, replay, side chat, world_action |
 | `memory-curation` | 5 | `memory.processor.ts` | Extract + embed memories |
 | `scene-summary` | 2 | `summary.processor.ts` | Scene, chapter, arc summaries |
-| `maintenance` | 1 | `maintenance.processor.ts` | Decay, dedup, repair, audits |
+| `maintenance` | 1 | `maintenance.processor.ts` | Decay, dedup, repair, audits, checkpoints |
 
 ### Scheduled maintenance (cron)
 
@@ -92,37 +95,41 @@ Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline 
 | Importance decay | Daily 03:00 | Archive stale low-importance memories |
 | Dedup scheduler | Weekly Sun 04:00 | Merge near-duplicate memories per instance |
 | Summary repair | Every 15 min | Fix stuck summary jobs |
+| Projection checkpoint scheduler | Hourly :15 | Fan out projection checkpoints |
 
 ---
 
 ## Key services (by responsibility)
 
-### Turn orchestration
+### Turn orchestration & billing
 
 | Service | File | Role |
 |---------|------|------|
 | `generationService` | `generation.service.ts` | Thin dispatch, load play feed |
+| `playWsService` | `play-ws.service.ts` | WS protocol, locks, **reserve Ink** |
+| `billingService` | `billing.service.ts` | Wallet, catalog, reserve/settle/release, Play verify |
 | `buildContextPacket` | `context-packet.service.ts` | Assemble briefing before prompt |
 | `buildPrompt` | `prompt-builder.ts` | Token-budgeted LLM messages |
-| Generation worker | `generation.processor.ts` | Stream AI, save event, enqueue follow-ups |
+| Generation worker | `generation.processor.ts` | **Prose stream**, post-prose pipeline, **settle** |
 
 ### Memory & chronicle
 
 | Service | File | Role |
 |---------|------|------|
 | `memoryService` | `memory.service.ts` | Rewind, edit, recap, threads, events API |
-| Memory worker | `memory.processor.ts` | Extract atoms post-turn |
+| Memory worker | `memory.processor.ts` | Extract atoms; materialize version links |
 | `queryRag` | `rag.provider.ts` | Hybrid retrieval |
-| `memorySupersession` | `memory-supersession.service.ts` | Retire stale vectors when codex contradicts |
+| `memorySupersession` | `memory-supersession.service.ts` | Retire vectors + mark superseded ids |
 
-### Characters & graph
+### Characters, kinship & graph
 
 | Service | File | Role |
 |---------|------|------|
 | `characterCodexService` | `character-codex.service.ts` | Deltas, ranking, pinning, compaction |
 | `entityGraphService` | `entity-graph.service.ts` | Entities, edges, location facts, rewind repair |
-| Codex extractor | `worker/lib/character-codex-extractor.ts` | LLM → deltas |
-| Codex compactor | `worker/lib/codex-compactor.ts` | Shrink long fact lists |
+| `kinshipGraphService` | `kinship-graph.service.ts` | Family graph, premise seed, relatives brief |
+| `relationCandidateService` | `relation-candidate.service.ts` | Open review queue |
+| Codex / kinship extractors | `worker/lib/*` | Post-prose LLM + deterministic detectors |
 
 ### Time, place, side chat
 
@@ -137,41 +144,20 @@ Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline 
 
 | Service | File | Role |
 |---------|------|------|
-| `continuityAuditService` | `continuity-audit.service.ts` | 8 cross-checks, admin report |
-| `adminService` | `admin.service.ts` | Projections inspect, drift status |
-| Maintenance worker | `maintenance.processor.ts` | Decay, dedup, graph repair |
+| `continuityAuditService` | `continuity-audit.service.ts` | Cross-checks, admin report |
+| `adminService` | `admin.service.ts` | Projections inspect, drift status, Ink grants |
+| Maintenance worker | `maintenance.processor.ts` | Decay, dedup, graph/link repair, checkpoints |
 
 ---
 
-## REST API surfaces (Chronicle)
+## REST API surfaces (high level)
 
-**Router:** `routes/chronicle.routes.ts`
-
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /chronicle/events/:id` | Timeline |
-| `GET /chronicle/memories/:id` | Echoes (+ search params) |
-| `GET /chronicle/recap/:id` | Story so far |
-| `GET /chronicle/threads/:id` | Open/resolved threads |
-| `GET /chronicle/relationships/:id` | Bonds ledger |
-| `GET /chronicle/relationships/:id/:charId/memories` | Character memory view |
-| `GET /chronicle/locations/:id` | Places index |
-| `GET /chronicle/locations/:id/:locId` | Place journal |
-| `GET /chronicle/calendar/:id` | Almanac data |
-| `PUT /chronicle/calendar/:id/timeline/active` | Switch reality |
-| `GET /chronicle/side-chats/:id[/:charId]` | Side chat threads |
-| `POST /chronicle/rewind/:id` | Roll back |
-| `PUT /chronicle/event/:id` | Edit turn; returns regenerated `choices` + `present_characters` when AI prose changes |
-| `PUT /chronicle/memory/:id` | Edit memory |
-| `POST /chronicle/replay/select/:id` | Commit replay variant |
-
-### Admin (Basic auth)
-
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /admin/events/:eventId/projections` | Inspect all projections from one event |
-| `GET /admin/instances/:id/continuity-audit` | Run consistency check |
-| `GET /admin/instances/continuity-audits` | List worlds by drift status |
+| Area | Router | Highlights |
+|------|--------|------------|
+| Chronicle | `chronicle.routes.ts` | Events, memories, recap, bonds, places, calendar, side chats, edit/rewind/track, **`/kinship`**, **`/relation-candidates`** |
+| Billing | `billing.routes.ts` | `/catalog`, `/me`, `/google/verify`, `/simulate-purchase`, RTDN |
+| Instances / templates / personas / auth | respective routes | See API.md |
+| Admin | `admin.routes.ts` | Basic auth; continuity audits; projections |
 
 ---
 
@@ -179,9 +165,29 @@ Indexes defined in `config/mongo-indexes.ts` (text search on memories, timeline 
 
 **File:** `play-ws.service.ts`
 
-Player actions enqueue worker jobs; streaming frames push back on the same socket.
+| Action | Billable |
+|--------|----------|
+| `chat`, `continue`, `world_action`, `side_chat`, `replay` | Story turn (Ink reserve) |
+| `load_instance`, `ping` | No |
 
-Session cached in Redis — busted on rewind/reset/edit that changes canon.
+Player actions enqueue worker jobs; streaming frames push back on the same socket. Session cached in Redis — busted on rewind/reset/edit that changes canon.
+
+---
+
+## Generation post-prose pipeline (worker)
+
+Narration is a **prose stream** (tokens via Redis → WS). After stream end, the worker does **not** treat the turn as a structured JSON response body. Rough order:
+
+1. Prose hygiene / stream filters / choice-tail parse  
+2. Scene metadata extractor (presence, location, time, choices)  
+3. Deterministic signals (movement, time-skip, party, kinship, presence gaps)  
+4. **Entity adjudication** for strong person-candidate terms  
+5. Persist event + fold presence / cursors  
+6. Fire-and-forget: graph sync, kinship apply, relation candidates, anomalies, **signal_ledger**  
+7. Enqueue memory-curation (+ maybe scene summary)  
+8. **Billing settle** (or release on final pre-stream failure)
+
+Full map: [WORKERS.md](../server/WORKERS.md).
 
 ---
 
@@ -189,15 +195,13 @@ Session cached in Redis — busted on rewind/reset/edit that changes canon.
 
 | Practice | Where |
 |----------|-------|
-| **Event sourcing for rewind** | Codex deltas ledgered on events |
+| **Event sourcing for rewind** | Codex / kinship deltas ledgered on events |
 | **Projection rebuild** | Summaries, memories, graph repair on mutation |
 | **Fail-closed privacy** | Side-chat memory gate in RAG |
 | **Bounded hot paths** | Context packet caps + token floors |
-| **Async heavy work** | Memory curation, summaries, compaction off turn path |
-| **Hybrid retrieval** | Vector + keyword + entity + place + RRF fusion |
-| **Deterministic summary IDs** | Rebuild overwrites same Pinecone vector |
-| **Read-only drift detection** | Daily audit logs warnings, no auto-mutate |
-| **Rules-first hygiene** | LLM repair only on failure |
+| **Async heavy work** | Memory, summaries, compaction, signal ledger off TTFT path |
+| **Ink reservations** | Reserve on WS; settle/release in worker |
+| **Hybrid retrieval** | Vector + keyword + entity + place + RRF |
 | **Centralized AI client** | Model map, embeddings, streaming in `src/ai/` |
 
 ---
@@ -206,15 +210,9 @@ Session cached in Redis — busted on rewind/reset/edit that changes canon.
 
 | Tool | Purpose |
 |------|---------|
-| `scripts/rewind-audit.ts` | Clone instance, rewind, assert 27+ invariants |
-| `bun run audit:choices` | Live LLM: first-person chips, canonical presence |
-| `bun run audit:location` | Live LLM: phantom travel, KNOWN PLACES returns, presence fold |
-| `bun run audit:codex-dedup` | Live LLM: kin-epithet resolves to existing codex card |
-| `bun run audit:replay-edit` | Integration: replay/edit/variant-select chip restoration |
-| `bun run merge:character` | Manual codex dedup repair |
+| `scripts/rewind-audit.ts` | Clone instance, rewind, assert invariants |
+| `bun run audit:choices` / `audit:location` / `audit:codex-dedup` / `audit:replay-edit` | Live / integration audits |
+| `bun run audit:memory-links` | Version-link lifecycle |
+| `bun run audit:side-chat-privacy` / `audit:carding-routing` | Privacy + carding guards |
 | `continuityAuditService` | Cross-projection consistency report |
 | `bun run typecheck` / `flutter analyze lib` | Static checks |
-
-### Scene extractor invariants (June 2026)
-
-Primary turns pass **protagonist**, **KNOWN CAST roster**, **KNOWN PLACES**, and prior presence into `metadata-extractor.ts`. The server folds presence across quiet turns, updates the location cursor from `current_location` (even on returns), and only emits travel events when `viewpoint_moved` and the place entity actually changed.

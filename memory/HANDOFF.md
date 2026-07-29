@@ -1,28 +1,28 @@
 # Everlore build — handoff
 
-_As of June 12 2026, post **Phase 2 memory version-links (Slice 1)** — see latest
-State bullet — and (June 11) Phase 6B (travel + location state/facts + travel UI marker),
-Phase 7 (server + app surface + audit follow-ups), scheduled continuity drift
-detection, and a June-11 extractor-drift / dedup hardening pass (duplicate-character
-fix `9101349` + scale-robust location resolution `a12e94e`), plus Location Graph
-P0–P2 (nested atlas) and a **P2.6 movement/presence accuracy hardening** pass
-(deterministic backstops for the "I go to my room but I'm still in the dining room"
-class). Phases 1–10 are complete; Phase 2 memory-version links and Phase 4 broader
-BM25 are intentionally reopened for the next planning pass._
+_As of July 30 2026 (docs sync): Phase 2 memory version-links **Slice 1 shipped**
+(`updates_memory_ids`); Phase 4 broader BM25 remains deferred behind
+`RETRIEVAL_MEASUREMENT.md`. Also shipped since the June memory pass: **World Actions**
+(Play continue / time / travel / kinship / relation-candidate review), **Membership &
+Ink** billing (`/billing/*`, reserve→settle on story turns), kinship graph +
+relation-candidate APIs, post-prose entity adjudication + `signal_ledger`. Earlier
+June work still stands — Phase 6B, Phase 7, continuity drift, Location Graph P0–P2.6,
+extractor-drift / dedup hardening. Phases 1–10 complete. **Do not invent bug
+closures** — open live status lives only in the playtest matrix / FIX_BATCH_4._
 
 This is the durable, in-repo handoff for whoever (human or AI agent) picks up the
 "infinite memory" build next. Read this, then `CHECKLIST.md` (the authoritative
 task list) and `MEMORY_ARCHITECTURE.md` / `PROJECTION_AND_MUTATION_MODEL.md`.
 
-> **🐞 Open bug backlog — LATEST: `../playtest/PLAYTEST_FINDINGS_MERGED_2026-06-12b.md`**
-> (post-fix-batch run). Fix-batch scorecard: wrong-field-edit-400 + Bonds-companion
-> CLOSED; unchanged-edit-guard + relative-card-guard PARTIAL; supersession partial
-> (gated on B1). **Next fix order: (1) B1 identity attribution [keystone], (2) rewind
-> integrity for version-links/supersession/codex [NEW regressions the fix batch
-> introduced — orphan memory, dangling links, stale card re-mint], (3) side-chat leak
-> incl. new Echoes-search surface, (4) presence + plane-shift location frag.** First-run
-> root-cause clusters: `../playtest/PLAYTEST_FINDINGS_MERGED_2026-06-12.md`. Structural
-> audits stay green — corruption is semantic + live-only. Loop via `AUTOCHAT_PLAYBOOK.md`.
+> **🐞 Open bug backlog — LATEST:**
+> [`../playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md`](../playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md)
+> (cluster status across runs a→d) **and**
+> [`../playtest/FIX_BATCH_4_2026-06-12.md`](../playtest/FIX_BATCH_4_2026-06-12.md)
+> (forward fixes for the post-d open core; some await live confirmation).
+> Merged narrative reports under `../playtest/archive/` are historical context only —
+> **do not treat older MERGED_*.md files as the active queue**, and do not mark
+> clusters CLOSED unless the matrix / FIX_BATCH_4 says so. Structural audits stay
+> green — remaining corruption is semantic + live-only. Loop via `AUTOCHAT_PLAYBOOK.md`.
 
 ## Repos
 - `everlore/` — Flutter/BLoC app.
@@ -310,7 +310,11 @@ Phases 1–10 are complete; the **Location Graph** initiative is closed out (eve
 buildable-without-content done; P2.5/P3/open-world-limits content-gated with reopen
 triggers in `LOCATION_GRAPH.md`); **both reopened planning items are resolved** —
 Phase 2 version-links Slice 1 shipped (`f6a1e81`), Phase 4 BM25 deferred with a
-measurement gate (`RETRIEVAL_MEASUREMENT.md`). What's genuinely OPEN now:
+measurement gate (`RETRIEVAL_MEASUREMENT.md`). **Billing (Membership & Ink) and World
+Actions** are shipped product surfaces — see `system-guide/04-frontend-where-things-live.md`
+and `server/BILLING.md`. What's genuinely OPEN now:
+- **Live playtest queue — see matrix + FIX_BATCH_4** (not restated here). Work clusters
+  only as those docs mark them open/partial; do not invent closures from this handoff.
 - **Tier-2 live checks — DONE (June 12 2026 live pass).** Drove real worker turns
   against the dev instance, restored to exact baseline (rewind to seq 27 + cache bust):
   version-link supersession trigger + full archive→mark→materialize chain + live
@@ -318,7 +322,8 @@ measurement gate (`RETRIEVAL_MEASUREMENT.md`). What's genuinely OPEN now:
   cursor, `origin:'side_chat'` memory with `known_by=[player,character,protagonist]`,
   streamed reply); Phase 6B time-advance ("Weeks pass" → calendar D1→D8) — bonus:
   re-confirmed P2.6 movement (room→hallway travel, cursor moved, presence reset, entity
-  reused). Remaining live gap = **Tier 3 only** (in-app Flutter UI — the user's pass).
+  reused). Remaining live gap = **Tier 3 only** (in-app Flutter UI — the user's pass)
+  plus whatever the playtest matrix still flags.
   `location_state` positive-transformation remains probabilistic (not re-tested here).
 - **Content-gated, pull in on demand:** Location Graph P2.5 relation edges, P3
   multi-world, open-world limits #2–4 (travelling-party presence, dedup-at-scale, mobile

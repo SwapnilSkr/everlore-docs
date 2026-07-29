@@ -7,15 +7,20 @@ Map of the Flutter app: screens, buttons, and when they appear.
 ## App structure (high level)
 
 ```text
-┌─────────────────────────────────────────┐
-│  Shell nav (Discover / Realms / Profile) │
-└─────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Shell nav: Explore · Realms · [+] · Worlds · Personas   │
+└──────────────────────────────────────────────────────────┘
          │
-         ├── Discover → browse worlds
-         ├── Realms → your playthroughs
-         └── Play → /play/:instanceId  ← main game
-                    │
-                    └── Chronicle → /chronicle/:instanceId  ← Lore Tome
+         ├── Explore (/discover) → browse worlds
+         ├── Realms (/) → your playthroughs
+         ├── Worlds (/my-worlds) → forge / manage templates
+         ├── Personas (/personas) → player personas
+         ├── Create (+) → Forge a World | Create a Character
+         └── Over shell:
+               Play → /play/:instanceId
+               Realm overview → /realm/:instanceId
+               Chronicle → /chronicle/:instanceId
+               Membership → /membership
 ```
 
 ---
@@ -29,7 +34,7 @@ Map of the Flutter app: screens, buttons, and when they appear.
 | UI | Location | Notes |
 |----|----------|-------|
 | Back | Top left | Exit play |
-| Realm menu ⋮ | Top right | Chronicle, timeline, thoughts, settings |
+| Realm / menu ⋮ | Top | Realm overview + Chronicle, timeline, thoughts, settings |
 | Connection dot | Header | Green = WebSocket live |
 | Chat bubbles | Center scroll | Your messages + AI narration |
 | Text composer | Bottom | Type or use prefilled chips |
@@ -41,11 +46,25 @@ Map of the Flutter app: screens, buttons, and when they appear.
 | **World stat bar** | World has RPG stats | Stat-less character worlds |
 | **Bond rail** | ≥1 side character with relationship meters | No bonded NPCs yet |
 | **Choice chips** | Latest turn done, server sent choices for active variant | Generating, replaying, disconnected |
-| **Advance time button** | Composer empty, connected | You typed text, generating |
+| **World Actions button** | Composer empty, connected | You typed text, generating |
 | **"Older history" link** | More than 20 events exist | All history loaded |
 | **Milestone toast** | Server unlocked a milestone | Auto-dismisses |
 | **Protagonist onboarding** | GM world, no player character yet | After you name yourself |
 | **Error bar** | Something failed | You dismiss |
+
+### World Actions (replaces Advance-Time-only affordance)
+
+**File:** `widgets/world_actions_button.dart` (wired from `player_input.dart`)
+
+| Action | What happens |
+|--------|----------------|
+| Continue story | WS `continue` |
+| Later today / Tomorrow / A few days / Next season | WS `continue` + advance |
+| Travel to… | WS `world_action` travel (destination, companions, optional time) |
+| Set a relationship | REST kinship write |
+| Review story details | Open relation candidates (accept / reject / defer) |
+
+Known destinations come from Chronicle locations. Kinship / candidates: see [chronicle-feature.md](../client/features/chronicle-feature.md).
 
 ### Bond rail (relationship presence)
 
@@ -96,17 +115,6 @@ Map of the Flutter app: screens, buttons, and when they appear.
 | Replay | WebSocket replay → new variant with its own chips + presence |
 | Replay arrows | Browse variants locally; chips/presence swap with prose; commit before next send |
 
-### Time skip sheet
-
-**File:** `widgets/advance_time_button.dart`
-
-| Option | What it sends |
-|--------|---------------|
-| Quiet moment | `continue` (no advance) |
-| Hours / Day / Days / Season | `continue` + advance key |
-
-**Tap or long-press** the hourglass button to open the sheet.
-
 ---
 
 ## Lore Tome (Chronicle)
@@ -121,7 +129,7 @@ Opens on **Recap** tab by default.
 ```text
 ┌────────┬──────────┬─────────┬─────────┬────────┬───────┬─────────┐
 │ Recap  │ Timeline │ Echoes  │ Almanac │ Places │ Bonds │ Threads │
-└────────┴──────────┴─────────┴─────────┴─────────┴───────┴─────────┘
+└────────┴──────────┴─────────┴─────────┴────────┴───────┴─────────┘
    ▲
    └── landing tab ("Story so far")
 ```
@@ -132,39 +140,11 @@ Opens on **Recap** tab by default.
 | **Timeline** | Full turn history (paginated) | `GET /chronicle/events/:id` |
 | **Echoes** | Searchable memories + filters | `GET /chronicle/memories/:id` |
 | **Almanac** | Story calendar, dated events, timeline switcher | `GET /chronicle/calendar/:id` |
-| **Places** | Visited locations, "you are here" | `GET /chronicle/locations/:id` |
+| **Places** | Nested atlas / fog-of-war tree, "you are here" | `GET /chronicle/locations/:id` |
 | **Bonds** | Relationship meters + moments | `GET /chronicle/relationships/:id` |
 | **Threads** | Open & resolved promises | `GET /chronicle/threads/:id` |
 
 Data loads **lazily** — first visit to a tab fetches that data.
-
-### Echoes tab (memory search)
-
-**File:** `widgets/echoes_filter_bar.dart`
-
-- **Search bar** — full-text over memory text (submit to search)
-- **Chips:** Unresolved, Important, types (relationship, promise, secret, …)
-- **Memory cards** — edit or delete
-
-### Almanac tab
-
-**File:** `widgets/almanac_view.dart`
-
-- **Present moment** — current in-world date
-- **Realities** — switch timeline branch (confirm dialog)
-- **Dated sections** — events grouped by story date
-- **Travel markers** — "Traveled from X to Y"
-- **Milestone / time jump markers**
-
-### Places tab → Location journal
-
-**File:** `widgets/places_view.dart` → `location_journal_screen.dart`
-
-Tap a place:
-- Permanent facts about the location
-- Current state (mutable)
-- Memories tied to this place
-- Timeline of moments there
 
 ### Bonds tab → Character memory + Side chat
 
@@ -174,19 +154,15 @@ Tap a character card:
 - **Character memory screen** — "what they remember about you"
 - **Private chat icon** → side chat thread (separate from main story)
 
-Side chat:
-- Loads history via REST
-- Sends via WebSocket `side_chat`
-- Streams `side_chat_delta` / `side_chat_complete`
+Side chat loads history via REST; sends via WebSocket `side_chat`.
 
-### Threads tab
+---
 
-**File:** `widgets/threads_view.dart`
+## Membership & Ink
 
-- **Open** — unresolved promises/conflicts (same data fed to AI as "open threads")
-- **Resolved** — recently closed threads
+**Route:** `/membership` · **File:** `lib/features/billing/presentation/billing_screen.dart`
 
-Read-only in UI.
+Shows ledger-backed Ink balance, Premium / Creator plans, Ink packs, and (when enabled) Google Play or test checkout. Full detail: [billing-feature.md](../client/features/billing-feature.md).
 
 ---
 
@@ -201,6 +177,7 @@ Read-only in UI.
 | `load_instance` | Full resync after rewind/reset |
 | `chat` | Your message |
 | `continue` | AI continues / time skip |
+| `world_action` | Structured travel (and related server kinds) |
 | `replay` | Regenerate last AI reply |
 | `side_chat` | Private character message |
 
@@ -208,8 +185,8 @@ Read-only in UI.
 
 | Type | You notice |
 |------|------------|
-| `generation_delta` | Text streaming |
-| `generation_complete` | Turn done |
+| `generation_delta` | **Prose** streaming (not a JSON turn body) |
+| `generation_complete` / `generation_stream_end` | Turn done |
 | `replay_delta` / `replay_complete` | Replay streaming; chips + presence per variant |
 | `memories_curated` | New memories (for tap-to-read) |
 | `character_codex_updated` | Bond meters refresh |
@@ -223,7 +200,8 @@ Read-only in UI.
 | You want to… | Do this |
 |--------------|---------|
 | Advance story | Type or tap choice chip or Continue |
-| Skip time | Empty composer → clock button |
+| Skip time / travel / set kinship | Empty composer → World Actions |
+| Review narrator proposals | World Actions → Review story details |
 | See relationship status | Bond rail or Bonds tab |
 | Find an old memory | Echoes search or tap name in prose |
 | See story so far | Recap tab |
@@ -231,6 +209,7 @@ Read-only in UI.
 | Talk privately to NPC | Bonds → private chat icon |
 | Fix a bad AI line | Long-press → edit or replay |
 | Undo many turns | Long-press → rewind |
+| Buy Ink / change plan | Membership (`/membership`) |
 | Switch alternate timeline | Almanac → Realities |
 
 ---
@@ -240,4 +219,5 @@ Read-only in UI.
 - **Does not** build the AI prompt (all server-side)
 - **Does not** store the full 10k turn history locally (bounded cache + Chronicle pagination)
 - **Does not** run memory extraction (worker job)
+- **Does not** settle Ink (server reserve/settle)
 - **In-play memory lens** is a quick preview — Lore Tome has the authoritative full set

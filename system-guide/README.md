@@ -4,7 +4,8 @@
 
 This folder explains the full Everlore memory system as it exists today — not the original plan, but what actually shipped in code across the Flutter app, Bun server, and background workers.
 
-**Last updated:** June 10, 2026 (Phases 1–10 complete; Phase 2 memory-version links and Phase 4 broader BM25 reopened for planning)
+**Last updated:** July 30, 2026  
+**Status:** Phases 1–10 complete; Phase 2 memory-version links **Slice 1** (`updates_memory_ids`) shipped; Phase 4 broader BM25 deferred behind a measurement gate; World Actions + Membership/Ink billing shipped. Open live bugs → [`../playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md`](../playtest/PLAYTEST_FINDINGS_MATRIX_abcd.md) and [`../playtest/FIX_BATCH_4_2026-06-12.md`](../playtest/FIX_BATCH_4_2026-06-12.md).
 
 ---
 
@@ -12,7 +13,7 @@ This folder explains the full Everlore memory system as it exists today — not 
 
 You want to understand:
 
-- What happens when you play a turn (frontend → server → AI → memory)
+- What happens when you play a turn (frontend → server → AI → memory → billing settle)
 - Where each button and tab lives, and when it appears
 - How the backend remembers a 10,000-turn story without sending 10,000 turns to the AI
 - What each of the 10 memory phases actually means in practice
@@ -27,21 +28,23 @@ You do **not** need to read every source file. Start here, then drill into the t
 | Doc | Read this if you want to understand… |
 |-----|--------------------------------------|
 | [01 — Core philosophy](01-core-philosophy.md) | The *why*: events vs projections, bounded prompts, privacy rules |
-| [02 — One turn, start to finish](02-one-turn-journey.md) | The *flow*: tap Send → streamed reply → memories saved |
+| [02 — One turn, start to finish](02-one-turn-journey.md) | The *flow*: tap Send → prose stream → post-prose pipeline → memories |
 | [03 — Memory layers](03-memory-layers-explained.md) | Events, memories, codex, summaries, entity graph, time, places |
-| [04 — Frontend map](04-frontend-where-things-live.md) | Play screen, Lore Tome tabs, side chats — what appears when |
-| [05 — Backend & workers](05-backend-and-workers.md) | Services, queues, databases, APIs |
+| [04 — Frontend map](04-frontend-where-things-live.md) | Shell tabs, Play, World Actions, Lore Tome, Membership |
+| [05 — Backend & workers](05-backend-and-workers.md) | Services, queues, databases, APIs, billing settle |
 | [06 — All ten phases](06-all-ten-phases.md) | Checklist phases translated into shipped features + file paths |
 | [07 — Scaling & risks](07-scaling-risks-and-practices.md) | What stays flat vs what grows, known bottlenecks |
-| [08 — What's open next](08-whats-open-next.md) | Reopened items, honest gaps, recommended next work |
+| [08 — What's open next](08-whats-open-next.md) | Reopened items, playtest pointers, recommended next work |
 | [09 — Visual maps](09-visual-maps.md) | ASCII diagrams: Play layout, Lore Tome tabs, data flow |
 
 ## Code reference
 
 | Doc | Purpose |
 |-----|---------|
-| [../code-reference/SERVER.md](../code-reference/SERVER.md) | Every server `.ts` file — purpose + optimizations |
-| [../code-reference/CLIENT.md](../code-reference/CLIENT.md) | Every `lib/` Dart file — purpose + patterns |
+| [../code-reference/SERVER.md](../code-reference/SERVER.md) | Every server `.ts` area — purpose + optimizations |
+| [../code-reference/CLIENT.md](../code-reference/CLIENT.md) | Every `lib/` Dart area — purpose + patterns |
+
+Server deep dives (kept current): [../server/API.md](../server/API.md), [BILLING.md](../server/BILLING.md), [WORKERS.md](../server/WORKERS.md), [SERVICES.md](../server/SERVICES.md), [DATA_MODEL.md](../server/DATA_MODEL.md).
 
 ---
 
@@ -49,7 +52,7 @@ You do **not** need to read every source file. Start here, then drill into the t
 
 | Folder | What it is |
 |--------|------------|
-| `everlore/` | Flutter app (Play, Lore Tome, onboarding) |
+| `everlore/` | Flutter app (Play, Lore Tome, Membership, onboarding) |
 | `everlore-server/` | API + WebSocket + BullMQ workers |
 | `everlore-docs/` | This documentation |
 
@@ -59,7 +62,7 @@ The parent `rpg-ai/` folder is **not** a git repo.
 
 ## One-sentence summary
 
-**The full story lives forever in Mongo; the AI only ever sees a small, ranked briefing assembled each turn from memories, character sheets, summaries, and the last few messages — and the app gives you tools to read, edit, rewind, and explore that world.**
+**The full story lives forever in Mongo; the AI only ever sees a small, ranked briefing assembled each turn from memories, character sheets, summaries, and the last few messages — narration streams as prose while post-prose workers update graph, kinship, and Ink — and the app gives you tools to read, edit, rewind, take World Actions, and explore that world.**
 
 ---
 
@@ -71,3 +74,4 @@ The parent `rpg-ai/` folder is **not** a git repo.
 | `memory/HANDOFF.md` | Agent handoff — how to continue the build |
 | `memory/MEMORY_ARCHITECTURE.md` | Target infinite-memory vision |
 | `server/MEMORY_ARCHITECTURE.md` | Current server memory stack (codex + RAG detail) |
+| `playtest/` | Live playtest matrices and fix batches |

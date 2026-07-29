@@ -11,8 +11,9 @@ Backend docs for the Bun/Elysia API + BullMQ workers.
 
 | Document | Description |
 |----------|-------------|
-| [OVERVIEW.md](./OVERVIEW.md) | Stack, component diagram, design principles |
+| [OVERVIEW.md](./OVERVIEW.md) | Stack, routes, collections, narration pipeline, design principles |
 | [DATA_MODEL.md](./DATA_MODEL.md) | Mongo collections, entities, events, memories, summaries |
+| [WORLD_MODEL.md](./WORLD_MODEL.md) | Witness / entity-stub / canon tiers and promotion |
 | [SERVICES.md](./SERVICES.md) | All services + providers (current list) |
 | [WORKERS.md](./WORKERS.md) | Queues, processors, cron jobs, turn pipeline |
 | [MEMORY_ARCHITECTURE.md](./MEMORY_ARCHITECTURE.md) | Codex + four prompt layers (foundation doc; see system-guide for full picture) |
@@ -25,13 +26,14 @@ Backend docs for the Bun/Elysia API + BullMQ workers.
 | [API.md](./API.md) | HTTP + WebSocket protocol |
 | [SECURITY.md](./SECURITY.md) | Auth, JWT, rate limits |
 | [CONFIGURATION.md](./CONFIGURATION.md) | Environment variables |
+| [BILLING.md](./BILLING.md) | Story Ink ledger, Play catalog, reserve/settle, enforcement flags |
 
 ## AI models
 
 | Document | Description |
 |----------|-------------|
 | [SFW_MODELS.md](./SFW_MODELS.md) | SFW narration models + testing |
-| [NSFW_MODELS.md](./NSFW_MODELS.md) | NSFW routing + models |
+| [NSFW_MODELS.md](./NSFW_MODELS.md) | NSFW routing, lexicon, intent deferral, candidate models |
 | [TTS_MODELS.md](./TTS_MODELS.md) | Text-to-speech |
 | [IMAGE_MODELS.md](./IMAGE_MODELS.md) | Cover/avatar generation |
 
@@ -39,7 +41,8 @@ Backend docs for the Bun/Elysia API + BullMQ workers.
 
 | Document | Description |
 |----------|-------------|
-| [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Deployment, scaling |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Cheap AWS prod plan: EC2, Redis, DNS, CI/CD, concurrency scaling |
+| [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Broader topology, resource tables, compose sketches |
 
 ---
 
@@ -77,4 +80,6 @@ Flutter app ──HTTP/WS──► API (src/index.ts)
 | New service | [SERVICES.md](./SERVICES.md) |
 | Worker/queue change | [WORKERS.md](./WORKERS.md) |
 | Env var | [CONFIGURATION.md](./CONFIGURATION.md) |
+| Billing / Story Ink / Play | [BILLING.md](./BILLING.md) |
+| Deploy / scaling / hosting | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Memory behavior | [../memory/CHECKLIST.md](../memory/CHECKLIST.md) + [../system-guide/](../system-guide/) |
