@@ -1,5 +1,7 @@
 # Everlore Server - Infrastructure
 
+For the **cheap AWS production deploy plan** (EC2, on-box Redis, Porkbun DNS, CI/CD, concurrency scaling), see [DEPLOYMENT.md](./DEPLOYMENT.md). This document covers broader topology and resource sketches.
+
 ## System Architecture
 
 ```
