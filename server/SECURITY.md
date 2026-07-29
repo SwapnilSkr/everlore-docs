@@ -2,7 +2,11 @@
 
 ## Overview
 
-This document outlines security considerations, best practices, and implementation details for the Everlore server.
+Security model for the Bun/Elysia API, workers, admin suite, and billing.
+
+Related: [CONFIGURATION.md](./CONFIGURATION.md) · [BILLING.md](./BILLING.md) · [API.md](./API.md) · [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+**Prod must-haves:** strong `JWT_SECRET`; `DISABLE_OTP_RATE_LIMIT=false`; `BILLING_SIMULATION_ENABLED=false`; admin Basic creds unset (disabled) or strong + network-restricted; Play service-account JSON only on the server.
 
 ## Security Model
 
@@ -102,11 +106,29 @@ The backend supports SMS verification through Twilio Verify:
 - Set `TWILIO_ACCOUNT_SID=AC_MOCK_SID` to bypass live SMS delivery in development
 - In mock mode, `123456` is the accepted OTP
 
+## Admin suite authentication
+
+`/admin/*` uses **HTTP Basic Auth**, not the player JWT.
+
+| Condition | Response |
+|-----------|----------|
+| `ADMIN_USERNAME` or `ADMIN_PASSWORD` unset | **503** — admin API disabled |
+| Missing/invalid Basic credentials | **401** + `WWW-Authenticate: Basic realm="Everlore Admin"` |
+
+Implementation: `src/middleware/admin-auth.ts` — credentials compared via SHA-256 digests with `timingSafeEqual` (constant-time).
+
+**Production:**
+
+- Set strong unique admin password; store only in secrets manager / host env
+- Prefer reverse-proxy IP allowlist or VPN in front of `/admin`
+- Never expose admin Basic creds in the Flutter client
+- Ink grants (`POST /admin/users/:id/ink-grants`) are powerful — audit who holds the password
+
 ## Authorization
 
 ### Ownership Verification
 
-All data access verifies ownership:
+All player data access verifies ownership:
 
 ```typescript
 // Template ownership
@@ -131,35 +153,43 @@ if (user.tier !== 'creator' && user.tier !== 'premium') {
 }
 ```
 
+## Billing & Play security
+
+| Surface | Auth | Notes |
+|---------|------|-------|
+| `/billing/*` (except RTDN) | Player JWT | Verify purchases server-side only |
+| `POST /billing/google/rtdn` | Google OIDC push | Audience + service-account email from env; updates only after token linked to an account |
+| `POST /billing/simulate-purchase` | Player JWT | Enabled only when `BILLING_SIMULATION_ENABLED` **and** `NODE_ENV !== 'production'` |
+
+**Rules:**
+
+- Keep `BILLING_ENFORCEMENT_ENABLED=false` until Play catalog + service account are live
+- Never put `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` in the mobile app
+- Story Ink balance is ledger-derived (`GET /billing/me`); do not trust client-supplied balances
+- Insufficient funds → HTTP **402** / WS error when enforcement is on
+
+Full setup: [BILLING.md](./BILLING.md).
+
 ## Rate Limiting
 
 ### Implementation
 
-```typescript
-const LIMITS = {
-  chat: { max: 10, windowSeconds: 60 },
-  memory_edit: { max: 30, windowSeconds: 3600 },
-  template_create: { max: 5, windowSeconds: 86400 },
-  auth_attempt: { max: 10, windowSeconds: 300 },
-  otp_send: { max: 5, windowSeconds: 600 },
-  otp_verify: { max: 10, windowSeconds: 600 },
-}
-```
+`src/middleware/rate-limit.ts` — Redis counters shared across API instances.
 
-**Storage**: Redis (distributed, shared across API instances)
+| Action | Max | Window | Tunable via |
+|--------|-----|--------|-------------|
+| `chat` | `CHAT_RATE_MAX` (default 10) | 60s | env |
+| `template_create` | `TEMPLATE_CREATE_RATE_MAX` (default 5) | 24h | env |
+| `memory_edit` | 30 | 1h | fixed |
+| `image_generate` | 40 | 1h | fixed |
+| `autofill` | 30 | 1h | fixed |
+| `auth_attempt` | 10 | 5m | fixed |
+| `otp_send` | 5 | 10m | fixed |
+| `otp_verify` | 10 | 10m | fixed |
 
-### Rate Limit Response
+`DISABLE_OTP_RATE_LIMIT=true` skips OTP limits (local dev only — **must be false in production**).
 
-```json
-{
-  "error": "Too many login attempts. Please try again later."
-}
-```
-
-With headers:
-```
-Retry-After: 45
-```
+WebSocket chat path returns `{ type: 'error', code: 'RATE_LIMITED', retryAfter }` instead of HTTP headers.
 
 ## Input Validation
 

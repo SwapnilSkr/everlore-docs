@@ -18,12 +18,58 @@ Narration uses **two** models, chosen per turn (see `worker/processors/generatio
 - **NSFW** → `AI_MODELS.narrationNsfw` (currently `gryphe/mythomax-l2-13b`)
 
 A turn routes to the NSFW model only when the world is mature-capable **and** the player
-opted in **and** the scene classifier (`worker/lib/nsfw-classifier.ts`, backed by the
-`nsfw_lexicon` collection) marks it explicit. Everything else stays on the SFW model, so the
-NSFW model only has to be good at **one job: explicit prose**.
+opted in **and** one of:
+
+1. **Ardent** chat mode (structured NSFW on-ramp — primary intent signal), or
+2. The scene classifier (`worker/lib/nsfw-classifier.ts`, backed by `nsfw_lexicon`) marks
+   the turn / recent momentum as explicit (score ≥ 3, intimate tags, or armed `nsfw_intent`).
+
+Everything else stays on the SFW model, so the NSFW model only has to be good at **one job:
+explicit prose**. Clean-language intent the lexicon misses (score 1–2) can arm the **next**
+turn via the **borderline intent deferral** below (off by default).
 
 Switching models is centralized — change `narrationNsfw` in `src/ai/models.ts`, or set the
 `NARRATION_NSFW_MODEL` env var. No other code changes needed.
+
+---
+
+## Borderline intent deferral (`NSFW_INTENT_DEFER_ENABLED`)
+
+The lexicon catches explicit **vocabulary** but can miss explicit **intent** phrased cleanly
+(“take me”, “I give myself to you”). Growing the word list is a treadmill; instead, for the
+**borderline band only** (current-turn lexicon score **1–2**), the generation worker can ask a
+cheap aux judge after the prose has already streamed.
+
+| Piece | Location / behavior |
+|-------|---------------------|
+| Flag | `NSFW_INTENT_DEFER_ENABLED` (default `false` in `src/config/env.ts`) |
+| Judge | `classifyBorderlineIntent()` in `worker/lib/nsfw-classifier.ts` |
+| Model | `AI_MODELS.cheapRank` (`CHEAP_RANK_MODEL`, default `gpt-4o-mini`) |
+| When | **After** `callLLMStream` finishes — never on the TTFT path |
+| Band | Current-turn `scoreScene(text, []).score` in `[1, 2]`; score 0 and ≥3 never call the judge |
+| Fail-safe | Disabled flag, empty text, timeout, or parse error → treat as SFW; never throws |
+
+### Event fields and next-turn arming
+
+The judge does **not** re-route the turn that just streamed. On persist, the worker may set:
+
+- `nsfw_intent: true`
+- `nsfw_intent_source: 'intent_judge' | 'direct_explicit'`
+
+(`direct_explicit` when the current-turn lexicon score is already ≥ 3, without needing the judge.)
+
+`scoreScene` momentum looks at the last three events. An event contributes only when
+`scene_tag === 'intimate'`, `type === 'intimate'`, **or** `nsfw_intent === true` with a
+**known** `nsfw_intent_source` (`direct_explicit` or `intent_judge`). Legacy rows without a
+source are ignored so old false positives cannot pin Free Play on the NSFW model forever.
+
+Effect: a verified borderline (or direct-explicit) signal **arms the next turn’s** momentum
+routing — one-turn lag on the first clean-language escalation, which is the cost of keeping
+the intent LLM off the first-token path.
+
+Source: `worker/processors/generation.processor.ts` (routing + post-stream persist),
+`worker/lib/nsfw-classifier.ts`, event fields on `WorldEvent` / `world-event.model.ts`.
+Env docs: [CONFIGURATION.md](./CONFIGURATION.md).
 
 ---
 
