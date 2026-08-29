@@ -12,12 +12,14 @@ Story Ink is the spendable currency for narration turns, autofill, and image pre
 
 | Flag | Default | Behavior |
 |------|---------|----------|
-| `BILLING_ENFORCEMENT_ENABLED` | `false` | When `false`, `reserve()` returns a no-op (`reservation_id: null`, `cost: 0`) and play is not blocked for balance |
+| `BILLING_ENFORCEMENT_ENABLED` | `false` | When `false`, `reserve()` returns a no-op (`reservation_id: null`, `cost: 0`) and play is not blocked for balance. In production, enforcement also turns on automatically once Google Play credentials are configured. |
 | `BILLING_SIMULATION_ENABLED` | `false` | Enables `POST /billing/simulate-purchase` for local/QA |
 
 **Hard rule:** simulation is refused when `NODE_ENV=production`, even if the flag is set. Never enable simulation on a public production app.
 
-Enable enforcement only after Play products and verification credentials are live (see below).
+Enable enforcement manually in non-production only after matching test products are live. In
+production, the server also enables it automatically when the Play package name and service
+account are configured (an explicit `BILLING_ENFORCEMENT_ENABLED=true` remains recommended).
 
 ---
 
@@ -47,6 +49,12 @@ Every wallet path calls `ensureWelcomeInk`: idempotent ledger row `welcome:v1` f
 | `image_preview` | 45 |
 
 Story turns reserve Ink in `play-ws.service.ts` before dispatching BullMQ jobs. Workers **settle** on success (and after visible-stream failure that must not refund a seen scene) or **release** on final failure before visible stream.
+
+When enforcement is active, story turns also have a server-side daily safety cap from the
+player's tier profile (`25` free / `160` premium / `320` creator). The cap counts
+reservations attempted during the current UTC day, including reservations later released,
+because those attempts still consume provider capacity. Reconnecting with the same request
+id remains idempotent and does not consume another daily slot.
 
 ---
 

@@ -112,7 +112,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for how concurrency affects multi-user capa
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `BILLING_ENFORCEMENT_ENABLED` | `false` | When `true`, insufficient Ink blocks billable actions |
+| `BILLING_ENFORCEMENT_ENABLED` | `false` | When `true`, insufficient Ink blocks billable actions. Production also enables enforcement automatically when Google Play credentials are present. |
 | `BILLING_SIMULATION_ENABLED` | `false` | Simulated checkout for local/QA — **hard-blocked if `NODE_ENV=production`** |
 | `GOOGLE_PLAY_PACKAGE_NAME` | `` | Android package name |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | `` | Full service-account JSON string (Publisher API) |
@@ -158,7 +158,7 @@ GOOGLE_CLIENT_ID=…
 DISABLE_OTP_RATE_LIMIT=false
 ADMIN_USERNAME=…              # or leave unset to disable /admin
 ADMIN_PASSWORD=…
-BILLING_ENFORCEMENT_ENABLED=false   # flip true only after Play setup
+BILLING_ENFORCEMENT_ENABLED=true    # explicit; production also auto-enforces when Play is configured
 BILLING_SIMULATION_ENABLED=false
 S3_BUCKET=… CDN_BASE_URL=… AWS_* =…
 GENERATION_CONCURRENCY=2      # tune for box size

@@ -132,7 +132,7 @@ Generated images (covers, avatars, chat backgrounds) upload to a **private S3 bu
 
 ## Billing: Story Ink
 
-Spendable currency for story turns, autofill, and image previews. Ledger in Mongo (`ink_ledger`) is authoritative; Google Play sells subscriptions and Ink packs. Enforcement is off by default (`BILLING_ENFORCEMENT_ENABLED=false`).
+Spendable currency for story turns, autofill, and image previews. Ledger in Mongo (`ink_ledger`) is authoritative; Google Play sells subscriptions and Ink packs. Enforcement is opt-in outside production (`BILLING_ENFORCEMENT_ENABLED=true`); production also auto-enforces once Google Play credentials are configured.
 
 Full product/catalog/reserve-settle flow: **[BILLING.md](./BILLING.md)**. Play Console setup: `everlore-server/BILLING_PLAY_SETUP.md` (points here as canonical).
 
