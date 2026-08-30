@@ -140,6 +140,6 @@ listing quality problem, and it reads as an ad.
 - **App category:** Role Playing (under Games)
 - **Tags:** pick from Play's fixed list — Role Playing, Adventure, Interactive
   Fiction if offered
-- **Contact email:** hello@everloreapp.com
+- **Contact email:** swapnilmkab@gmail.com
 - **Website:** https://everloreapp.com
 - **Phone:** optional, leave blank
