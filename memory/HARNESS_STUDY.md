@@ -549,6 +549,79 @@ What "a proper harness" means here, stated so it can be checked:
 
 ---
 
+## 10. Review brief: the citation-scoped verifier
+
+Self-contained, for adversarial review before any code. §3.2 states the idea;
+this states it precisely enough to attack, including the objections I would
+raise against it myself.
+
+### The change
+
+Today, one check gates an endpoint presence claim:
+
+```110:110:everlore-server/worker/lib/scene-endpoint-adjudicator.ts
+      if (!canonical || seen.has(key) || !hasExactEvidence(evidence, params.prose)) continue
+```
+
+Proposed verifier stack, all four parts operating **on the citation only** —
+so no regex anywhere decides what happened in the fiction:
+
+| | Check | Status | Property proved |
+|---|---|---|---|
+| a | excerpt appears verbatim in the prose | **exists** | not fabricated |
+| b | excerpt contains a surface of the claimed name | **new** | the quote is *about this person* |
+| c | excerpt shows participation grammar for that name | **new** | the person is *acting*, not referenced |
+| d | excerpt lands in the passage's final segment | optional | endpoint-ness |
+
+(b) is DEVOCABULARY_PLAN's ("the citation must contain the claimed name") and
+credit belongs there. It is also a **prerequisite** for (c): you cannot test
+participation grammar for a name the excerpt does not contain. I did not have
+(b) in §3.2 and the idea is not well-formed without it.
+
+(c) is the demotion: `hasSceneParticipationGrammar(name, rawNarrative)` →
+`hasSceneParticipationGrammar(name, citedExcerpt)`. Same function, same lists,
+opposite epistemic role — deciding fiction becomes checking one model's work.
+
+### The objections I would raise
+
+1. **The judge is not asked to cite grammatically, and this is the real risk.**
+   Its prompt demands an excerpt "proving that this person is there at the
+   endpoint." A perfectly valid proof may name nobody (*"the three of them stood
+   in the doorway"*) or name someone without a participation verb (*"Bram was
+   still beside the fire"* — no verb in `ACTION_VERBS`). So (b)+(c) create a
+   false-negative class that requires a **prompt change** to demand the citation
+   name the person and show them acting. Constraining the citation that hard may
+   push the model toward fabrication or abstention instead. **This must be
+   measured on the corpus before the flip, not reasoned about.**
+2. **A 3–24 word excerpt gives the verb list far less surface than a whole
+   passage**, so false negatives rise relative to today by construction. Since
+   admission fails closed, each one silently denies a real newcomer. The
+   mitigation is that the model *chooses* the sentence and can pick the most
+   explicit one — but that is exactly objection 1 restated, and unproven.
+3. **It keeps the verb lists alive.** This is a slower path to the stated goal
+   than deleting them. My claim is that the rule cares about their *role* rather
+   than their existence, and that decoupling their retirement from Phase 1's
+   risk is worth the delay. That is a judgement call and reviewable as one.
+4. **The English-capitalisation assumption moves into a fail-closed position.**
+   Today the grammar test is one signal among several; as a hard gate on
+   admission, a script it cannot read denies presence outright. Strictly worse
+   than the status quo for non-cased languages.
+5. **The four checks may over-constrain jointly** even where each is individually
+   reasonable. (d) is the weakest and most likely to be dropped.
+
+### The questions I actually want answered
+
+- Is **(b)+(c)** the right stack, or **(b)+(d)**, or all four? (c) and (d) prove
+  different things and I do not know which failure dominates in practice.
+- **What happens when the judge cannot produce a citation passing all of them?**
+  This is DEVOCABULARY_PLAN's open question 2, now load-bearing. Proposal
+  unchanged: fail closed on admission, open on continuity.
+- Does requiring a grammatical citation **degrade the judge's other three
+  fields**, which are already trusted in prod for the scene-break decision? A
+  prompt change is not free and this is the call that decides `sceneBroke`.
+
+---
+
 ## 9. Revisions after review
 
 Recorded rather than quietly edited, because two of these change what to do
