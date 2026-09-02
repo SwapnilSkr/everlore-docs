@@ -11,19 +11,32 @@ codebase already runs and already pays for.
 
 ## 0. The one-line finding
 
-`adjudicateSceneEndpoint` is an evidence-carrying, machine-verified,
-closed-world presence judge. It runs on **every turn**
+**Revised Sept 2 after review — see [§9](#9-revisions-after-review). Three
+claims below were wrong or imprecise; the sequencing survived, the framing did
+not.**
+
+`adjudicateSceneEndpoint` is a closed-world presence judge whose every claim
+carries a prose citation. It runs on **every turn**
 (`generation.processor.ts:1251`, inside the unconditional `Promise.all` at
-`:1267`). Its answer is consumed for the scene cast **only when the scene
-breaks** (`:1882`). On a continuation turn — the majority of turns — that answer
-is computed, paid for, and thrown away, and presence is instead decided by the
+`:1267`), and two of its four fields are already consumed on every turn — the
+scene-break decision at `:1618` is partly its `playerViewpointAtEnd &&
+sceneTransition`. But its `present[]` — the cast itself — is consumed **only
+when the scene breaks** (`:1882`). On a continuation turn that array is
+computed, paid for, and discarded, and presence is instead decided by the
 unverified witness field plus a regex corroboration gate built out of verbs.
 
 > The replacement for the presence word lists is not a new LLM call, a new
-> schema, or a new pattern. It is **consuming a judgement we already buy and
-> currently discard.**
+> schema, or a new pattern. It is **consuming one array of a judgement we
+> already buy, already trust with the scene-break decision, and already discard
+> on the majority path.**
 
-Everything else in this document is ordered behind that.
+That the judge has been trusted with scene-break on continuations, under this
+exact prompt and this exact input, for as long as scene state has shipped is the
+best available evidence that it does not degrade there.
+
+**It is not a superset swap.** The gate it would replace tests a property the
+judge's verifier does not (§3.1). That has to be closed first, not inside
+Phase 1.
 
 ---
 
@@ -135,6 +148,84 @@ unless its quote is literally in the prose (`:110`).
 **So adding citations to the witness would create a third redundant presence
 witness rather than retiring one.** The consolidation runs the other way.
 
+### 3.1 But the verifier checks fabrication, not relevance
+
+`hasExactEvidence` runs `.includes()` over the **whole passage**. The prompt
+demands proof of presence *at the final moment*; the verifier accepts a quote
+from paragraph one. So the property actually guaranteed is "this excerpt is not
+invented," not "this excerpt proves presence at the endpoint." Machine-checked
+against invention; **model-trusted on relevance.**
+
+And the hole is precisely the bug the gate we want to delete was written for:
+
+```1972:1977:everlore-server/worker/processors/generation.processor.ts
+    // Being NAMED is not being PRESENT. An earlier version accepted any
+    // occurrence of the name, and a passing reference to something a character
+    // had said a day's ride away ("the rations Bram had noted") put him at the
+    // top of a ruined watchtower, where carry-forward kept him for the rest of
+    // the scene. Require the prose to show the person actually participating —
+    // speaking, acting, being addressed — using the same evidence patterns the
+```
+
+`hasSceneParticipationGrammar` tests **person-specific grammar**;
+`hasExactEvidence` tests **literal containment**. Different properties. Swapping
+one for the other drops the check that catches remote-mention, into a
+carry-forward that holds the mistake for the rest of the scene.
+
+**Positional containment is not sufficient either.** Requiring the excerpt to
+land in the final paragraph narrows the window without changing the property:
+*"He thought again of the rations Bram had noted"* is a remote mention that sits
+happily in a closing sentence. Proposing that as the fix repeats the exact error
+it diagnoses — trading one incomplete check for another.
+
+### 3.2 The fix: demote the verb list from decider to verifier
+
+Today the grammar test is applied to the entire passage:
+
+```1982:1982:everlore-server/worker/processors/generation.processor.ts
+      if (hasSceneParticipationGrammar(phrase, rawNarrative)) return true
+```
+
+Scanning all the prose for a verb is **vocabulary deciding fiction** — banned by
+§1. Apply the *same function* to only the judge's cited excerpt and it becomes a
+check on the citation's shape — **verification**, which §1 permits:
+
+```ts
+// decider (banned): does this verb appear anywhere in the fiction?
+hasSceneParticipationGrammar(name, rawNarrative)
+// verifier (allowed): does the sentence the model chose to cite
+// actually show this person participating?
+hasSceneParticipationGrammar(name, citedExcerpt)
+```
+
+This resolves four problems at once:
+
+- **It inherits the job Phase 1 would otherwise drop** — remote-mention is
+  caught again, so the swap becomes safe.
+- **It composes instead of competing.** The list stops arbitrating between two
+  models and starts checking one model's work. That is the real defect the
+  "one authority" principle was groping at.
+- **The lists no longer have to die for Phase 1 to be safe.** They retire later,
+  on their own schedule, at far lower risk.
+- **Incompleteness becomes much cheaper.** A missing verb in a *decider* silently
+  rules a present character absent. A missing verb in a *verifier* only rejects
+  one candidate citation — and the model chooses which sentence to cite, so it
+  can pick the most grammatically explicit one.
+
+Stack positional containment on top: both checks then run over the citation
+only, and no regex anywhere decides what happened in the fiction. Land this
+**before** Phase 1 flips — on its own it strictly strengthens code already in
+prod.
+
+### 3.3 Unmeasured: the cutaway rate
+
+The judge returns `present: []` whenever `player_viewpoint_at_end` is false.
+Under Phase 1 that is a blanket admission denial on every cutaway ending —
+fail-closed, consistent with principle #5, but the rate is unknown and this
+product has cutaways. Not novel behaviour (`:1690` already empties the cast on
+`!playerViewpointAtEnd` for breaks today), but it moves from the minority path
+to the majority one.
+
 And the code already says so, on the break path:
 
 ```1875:1885:everlore-server/worker/processors/generation.processor.ts
@@ -222,7 +313,54 @@ everything") is mostly already there:
 
 Missing is small and specific: raw witness/judge JSON is never stored (the
 `onRaw` hook exists and nothing subscribes it), and there is no batch runner
-reading events from Mongo. That is a task, not a phase.
+reading events from Mongo.
+
+**I called that "a task, not a phase." That was wrong** — not because the
+plumbing is bigger than I said, but because there is nothing to run it over.
+Measured against the live DB (`scripts/corpus-census.ts`, read-only):
+
+```
+events            233 total, 32 instances, avg 7.3 turns/world
+                  span 2026-06-08 .. 2026-09-02
+depth             1 world >50 turns | 2 worlds >20 | 7 worlds >=5 | 11 worlds =1
+has ai_response   232  (99.6%)   ← prose exists
+has player_input  177  (76.0%)
+has scene_state     1  ( 0.4%)   ← first written 2026-09-02T10:27
+```
+
+`scene_state` exists on **one event, written today**, so it is newness rather
+than a write bug — and it means a presence shadow-compare has *no history to
+diff against at all*. The depth distribution is worse than the average: the
+carry-forward bugs this work exists to kill only appear in long runs, and there
+is exactly one world longer than fifty turns.
+
+So the corpus has to be **generated** — `agent-chat` playthroughs, real tokens,
+real hours. That is a phase, and everything downstream is blocked on it,
+including the Phase 2 tier experiment. It is also the honest answer to "we are
+not going live until we have stress-tested every single thing": today there is
+nothing to stress-test against.
+
+**The ledger itself is not empty, though.** A single sampled row read as
+all-zero; aggregated, 92 of 197 rows (46.7%) carry a non-zero signal:
+
+```
+movement  detected 22 / committed  4     ← 18% commit rate, a real live gap
+presence  detected 51 / committed 51     (all canon tier)
+time      detected  1 / committed  1
+party     detected  0 / committed  0     ← genuinely nothing
+kinship   detected  0 / committed  0     ← genuinely nothing
+miss_candidates 66 · player_corrected 7
+```
+
+Movement's 22-detected/4-committed split is exactly the disagreement signal I
+claimed we would have to build shadow-compare to see. It is already there.
+
+But the ledger still cannot measure Phase 1, for a sharper reason than
+emptiness: **it is instrumented one layer away from the decision.**
+`presenceTiers` is computed from `trackableMentions`
+(`generation.processor.ts:3384-3389`), so presence `detected`/`committed` tracks
+the *mention classifier*, not the corroboration gate Phase 1 replaces. Reaching
+the arbitration outcome needs a new ledger field, not a new collection.
 
 What is genuinely missing is much more alarming: **there are zero test files and
 no test runner.** No vitest/jest/mocha, no `*.test.ts`, no CI workflow. There
@@ -251,6 +389,22 @@ Hours, not weeks. Nothing here can regress the fiction.
 - Fix the false `time-skip-signal.ts` doc comment (§4.1).
 - Wire the existing audit scripts into one runner + CI. This is the safety net
   every later phase depends on.
+- **Scope the grammar verifier to the citation (§3.2).** Strictly strengthens
+  code already in prod; deletes nothing; unblocks Phase 1.
+- **Capture provider `usage` in `src/ai/client.ts`.** `generation_logs` records
+  one `tokens_in`/`tokens_out` pair for the *narration* call and
+  `metadata_model` as a bare string; there is no per-call accounting for any of
+  the five post-stream calls, and `client.ts` never reads the provider's `usage`
+  object. Until that exists Phase 2 can be measured for quality but **not for
+  cost**, and no cost budget is enforceable.
+
+### Phase 0.5 — generate the corpus  ← *the actual critical path*
+
+Promoted out of Phase 1.5 after measurement (§4.3). 233 turns across 32 worlds,
+one carrying `scene_state`, is not a corpus. Everything below is blocked on
+this, including Phase 2. `agent-chat` playthroughs, deep runs over broad ones,
+and persist raw witness/judge JSON via the existing `onRaw` hooks while
+generating so the corpus is diffable rather than merely re-runnable.
 
 ### Phase 1 — consume the judge we already pay for  ← *start here*
 
@@ -262,12 +416,18 @@ final moment* — is already the correct question for a continuation.
   answer, log disagreement into `signal_ledger` (which already has the shape).
 - **Then flip**, and `hasSceneParticipationGrammar` loses its job by
   construction: the corroboration gate becomes "the judge cited verified prose."
-- Retires the whole `tierFor` ladder — `SPEECH_VERBS`, `ACTION_VERBS`,
-  `PERSON_POSSESSIONS`, `POSSESSED_THING_ACTS_VERBS`, `TITLE_WORDS`.
-- **Cost: zero new LLM calls, nothing new pre-stream.** Possibly a modest
-  `maxTokens` lift on the judge (280 today) since continuations carry more
-  names. This is cheaper than DEVOCABULARY_PLAN's Phase 1+2 *and* it deletes
-  more, because it removes a decider instead of adding evidence to one.
+- Retires the `tierFor` ladder — `SPEECH_VERBS`, `ACTION_VERBS`,
+  `PERSON_POSSESSIONS`, `POSSESSED_THING_ACTS_VERBS`, `TITLE_WORDS` — but only
+  as *deciders*. Under §3.2 they survive as citation verifiers first and are
+  narrowed or replaced later, separately.
+- **Cost: zero marginal anything.** I originally hedged this with "possibly a
+  modest `maxTokens` lift since continuations carry more names." That hedge was
+  unnecessary and I was wrong to add it: the candidate list is assembled
+  unconditionally at `:1251` from `priorPresent + choiceRoster +
+  entityCandidates`, and `sceneBroke` does not exist until `:1611`, 360 lines
+  later. **The judge's input is byte-identical on break and continuation turns
+  today**, capped at 40 candidates in / 12 out on every turn. There is no larger
+  candidate set to grow into.
 
 ### Phase 2 — measure the tier before refactoring anything else
 
@@ -282,13 +442,13 @@ schema for all of them. DEVOCABULARY_PLAN files this as "Open question 1,
 measure don't guess"; I agree entirely and would therefore **gate the remaining
 work on it** rather than leave it open.
 
-### Phase 1.5 — finish the harness (small, parallel with the above)
+### Phase 1.5 — finish the harness (small, once Phase 0.5 has produced data)
 
-Subscribe the existing `onRaw` hooks and persist raw witness/judge JSON; extend
-`nsfw-extraction-probe.ts` from an inline fixture to a Mongo-backed batch runner
-over stored `player_input` + `ai_response`. Report through
-`signal-ledger-report.ts`. Note that re-extraction is non-deterministic, so this
-measures distributions, not exact replay — fix a seed corpus and run n>1.
+Extend `nsfw-extraction-probe.ts` from an inline fixture to a Mongo-backed batch
+runner over stored `player_input` + `ai_response`; report through
+`signal-ledger-report.ts`. Add a ledger field at the *arbitration* layer, not
+the detector layer (§4.3). Re-extraction is non-deterministic, so this measures
+distributions, not exact replay — fix a seed corpus and run n>1.
 
 ### Phase 3 — movement and place
 
@@ -350,12 +510,19 @@ does not cover:
 
 What "a proper harness" means here, stated so it can be checked:
 
-1. **One authority per question.** Every narrative fact has exactly one decider.
-   No arbitration-by-regex between disagreeing models.
+1. **One authority per question — or N readers with a declared, evidence-based
+   tiebreak.** The defect was never two readers; it was that the *tiebreak* was
+   a verb list. Amended after review: the original wording would have forced
+   collapsing deliberate fault isolation (the witness was split on purpose) and
+   defence in depth. Under the amended form both survive, and the regexes still
+   die — because not one of them can be expressed as a declared evidence rule.
 2. **Closed-world subcalls.** A judge selects from a supplied candidate set and
    cannot invent. Already true of both existing judges.
-3. **Evidence-carrying and machine-verified.** Every claim quotes the prose; the
-   server verifies literal containment. Already true in three places.
+3. **Evidence-carrying and machine-verified — for a named property.** Every
+   claim quotes the prose and the server verifies it. But state *which* property
+   is verified: literal containment proves only non-fabrication (§3.1). Relevance
+   needs its own check over the citation (§3.2). "Machine-verified" without
+   naming the property is how the gap in `hasExactEvidence` went unnoticed.
 4. **Deterministic code verifies; models decide.** The §1 rule.
 5. **Fail direction declared per field.** Fail *closed* on admission (do not add
    a person or place), *open* on continuity (do not remove someone established).
@@ -379,6 +546,26 @@ What "a proper harness" means here, stated so it can be checked:
    the code — only per-call `maxTokens` and `tokens_in`/`tokens_out` on
    `generation_logs`. Any "≤ +15% cost" gate is unmeasurable until that is
    derived from the logs. Build the measurement before setting the budget.
+
+---
+
+## 9. Revisions after review
+
+Recorded rather than quietly edited, because two of these change what to do
+first and one of them was mine to catch.
+
+| # | Claim as first written | Verdict |
+|---|---|---|
+| 1 | *"Computed, paid for, and thrown away"* | **Imprecise.** Only `present[]` is discarded; `playerViewpointAtEnd` + `sceneTransition` already feed `sceneBroke` at `:1618` every turn. Net-favours the plan — the judge is already trusted on continuations — but the framing was load-bearing and wrong. |
+| 2 | *"Zero new calls plus a modest `maxTokens` lift"* | **Wrong in my favour.** Judge input is byte-identical on both paths (`:1251` vs `:1611`). Zero marginal anything. |
+| 3 | *"Phase 1 is a superset swap"* | **Wrong, and the one I should have caught.** `hasExactEvidence` verifies non-fabrication, not endpoint relevance (§3.1). Fixed by scoping the grammar test to the citation (§3.2) rather than by positional containment, which narrows the window without changing the property. |
+| 4 | *"Shadow-compare substrate exists — a task, not a phase"* | **Half wrong.** Plumbing does exist and the ledger is 46.7% populated, not empty. But 233 turns / 1 `scene_state` row means there is nothing to replay, so corpus generation is the critical path (§4.3). |
+| 5 | *"One authority per question"* | **Too strong.** Amended to allow N readers with a declared evidence-based tiebreak, preserving deliberate fault isolation. |
+| 6 | *"The arbitration framing is tidier than the git history"* | **Understated — it is retrofitted.** `git log -S`: `ACTION_VERBS`/`SPEECH_VERBS` landed `82b6d1c` **2026-06-19**; `adjudicateSceneEndpoint` landed `b666dd7` **2026-08-26**, ten weeks later. The lists were never arbitrating between judges — they were patching one unreliable witness. Which is exactly why Phase 1 deletes a check without inheriting its job (#3). The lone exception is `POSSESSED_THING_ACTS_VERBS` (`66ae987`, **2026-09-02**), added *after* the judge existed: a list genuinely chosen over an available judge. |
+| 7 | Cost gates (*"≤ +15%"*) | **Unenforceable today.** No per-call token accounting for any post-stream call; `client.ts` never reads provider `usage`. Added to Phase 0. |
+
+Diagnosis and phase *ordering* survived review. The one-line framing, the cost
+arithmetic, and the superset claim did not.
 
 ---
 
