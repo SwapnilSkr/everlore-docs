@@ -1,6 +1,11 @@
 # Getting the regexes out of the fiction: an independent study
 
 **Status:** study + proposed sequencing, Sept 2 2026. Nothing here is built yet.
+**Superseded for sequencing by
+[HARNESS_EXECUTION_PLAN.md](HARNESS_EXECUTION_PLAN.md)** — converged after two
+review rounds and ready to build. This document remains the reasoning and the
+revision record; go there for what to do.
+
 **Relationship to [DEVOCABULARY_PLAN.md](DEVOCABULARY_PLAN.md):** independent
 re-derivation from the code. It agrees with that plan's diagnosis and its
 keep-deterministic calls, and disagrees with its inventory, its cost model, and
