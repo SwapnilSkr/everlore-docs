@@ -1579,9 +1579,28 @@ every member from prose.
 
 Four of the six are the model choosing a mentioned or anticipated place, which
 is the same wall as placehood: the grammar of the sentence it quotes is
-indistinguishable from the right one. Getting those needs a better seam, not a
-better regex — the tier experiment (34% → 18% harmful, 3.6× post-stream latency)
-is still the only measured lever, and it is still unspent.
+indistinguishable from the right one.
+
+**Each of the remaining five was then costed, and every one is a losing trade.**
+
+| to fix | the change | what it costs |
+|---|---|---|
+| Aurelius 27 | let strict agreement admit with no transition | Aurelius 21-25 — *"I will meet you in the war room at dawn"* is also two namers agreeing with no transition. Held-out 94.9% → **90.9%**. Five false positives for one turn. |
+| Neon Divide 6, 7 | prefer the witness when the namers disagree | already measured as the abandonment signal: **94.9% → 89.9%**, plus a keeper turn. A witness reading a poisoned graph abandons just as confidently as a correct one. |
+| Aurelius 2, 3 | make "the table" not a place | placehood, unsolved by five model tiers and by the gold labeller. Anything bolted on here is a vocabulary. |
+| City 21 | — | the pre-stream `extractStatedPosition` fix already targets it; frozen prose cannot exercise it. |
+
+`containment_hint` was checked as a possible third namer and refused on the
+evidence: it names the ENCLOSING place ("Vesperkeep" for the hall, "the keep"
+for the root cellars), which is its job, and it also returns a character's name
+as a container. Present on ~30% of turns, agreeing with the scene's own place on
+17% and 27%. It belongs to the promotion path, not the cursor.
+
+**So 96.5% is where this instrument stops without weakening a gate.** The
+honest lever left is the seam, not the logic: the tier experiment measured
+34% → 18% harmful writes at 3.6× post-stream latency, and it is still unspent.
+The only cheap thing still owed is a live play-test, because every number here
+is a replay.
 
 ## Next
 
