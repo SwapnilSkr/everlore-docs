@@ -124,6 +124,19 @@ echo "instance=$INST"
 Chat is **WS-only** — there is no REST "send message". The synchronous handler only validates and returns `ack {jobId}`; the actual narrative streams back **asynchronously** from the worker via Redis pub/sub on channel `user:<playerId>:events`, relayed to your socket.
 
 ### The contract
+> ## ⛔ SIDE-CHAT IS GONE — this playbook was stale (verified 2026-09-03)
+> The feature was removed from the app. `lib/` has **zero** references, and the
+> socket schema (`src/schemas/ws-message.schema.ts`) accepts only `chat`,
+> `continue`, `world_action`, `replay`, `ping`, `load_instance`. What survives
+> server-side is exclusion filters (`type: { $ne: 'side_chat' }`) and merge
+> helpers — dead weight, not a feature. `scripts/agent-chat.ts` never had a
+> `/side` step either, so a `/side …` line is silently sent as a chat message
+> and you will "test" side-chat by typing a sentence at the narrator.
+> **Do not test it, and delete §4 step 8 from your plan.** The turn surface
+> worth exercising in its place is **`world_action`** — the typed travel
+> control, which is the only path that reaches `actionDestination` and the only
+> promotion signal a brand-new world can hit early.
+
 - **Connect:** `ws://localhost:3000/ws/play?token=<JWT>`
 - **Wait for** the `{"type":"connected"}` frame **before sending anything** — sending earlier races and gets `{"type":"error","message":"Not authenticated"}`.
 - **⚠️ Filter by `instanceId`.** The server fans EVERY frame out to ALL of the account's open sockets (`for (const ws of connections)` over the user's connections). Parallel agents share one account, so your socket will also receive other agents' frames. **Drop any frame whose `instanceId` ≠ your instance.** The committed harness already does this.
@@ -132,7 +145,7 @@ Chat is **WS-only** — there is no REST "send message". The synchronous handler
   |---|---|
   | `{action:"chat", instance_id, payload:{message}}` | a normal turn |
   | `{action:"continue", instance_id, payload:{advance?}}` | world moves on its own; `advance` ∈ `hours\|day\|days\|season` = time skip |
-  | `{action:"side_chat", instance_id, payload:{character_id, message}}` | **private 1:1 with a side character** — same ledger/sequence, but story time + location cursor FROZEN; secrets scoped |
+  | ~~`side_chat`~~ | **REMOVED FROM THE PRODUCT.** See the note below. |
   | `{action:"replay", instance_id, event_id}` | regenerate an existing turn (alternative variant) |
   | `{action:"load_instance", instance_id}` | re-fetch state (recovery test) |
   | `{action:"ping"}` | keepalive → `pong` |

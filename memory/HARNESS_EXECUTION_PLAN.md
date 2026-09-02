@@ -1613,3 +1613,126 @@ is a replay.
 4. **Repair the graph on the remaining worlds.** `repair:duplicate-places` is
    dry-run by default; only Vesperkeep has been repaired, and the court world's
    junk locations are now filtered at read time but still written.
+
+
+---
+
+# The live play-test — what a replay could not see
+
+**Server** `e44b530`…`d347be3` on `feat/evidence-carrying-world-model`. 54 turns
+on a NEW world (`The Saltmarsh Commission`, instance `6a988b837829cb2e5b48aa94`)
+driven over the real socket against the worker, plus the typed travel control.
+29 audits green, `tsc` clean, **0 worker errors across the run**.
+
+Every number on this branch came from replaying a frozen corpus. The replay
+threads a cursor forward itself; production does not. The first sixteen live
+turns found three faults, two of them total, and the run then found a fourth
+that is worse than all of them.
+
+## 1. The cursor never persisted (total)
+
+`normalizeLocationAnchor` returns null unless the anchor has an `entity_id`, and
+a PROVISIONAL anchor has none — that is the whole point of the nullable field.
+On any world created after the promotion gate landed, the context packet
+reported **no current location on every turn**. `cursorName` is what the entire
+location stack arbitrates against, so drift repair could not fire, the
+compatibility guards could not refuse a move to where you already were, and the
+"a new name on a still turn is a re-description" rule was bypassed completely —
+with no cursor, every turn takes the FIRST-ANCHOR path.
+
+Live: a turn in which the *Harbourmaster* walked back to the Counting House
+moved the player there while he stood on the pier. The narrator also lost its
+`Current place:` line — the upstream half of the retcon loop.
+
+## 2. Nothing could ever be promoted (total)
+
+`classifyPlaceRelation` reads an arrival from a preposition next to the place
+name in a viewpoint-owned clause. Real arrivals are not written that way: *"Wick
+pushed open the heavy door, and the smell of wet wood washed over him"* names no
+place, and the room arrives a sentence later. Live it recorded **zero entries
+across sixteen turns and two walks between rooms**.
+
+So nothing accrued, nothing promoted, nothing was minted — and `authored`, which
+asks whether a place is already ON the map, could never become true either. **A
+closed loop: a world created after this gate could not put a single place on its
+own map**, and the Places atlas stayed empty forever.
+
+A cursor move is the same claim decided by the whole citation stack, so it now
+records the entry; the processor records the matching exit against the place
+being LEFT, which is the only thing that knows. On the re-run the Counting House
+promoted at seq 8 on `entered_and_left` — **the first live promotion this
+project has seen** — and the atlas ended the run with three real places, no
+duplicates.
+
+## 3. A citation from inside a quotation
+
+The quote-stripper was added to the passage-level corroboration and this seam
+was missed, so a turn whose narration reads *"Just me"* put a second person in
+the room on the strength of *"Deshi send you down here to get your boots wet?"* —
+spoken by the only character actually present.
+
+## 4. Every character in the database was dead, and none of them had died
+
+The worst defect on the branch. Every NPC in the fresh world was marked
+`life_state: 'deceased'` within forty turns, and **every death in the production
+database — all seven, across three worlds — was false. Not one was real.**
+
+```
+Ollen   <- "The mud took it last full moon."       it = a PILING
+Marn    <- "The Harbourmaster's gone, remember?"   a DIFFERENT person
+Mara    <- "The rest are ash or gone."             names nobody
+Deshi   <- "Deshi's gone back up."                 she went UPSTAIRS
+Rhea    <- "Rhea's busy with the dead."            she is a mortician
+Bram    <- "Bram's numbers won't matter."          his LEDGER
+Tomas   <- "…leaving the steward alone by the dead hearth."
+```
+
+The last is a live man in the middle of a scene, buried by an adjective
+belonging to a fireplace. He spoke for thirty more turns.
+
+`extractCharacterDeaths` checked only that the excerpt was verbatim and that the
+model was confident — the same (a)-only mistake the location and presence stacks
+each had to unlearn, in the one extractor whose write **cannot be undone**. A
+dead card is dropped from the context packet entirely, so the person stops being
+a KNOWN character: unadmittable to any scene, gone from Bonds, treated as an
+unknown walk-on by every later turn.
+
+**This rewrites an earlier finding on this branch.** The "ten turns with an
+empty room" measured on Vesperkeep was blamed on the presence gates. Tomas was
+marked dead at seq 42, and every one of those turns from 43 onward is downstream
+of it. The gates were refusing a man the codex had already buried.
+
+Fixed with the stack this branch is built on: (b) the excerpt names them;
+(c) the death is PREDICATED of them; and it is NARRATION, not a line somebody
+spoke — which the prompt has always demanded and nothing verified.
+`repair:false-deaths` restored all 7 cards.
+
+## What the 54 turns confirmed GREEN
+
+| Surface | Result |
+|---|---|
+| Location cursor | correct on every turn; mentioned places, future appointments and furniture all refused |
+| Places atlas | 3 real places, no duplicates, promotion + minting live |
+| Presence | arrivals, departures, carry-forward, phantom refusal all correct |
+| Travel control (`world_action`) | destination minted `authored`; an absent companion correctly refused (`travel.absent_companions_removed`) and a present one carried |
+| Party | a free-form join refused when the NPC declined on-screen (`party.uncorroborated_join_refused`) |
+| Realm stats | 12 of 54 turns mutated; add / subtract / set all applied |
+| Bonds | meters moved and are not trust-skewed (trust 51 / affection 1 / fear 3 after a collar-grab and an apology) |
+| Codex | 4 cards, aliases merged into one man, no phantom card |
+| Memory | 35 atoms; a fact stated at seq 28 recalled verbatim at seq 38 and searchable in Echoes |
+| Threads / Recap / Almanac | coherent; the calendar advanced on a time skip |
+| Errors | 0 worker errors in 54 turns |
+
+## Still open
+
+1. **A one-turn companion gap on a scene break.** Travel somewhere with someone
+   in free prose and the room reads empty for exactly one turn before they are
+   re-admitted (seen 3/3 times, self-healed 3/3). The fix is the party-signal
+   work — a first-person "I walk up with Marn" is the player asserting the move,
+   where "Soren, come with me" is a request that must stay refused. That is the
+   same subject/irrealis distinction `playerTextSituatesViewpoint` already
+   draws, and it should not ship without an A/B.
+2. **`corpus:cast-ab` still has no `openingCast` seed**, so its held-out number
+   remains a floor.
+3. **Side-chat is gone from the product** and the playbook was stale — it sent
+   agents to test a feature the socket no longer accepts. Corrected.
