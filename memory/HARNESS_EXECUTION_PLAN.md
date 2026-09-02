@@ -1390,3 +1390,207 @@ the end surfaced a real failure immediately: shape B of `excerptSituatesViewpoin
 head for the cafe later"* as being at the cafe. Fixed with an intent filter on
 shape B only; A and C are anchored by grammar already. The other four audits were
 checked for the same defect and are clean.
+
+
+---
+
+# Toward 99% — the hand-labelled corpus
+
+**Server commits** `e44b530`, `0a2866c`, `cde01d3`, `99a680c`, `2f09048` on
+`feat/evidence-carrying-world-model`. Not pushed, not prod. 28 audits green,
+`tsc --noEmit` clean.
+
+## The first thing that had to change was the instrument
+
+`corpus:location-ab` re-run from a clean tree gave **77.0%**, not the 86.5% this
+document records. The City fix — corroborating the judge's place with the
+player's own text — landed after that A/B and was never re-run. It cost nine
+points. *Re-run the A/B after every change* was already written down here; it
+was not followed, and one commit later nobody knew.
+
+Then the gold itself: `gold-shipped.json` is written by a model and was
+hand-verified at ~67% on the hard subset. It cannot tell a naming dispute from a
+wrong position, it scored three of these turns wrong, and **no model gold can
+certify a 99% target — its own error rate is thirty times the budget.**
+
+`corpus/gold-hand.json` — all 74 keeper turns read and labelled by hand, with an
+**accepted set** rather than a single string, because several turns have more
+than one defensible answer ("the bar" and "Split Lamp" are the same room; "the
+north wall" is a station inside "the hall"). Under it the *legacy* stack scores
+87.8%, not 83.8%: a third of what was being counted as legacy error was the
+labeller, not the code.
+
+`corpus/gold-hand-holdout.json` — 99 turns from two worlds this work had never
+touched: a cold-start court drama whose graph is full of junk locations, and a
+runner world whose production cursor sat in **one room for all 27 turns**.
+Fitting the keepers and reporting that number would have been the easy lie, and
+the held-out set said so immediately — 98.6% there, 78.8% here, same code.
+
+`corpus:travel-actions` closes a fifth harness defect of the family already
+recorded: the A/B replayed every turn with `actionDestination: null`, so a
+player who used the product's **travel control** moved by a mechanism the replay
+could not represent. Four turns of pure artifact were scoring as cursor failures.
+
+## Where it ended up
+
+| | legacy | before | **after** |
+|---|---|---|---|
+| location, keeper 74 | 87.8% | 77.0% | **98.6%** |
+| location, held-out 99 | 55.6% | 78.8% | **94.9%** |
+| **location, combined 173** | | | **96.5%** |
+| cast, keeper 74 | 85.1% | 77.0% shipped | **94.6%** |
+| cast, held-out 99 | 55.6% | 24.2% shipped | 56.6% *(floor, see below)* |
+
+## The finding: it was never placehood
+
+A week of this work was pointed at placehood. The held-out corpus said the
+remaining errors were one class and it was a different one.
+
+Both namers read one passage and name whichever part of the room the sentence
+they picked was about — the table, the court, the hearth, the city outside.
+Every one is a faithful reading, none of them is a move, and *"in this court,
+you will learn it"* has exactly the grammar of *"in the hall, the air is cold"*.
+No verifier separates them. That is placehood's wall reached from a sixth
+direction, and it is not where the answer is.
+
+**What separates them is not the sentence but the TURN.** If nothing in the
+narration or the player's instruction says the scene changed, a new name is a
+RE-DESCRIPTION of where they already are. Two exceptions, both narrow: the
+player saying where they are in their own words, and the two namers
+independently returning the **same label** — checked on the labels now, because
+"terminal table" and "terminal room" share a token, compared as compatible under
+the node-resolution test, and held a world at a piece of furniture for five
+turns.
+
+That one rule is worth more than every placehood idea tried before it.
+
+## `playerTextSituatesViewpoint` — registers are not interchangeable
+
+The City fix was `passageSituatesViewpoint` pointed at the player's instruction.
+Narration and an instruction are different registers: a narrator fronts
+locatives about the scene, while a player writes a sentence ABOUT something and
+its locative phrase routinely modifies a **noun**.
+
+```
+"I tell him about the ledgers in the cellars."    the LEDGERS are there
+"I think about the girl from the arcade."         the GIRL is from there
+"Let's get out of here — walk me to the dock."    a request; nobody moved
+"I will meet you in the war room at dawn."        an appointment
+```
+
+Each moved the live cursor. The replacement asks for the one shape a locative
+NP-modifier cannot take: the viewpoint is the **subject** and the locative sits
+on the **predicate**, with at most one content word between them. Modal
+auxiliaries — a closed class of about a dozen — separate a move from an
+appointment.
+
+## Three verifier holes, all closed by grammar
+
+- **Clause splitting DECAPITATED clauses.** "He leans forward, elbows on the
+  terminal table" became "elbows on the terminal table", a bare locative whose
+  owner was stranded in the previous fragment.
+- **Subject position counted the place name's own second word** as its
+  predicate, so the rendezvous "Eight o'clock sharp, Sapphire Tower." read as a
+  clause whose subject was there.
+- **`of` is a particle inside the noun phrase**, so "I sit on the edge OF the
+  dock" could not find its governor. `place-promotion.ts` had already learned
+  this rule; `location-citation.ts` had not.
+
+## Presence: a man in a parked van
+
+The cast had never been measured against ground truth. Hand-labelled, production
+ships **77.0%** exact-set match on the keepers, in three mechanisms:
+
+**Ten turns came back with an EMPTY ROOM.** The player walks up into his own
+hall, Tomas is standing at the hearth speaking to him, and the cast is `[]`. The
+judge had cited him correctly every time — paid for, discarded. The citation
+seed fixes most of it. What it could not fix: when the judge names **nobody**,
+the witness's names were not even CANDIDATES. The player stands over Bram's
+ledger — *"Bram doesn't look up from his ledger. His quill scratches a final
+line"* — and nothing was ever asked. `mergePresenceCandidates` returns
+candidates, not admissions; `deriveSceneState` is where the Isolde/Lyra property
+actually lives, and it was pinned to the wrong layer.
+
+**Five turns had a phantom.** Jax sits in a parked van visible from the loading
+dock and was in the scene for the rest of the run. Three mechanisms let him in,
+each one closed grammatical class away from refusal:
+
+```
+"Jax is out there."                    DISTAL DEICTIC — particle + there
+"…the van where Jax is waiting"        RELATIVE CLAUSE read as a main one; the
+                                       optional leading token meant for a title
+                                       ("Queen Isolde") swallowed the subordinator
+"Jax drove the whole night while I…"   REPORTED SPEECH — a memory of a tour,
+                                       promoted to narration because the passage
+                                       was split ON the quote marks
+```
+
+None needed a verb list. `here`/`there` is a deictic pair, `out`/`down`/`over`
+are particles, relativizers are a closed class, a quotation is punctuation.
+
+## The harness kept lying, and every lie flattered the legacy stack
+
+Five separate fidelity defects, each found only because a number looked wrong:
+
+1. `actionDestination` was always null — the travel control was invisible.
+2. The cast A/B broke scenes on the witness's raw `viewpoint_moved` boolean,
+   where production breaks on the **location decision**; it wiped a hall on a
+   turn where the player asked the steward downstairs and he refused.
+3. It counted "the steward" and "Tomas" as two men.
+4. It had no title-token fallback, so a court where everyone has a title lost
+   its entire cast — 29% → 50% on that fix alone.
+5. It required an endpoint citation across every scene break, where production
+   also accepts prose corroboration.
+
+**Read the held-out cast number as a floor, not a measurement.** The replay has
+no `openingCast` seed, so a world whose cast is established in the authored
+opening — a court already seated at a table — starts empty and has to re-earn
+every member from prose.
+
+## Tried and reverted, with numbers
+
+- **The witness ABANDONING its prior as evidence.** It is told to hold unless the
+  viewpoint moved, so letting go looks like a decision, and it recovers the
+  runner's corridor the judge lost to the district he was heading towards. But a
+  witness reading a poisoned graph abandons just as confidently: on the court
+  world it moved a dinner scene into the war room on turn six and held it there.
+  Held-out 94.9% → 89.9%, plus a keeper turn. **The bias is real and is not
+  separable from a hallucination.**
+- **Tightening the FIRST ANCHOR** to the same bar as every other path. It left
+  four turns of a cold-start world with **no cursor at all**, which is worse
+  than a provisional one: an unset cursor tells the narrator nothing, and the
+  narrator invents a setting the next turn reads back as canon.
+- **CAST DECAY.** "Quiet" and "gone" are the same state, so a king who walks out
+  of his war room stays for six more turns. Worth ~5 turns held-out, 0 on the
+  keepers; not enough to justify a persisted per-member counter. Curve is in
+  `corpus-cast-ab.ts` under `CAST_DECAY`.
+- **Model re-sampling is worth several points.** The same 99 turns re-extracted
+  moved a world's cursor from correct to "the city" for seven turns. Single-run
+  differences of a few points are noise; both frozen caches are controls.
+
+## The residual — six turns, and what each one is
+
+| | | |
+|---|---|---|
+| City seq 21 | keeper | the narrator RETCONNED the player back to the bar. The pre-stream `extractStatedPosition` fix targets exactly this and the frozen prose cannot exercise it. |
+| Aurelius 2, 3 | held-out | cold start, no cursor; the judge names the furniture. Self-heals at turn 4. |
+| Aurelius 27 | held-out | one turn of lag on a move whose transition the judge missed. |
+| Neon Divide 6, 7 | held-out | the judge named the district the runner was heading TOWARDS; the witness had the corridor and could not verify it. |
+
+Four of the six are the model choosing a mentioned or anticipated place, which
+is the same wall as placehood: the grammar of the sentence it quotes is
+indistinguishable from the right one. Getting those needs a better seam, not a
+better regex — the tier experiment (34% → 18% harmful, 3.6× post-stream latency)
+is still the only measured lever, and it is still unspent.
+
+## Next
+
+1. **Live play-test.** Every number here is a replay. Nothing has been driven
+   through the worker since these changes.
+2. **`corpus:cast-ab` needs the `openingCast` seed** before its held-out number
+   means anything.
+3. **`party-signal.ts` (10 content lists)** is the next block that can go the way
+   `extractStatedPosition` went — grammar plus a quoted span.
+4. **Repair the graph on the remaining worlds.** `repair:duplicate-places` is
+   dry-run by default; only Vesperkeep has been repaired, and the court world's
+   junk locations are now filtered at read time but still written.
