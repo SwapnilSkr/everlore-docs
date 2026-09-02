@@ -389,8 +389,12 @@ Hours, not weeks. Nothing here can regress the fiction.
 - Fix the false `time-skip-signal.ts` doc comment (§4.1).
 - Wire the existing audit scripts into one runner + CI. This is the safety net
   every later phase depends on.
-- **Scope the grammar verifier to the citation (§3.2).** Strictly strengthens
-  code already in prod; deletes nothing; unblocks Phase 1.
+- **Scope the grammar verifier to the citation** — stack **(a)+(b)+action-only
+  (c)**, per §10.1. Strictly strengthens code already in prod, and closes three
+  live phantom-presence paths.
+- **Subscribe the `onRaw` hooks and persist raw witness/judge JSON.** Moved up
+  from Phase 1.5 (§10.2): generating the corpus before this captures no
+  citations and the corpus has to be paid for twice.
 - **Capture provider `usage` in `src/ai/client.ts`.** `generation_logs` records
   one `tokens_in`/`tokens_out` pair for the *narration* call and
   `metadata_model` as a bare string; there is no per-call accounting for any of
@@ -402,9 +406,10 @@ Hours, not weeks. Nothing here can regress the fiction.
 
 Promoted out of Phase 1.5 after measurement (§4.3). 233 turns across 32 worlds,
 one carrying `scene_state`, is not a corpus. Everything below is blocked on
-this, including Phase 2. `agent-chat` playthroughs, deep runs over broad ones,
-and persist raw witness/judge JSON via the existing `onRaw` hooks while
-generating so the corpus is diffable rather than merely re-runnable.
+this, including Phase 2. `agent-chat` playthroughs, deep runs over broad ones.
+
+**Strictly after Phase 0's raw capture** (§10.2) — otherwise the corpus contains
+no citations to measure (b)/(c) against and has to be regenerated at full cost.
 
 ### Phase 1 — consume the judge we already pay for  ← *start here*
 
@@ -609,16 +614,110 @@ opposite epistemic role — deciding fiction becomes checking one model's work.
 5. **The four checks may over-constrain jointly** even where each is individually
    reasonable. (d) is the weakest and most likely to be dropped.
 
-### The questions I actually want answered
+### 10.1 Resolved: the action/identity seam — and the bug hiding in it
 
-- Is **(b)+(c)** the right stack, or **(b)+(d)**, or all four? (c) and (d) prove
-  different things and I do not know which failure dominates in practice.
-- **What happens when the judge cannot produce a citation passing all of them?**
-  This is DEVOCABULARY_PLAN's open question 2, now load-bearing. Proposal
-  unchanged: fail closed on admission, open on continuity.
-- Does requiring a grammatical citation **degrade the judge's other three
-  fields**, which are already trusted in prod for the scene-break decision? A
-  prompt change is not free and this is the call that decides `sceneBroke`.
+Review raised an objection I had missed: `tierFor`'s seven patterns are two
+different kinds, and citation-scoping does not shrink them uniformly.
+
+- **Action evidence** — `SPEECH_VERBS`, `ACTION_VERBS`, `PERSON_POSSESSIONS`,
+  `POSSESSED_THING_ACTS_VERBS`
+- **Identity evidence** — appositive (`"Mara, my sister"`), title-name
+  (`"Captain Rhea"`), possessive kinship (`"my sister Mara"`)
+
+The seam is real and it is the sharpest point raised so far. But the proposed
+remedy — evaluate (c) on the *sentence containing* the citation, to keep the
+identity patterns reachable — is wrong twice.
+
+**First, it does not work.** A citation is 3–24 words; the sentence containing
+it is typically 10–25. Those are the same span. The identity patterns are not
+too *long* to fit an excerpt — `"Captain Rhea"` is two words — they are
+statistically **located** at introductions, far from the endpoint the judge
+cites. Widening from excerpt to sentence changes span length, not span location,
+which is the same "narrows the window without changing the property" error that
+correctly killed (d), reappearing one scale up.
+
+**Second, and worse: those three patterns should not be reachable at all.**
+Using identity evidence as *presence* evidence is a category error, and it is
+live in prod. Running `hasSceneParticipationGrammar` on prose where the person
+is explicitly dead or absent:
+
+```
+CONFIRMED PRESENT   Rhea  "The letter mentioned Captain Rhea, who had died at sea two winters before."
+CONFIRMED PRESENT   Mara  "He still kept the locket. Mara, my sister, had been gone for years."
+CONFIRMED PRESENT   Mara  "I never speak of my sister Mara any more, not since the burial."
+CONFIRMED PRESENT   Bram  "Bram said it would rain, three days ago in the valley, and he was right."
+not present         Bram  "We ate the rations Bram had noted in his ledger before he rode south."
+CONFIRMED PRESENT   Bram  "Bram nodded and set his cup down on the table beside me."   ← control
+not present         Bram  "We ate the rations from the store Bram keeps in the valley." ← control
+```
+
+All three identity patterns admit a dead or long-absent person to the scene
+cast, from a single passing mention. This is the *same phantom-presence bug the
+gate was built to prevent*, sitting inside the gate. Preserving their reach
+preserves it.
+
+**Resolution — split along the seam, but route the halves apart:**
+
+- **Action patterns → citation-scoped.** The demotion works as intended. Note
+  the concentration worry is milder than stated: `PERSON_POSSESSIONS`
+  (`"Nora's jaw tightened"`) and `POSSESSED_THING_ACTS_VERBS` (`"Halvard's chair
+  scrapes back"`) are local and endpoint-capable, so four patterns survive, not
+  two.
+- **Identity patterns → out of the presence gate entirely.** They answer "is
+  this a person, and which one" — which is already `adjudicateEntityCandidates`'
+  job, a separate judge that legitimately reads the whole passage. They were
+  never presence evidence.
+
+So the stack is **(a) + (b) + action-only (c)**, citation-scoped, and (d) is
+dropped. This deletes three phantom-presence paths rather than preserving them.
+
+### 10.2 Resolved: measure the citations we already buy
+
+Review's answer to Q3 dissolves it, and is right: the judge **already emits
+citations in production**, so measure those against (b) and (c) before asking it
+for anything different. If most already name the person and show a verb, no
+prompt change is needed and the risk to `sceneBroke` never arises. If they do
+not, the measurement says which check to relax and by how much.
+
+**This exposes a sequencing bug in my revised plan.** `onRaw` is defined on all
+six extractors (endpoint judge at `scene-endpoint-adjudicator.ts:51`) and
+subscribed by **nothing in production** — the only subscriber is
+`nsfw-extraction-probe.ts`, which does not even wire the endpoint judge's. I had
+raw capture in Phase 1.5 and corpus generation in Phase 0.5. That order
+generates a corpus containing no citations, so it gets generated twice — and the
+only reason corpus generation is a phase at all is that it burns real tokens and
+hours. **Raw capture moves to Phase 0**, ahead of corpus generation, on exactly
+the argument already accepted for `usage` capture.
+
+### 10.3 Resolved: abstention must be observable per check
+
+Fail closed on admission, open on continuity — with the added condition that
+each rejection logs *which* of (a)/(b)/(c) fired, or the gate silently strangles
+admission and it surfaces from a play-test weeks later. The precedent exists:
+`presence.uncorroborated_held` (`generation.processor.ts:1941-1946`) already does
+this for the current gate.
+
+### 10.4 The ceiling on this whole family
+
+None of the seven patterns encode **aspect**, so
+`"Bram said it would rain, three days ago in the valley"` confirms Bram present
+today (verified above). Neither excerpt- nor sentence-scoping fixes it. The
+canonical `"the rations Bram had noted"` case is caught today only because
+`noted` happens to be absent from the list and `had` happens to sit between name
+and verb — luck, not design.
+
+Aspect and argument structure are *structural* properties, testable without
+deciding which verbs count, so that is the direction the lists eventually retire
+into. Flagged as a direction, not a proposal: nobody has verified it is
+tractable here.
+
+### 10.5 Still open
+
+Only one of the three original questions survives:
+
+- **The English-capitalisation assumption** now sits in a fail-closed position
+  (objection 4). Worse than the status quo for non-cased scripts, and unresolved
+  in either document.
 
 ---
 
@@ -634,7 +733,9 @@ first and one of them was mine to catch.
 | 3 | *"Phase 1 is a superset swap"* | **Wrong, and the one I should have caught.** `hasExactEvidence` verifies non-fabrication, not endpoint relevance (§3.1). Fixed by scoping the grammar test to the citation (§3.2) rather than by positional containment, which narrows the window without changing the property. |
 | 4 | *"Shadow-compare substrate exists — a task, not a phase"* | **Half wrong.** Plumbing does exist and the ledger is 46.7% populated, not empty. But 233 turns / 1 `scene_state` row means there is nothing to replay, so corpus generation is the critical path (§4.3). |
 | 5 | *"One authority per question"* | **Too strong.** Amended to allow N readers with a declared evidence-based tiebreak, preserving deliberate fault isolation. |
-| 6 | *"The arbitration framing is tidier than the git history"* | **Understated — it is retrofitted.** `git log -S`: `ACTION_VERBS`/`SPEECH_VERBS` landed `82b6d1c` **2026-06-19**; `adjudicateSceneEndpoint` landed `b666dd7` **2026-08-26**, ten weeks later. The lists were never arbitrating between judges — they were patching one unreliable witness. Which is exactly why Phase 1 deletes a check without inheriting its job (#3). The lone exception is `POSSESSED_THING_ACTS_VERBS` (`66ae987`, **2026-09-02**), added *after* the judge existed: a list genuinely chosen over an available judge. |
+| 6 | *"The arbitration framing is tidier than the git history"* | **Understated — it is retrofitted.** `git log -S`: `ACTION_VERBS`/`SPEECH_VERBS` landed `82b6d1c` **2026-06-19**; `adjudicateSceneEndpoint` landed `b666dd7` **2026-08-26**, ten weeks later. The lists were never arbitrating between judges — they were patching one unreliable witness. Which is exactly why Phase 1 deletes a check without inheriting its job (#3). I cited `POSSESSED_THING_ACTS_VERBS` (`66ae987`, **2026-09-02**) as an institutional counter-example; it is from this session, so it evidences one session's habit rather than a general pattern. Claim narrowed accordingly. |
+| 8 | *Citation-scoped (c) as a uniform swap* | **Incomplete, corrected in §10.1.** `tierFor` splits into action and identity halves; the identity half must be removed from the presence gate rather than preserved, because all three of its patterns admit a dead or absent person on a single mention (verified). Stack is (a)+(b)+action-only (c); (d) dropped. |
+| 9 | Raw capture in Phase 1.5, corpus in Phase 0.5 | **Wrong order (§10.2).** Raw capture must precede corpus generation or the corpus carries no citations and is paid for twice. Moved to Phase 0. |
 | 7 | Cost gates (*"≤ +15%"*) | **Unenforceable today.** No per-call token accounting for any post-stream call; `client.ts` never reads provider `usage`. Added to Phase 0. |
 
 Diagnosis and phase *ordering* survived review. The one-line framing, the cost
@@ -644,8 +745,10 @@ arithmetic, and the superset claim did not.
 
 ## 8. Live state
 
-Unchanged from DEVOCABULARY_PLAN §6: server `729ab07` is in prod, app 1.0.4
-(vc7) is on the Play alpha (closed) track.
+Server **`58d6e72`** is in prod (deploy run `33639716100`, green in 41s — the
+read-only census script plus one `package.json` entry, zero runtime surface).
+DEVOCABULARY_PLAN §6 says `729ab07`; that is now stale. App 1.0.4 (vc7) remains
+on the Play alpha (closed) track.
 
 Nothing proposed here requires reverting either. Phase 0 is pure subtraction of
 unreachable code; Phase 1 ships in shadow mode and changes no behaviour until
