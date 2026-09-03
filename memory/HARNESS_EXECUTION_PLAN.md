@@ -1736,3 +1736,127 @@ spoke — which the prompt has always demanded and nothing verified.
    remains a floor.
 3. **Side-chat is gone from the product** and the playbook was stale — it sent
    agents to test a feature the socket no longer accepts. Corrected.
+
+---
+
+# The pre-deploy pass — 29 more live turns, written to break specific things
+
+The 54-turn run was ordinary play. This one was adversarial: every input was
+chosen because a named part of the stack should refuse it, so that a pass means
+something. Same world, fresh instance, code at the tip of the branch.
+
+## The location probes, and what each was aimed at
+
+| # | Input | Aimed at | Result |
+|---|---|---|---|
+| 3 | "…whether Marn has been seen near the **Tidewatch Tower**" | a place named but not entered | cursor held; Marn not admitted |
+| 4 | "**tomorrow I will go** down to the tide-stair" | irrealis — a stated intention is not a move | cursor held |
+| 5 | "**\"Meet me at the granary,\"** … and I stay right where I am" | a place inside quotation marks | cursor held |
+| 6 | "I walk down to the tide-stair **with Deshi**" | a real move with a companion | moved; Deshi present the same turn |
+| 8 | "I **leave Deshi** at the tide-stair and climb back up **alone**" | a departure the prose states | moved back; Deshi and Marn dropped |
+| 11 | "…about the **dead accounts** in last winter's ledger" | a decoy for the death extractor | no death; the word belongs to a ledger |
+
+Turn 11 is worth reading in full, because it is the presence model being fed
+back to the narrator and used: *"Deshi wasn't here; Wick was addressing a man
+who wasn't present… Deshi's down on the tide-stair, where you left him."* The
+narrator declined the question on the grounds that the person had left.
+
+Realm stats moved on 6 of the turns with all three operators
+(`standing` 40 → 25 via subtract and add, `tide_debt` 10 → 35 via add and set).
+`scene_broke` was true on exactly the three turns that moved and false on the
+eleven that did not. Zero worker errors, zero dead-letter jobs.
+
+## The one that promoted
+
+`tide-stair` reached `entries=2, exits=1` and **promoted**, minting the first
+map node on a world created after the promotion gate landed. That is the closed
+loop from the last session confirmed open from the other side: a place now earns
+the atlas by being entered, left and entered again, with no author and no
+containment hint.
+
+## What the adversarial turns found
+
+**The authored opening establishes a place and nothing reads it.** The opening
+line is *"The Counting House smelled of wet rope and tallow"*, and the cursor's
+first anchor came from the witness on turn 2 instead: `Harbourmaster office`,
+cited to *"Ollen turned his head from the window"* — an excerpt that does not
+name it. The room then carried two names for eight turns until the narrator said
+"Counting House" itself and the cursor took it.
+
+Left unfixed, deliberately. It is a naming dispute inside one room, not a wrong
+position — the accepted-set gold exists for exactly this class. The two-tier map
+contains the damage: both names sat in `place_candidates` and neither reached
+the atlas, so the split is invisible to the player. And tightening the
+first-anchor path is the experiment already tried and reverted twice; it leaves
+turns with **no cursor at all**, which is worse than a provisional one.
+
+**A character can be admitted by an excerpt that places him somewhere else.**
+On a turn where the narrator refused the player's move, the prose read *"The
+mudlark didn't move from the tide-stair"* — and Marn was admitted to the Counting
+House. The sentence satisfies (a), (b) and (c): it is verbatim, it names him, it
+shows him acting. What it also does is name a place that is not the cursor, and
+the presence citation has no opinion about that. The fix has a shape —
+`passageSituatesViewpoint` applied to a third person — but it is a new path on a
+turn that only arose because the narrator had already desynced, so it wants an
+A/B before it ships.
+
+## The death ledger was recording nothing
+
+Five characters were killed across the run in prose written to be unambiguous.
+**Not one reached `character_lifecycle_deltas`**, and nothing anywhere said so:
+an empty ledger looks exactly like a turn where nobody died. Three separate
+defects, each one enough on its own:
+
+1. **27.65% of calls returned the JSON schema instead of the payload** —
+   `{"type":"object","properties":{"deaths":[…]}}`. Measured over the whole
+   `extractor_raw` corpus, and it is this extractor alone; scene_endpoint,
+   scene_witness, choice_metadata, entity_adjudication and player_interaction
+   are all at 0%. `parsed.deaths` was `undefined` and the loop ran zero times.
+2. **The citation check tested the excerpt whole**, anchoring the
+   subject-predicate half to its head. English narrates a death by naming the
+   person once and then pronouncing them, so the naming sentence is rarely
+   first. Per sentence — name and predicate in the *same* one — is stricter, not
+   looser.
+3. **The excerpt was required to be verbatim as a whole.** Asked for a
+   contiguous span the model returns the death's sentences with the
+   scene-setting between them dropped: four real sentences and one join that was
+   never in the prose. Checking verbatim per sentence discards exactly the
+   fabricated join.
+
+All three fixed. `audit:character-lifecycle` 17/17, and every one of the seven
+false deaths this branch found in production stays refused.
+
+### Where it still abstains, and why that is the right default
+
+Where the narrator shows someone **else** looking at the body — *"his eyes
+locked on Bryn's body slumped against the crates"* — the subject is the body and
+the actor is the onlooker, and this records nothing. Reaching that death means
+accepting the victim in object position, and in the same session the run
+produced both of these:
+
+```
+  "The bolt had taken Maker just below the ribs"        <- a real death
+  "the water dark where it had taken Deshi"             <- a man who drowned
+                                                           six turns earlier
+```
+
+They are the same sentence. No structural test separates them, and the
+difference is which turn you are on. A false death cannot be undone by a later
+turn — it drops the card from the packet, so the person stops being a known
+character and can never re-enter a scene — which is how seven of them emptied
+three production worlds. So the ledger says nothing and the codex carries the
+death in prose, where a later turn can still correct it.
+
+## Corpus, re-measured from the tip of the branch
+
+| Corpus | Legacy (what production runs) | This branch |
+|---|---|---|
+| Location, keeper (74 hand-labelled) | 89.2% | **98.6%** |
+| Location, held-out (99 hand-labelled) | 55.6% | **96.0%** |
+| Location, both (173) | 69.9% | **97.1%** |
+| Scene cast, keeper (74) | 85.1% | **94.6%** |
+| Scene cast — what production actually shipped | 77.0% | — |
+
+`tsc` clean. `audit:all` (the CI set) 29/29. Every audit including the
+Mongo-backed ones: 38/38, with `audit:moderation` needing a local mongod and
+`audit:replay-edit` needing a live instance id passed on the command line.
