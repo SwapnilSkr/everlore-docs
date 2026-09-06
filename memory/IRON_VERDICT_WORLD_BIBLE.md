@@ -54,6 +54,42 @@ Both existing portraits stay and are **not** regenerated.
   lantern, sealed papers, satchel of keys. Buys and sells sealed judgments.
   She can read the writ. She will also sell you out if the price clears.
 
+### Kin — who is related to whom
+
+Canon as of Sept 6 2026. These were **not** in the original bible; they were
+inferred from surnames while the cast was being written, and are recorded here
+rather than left in a data file so that the next person to author against this
+world reads the same facts.
+
+The inference is sound because in this world a house's name is on its building:
+Casa Verrine and Skarrow Longhall are named for the families that hold them.
+
+- **Lady Sereth Morrow is Duke Aldric Morrow's niece.** This is the one with
+  teeth. It does not merely place her at court — it makes her *a claimant*, and
+  she wants the succession settled on herself. The political spine in §1 lists
+  three factions who want the writ; Sereth is a fourth interest, a person who
+  wants the throne, and she is inside the Court rather than opposed to it.
+- **Ysolde Verrine is Aurel Verrine's niece**, and she audits her own house's
+  books. She holds the countersignature on the succession writ and whose hand
+  it is — the answer to the central question. Placing it with her makes the
+  reveal a betrayal of family rather than of an employer.
+- **Brynn Skarrow is Hjalvar Skarrow's daughter**, and her father intends to
+  trade her oath for a treaty. That is what gives Skarrow Longhall a reason to
+  matter beyond its hospitality law: there is someone in it who wants out.
+
+### What the Duke does and does not know
+
+Duke Aldric let the Iron Fane certify judgements he knew to be false. This is
+**guarded knowledge**, gated behind `writ_read` — he will not volunteer it, and
+it is not available in his first scene.
+
+The distinction is mechanical, not stylistic. A character's open knowledge is
+freely revealable in conversation, so a fact placed there can surface as small
+talk. His complicity is the story's answer, and an answer that arrives before
+the question has been asked is not a reveal. Note also that it reframes an
+ending: *The Bloodless Crown* means something very different once the head of
+the Court is known to have permitted the fraud.
+
 ---
 
 ## 2. Places

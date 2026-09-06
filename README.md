@@ -51,6 +51,7 @@ everlore-docs/
 |-----|-------|
 | [client/README.md](./client/README.md) | Index |
 | [client/features/play-feature.md](./client/features/play-feature.md) | Play screen |
+| [client/features/interactive-world/ashen-circuit.md](./client/features/interactive-world/ashen-circuit.md) | Ashen Circuit interactive-world architecture |
 | [client/features/billing-feature.md](./client/features/billing-feature.md) | Membership / Story Ink UI |
 | [client/features/chronicle-feature.md](./client/features/chronicle-feature.md) | Lore Tome (7 tabs) |
 | [client/architecture/routing.md](./client/architecture/routing.md) | Routes |

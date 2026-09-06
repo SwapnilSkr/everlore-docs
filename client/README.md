@@ -27,6 +27,8 @@ Flutter app docs for Play, Lore Tome, Membership & Ink, Forge, and shell navigat
 | [features/billing-feature.md](./features/billing-feature.md) | Membership & Ink (`/billing/*`) |
 | [features/home-feature.md](./features/home-feature.md) | Realms tab |
 | [features/templates-feature.md](./features/templates-feature.md) | Discover + template detail |
+| [features/interactive-world/ashen-circuit.md](./features/interactive-world/ashen-circuit.md) | Ashen Circuit action-first interactive-world direction |
+| [features/interactive-world/ashen-circuit-production-plan.md](./features/interactive-world/ashen-circuit-production-plan.md) | Ashen Circuit production plan and asset contract |
 
 ## Shared
 

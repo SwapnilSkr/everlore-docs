@@ -24,6 +24,7 @@ Backend docs for the Bun/Elysia API + BullMQ workers.
 |----------|-------------|
 | [SCHEMAS.md](./SCHEMAS.md) | Canonical request/response JSON shapes |
 | [API.md](./API.md) | HTTP + WebSocket protocol |
+| [INTERACTIVE_WORLDS.md](./INTERACTIVE_WORLDS.md) | Interactive worlds, Mongo state, and S3 asset manifests |
 | [SECURITY.md](./SECURITY.md) | Auth, JWT, rate limits |
 | [CONFIGURATION.md](./CONFIGURATION.md) | Environment variables |
 | [BILLING.md](./BILLING.md) | Story Ink ledger, Play catalog, reserve/settle, enforcement flags |
