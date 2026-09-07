@@ -399,6 +399,14 @@ Each failure is invisible — the scene still plays, it is just no longer a judg
 
 6. **No pushes, no prod deploy.**
 
+## 6A. ⚠️ ACCOUNT STATE CHANGED ON PROD
+
+**Sept 8 2026: `swapnilcrlm@gmail.com` was moved from `free` to `premium`**, on the owner's explicit instruction, by a direct write to `users.tier` on the production Atlas cluster. It lifts the in-app paywall (My Worlds shows the forge rather than the upgrade gate).
+
+⚠️ Do not confuse this with `admin_tier_override`, which grants server-side access but does NOT lift the paywall — `serializeUser` returns the raw `tier`. A previous session bumped this account to `creator` and restored it to `free`; if the paywall needs to be back, set `tier` to `free` again.
+
+---
+
 ## 7. RUNNING IT
 
 ```bash
