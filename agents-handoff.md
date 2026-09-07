@@ -175,6 +175,16 @@ Twelve strings rewritten: drafting errors, `Custom AI Personalities`, `GENERATE 
 
 ⚠️ `autofill_card.dart` carries **pre-existing uncommitted work by someone else**, so its two copy fixes are edited but NOT committed. Do not commit that file wholesale.
 
+### 2A.5 The walkable world stopped looking bolted on (`7ddf4b3`, `0e269c6`)
+
+Two Grok passes, both reviewed and driven on the emulator before committing.
+
+**Loading, and the art actually being there.** The screen used to stop waiting the moment the save landed, then the plates, the room and the faces streamed in behind it — a cold opening was an empty grid filling in under the player's eyes. Each view now waits on what its FIRST frame needs and nothing else (map → terrain; room → its painting plus the faces standing in it; a walk → where it ends; a Verdict → its ground and its two fighters), **bounded at 8s** so one dead image cannot keep the world shut. ⚠️ The wait warms `CachedNetworkImageProvider` with the SAME `maxWidth/maxHeight` the widget's `memCacheWidth/Height` produce — a different key warms a shelf nothing reads from and the gate still opens onto an empty grid. Verified: the keys match today. The bare `CircularProgressIndicator`s are gone; a wait is `EverloreSessionLoader` with a line of the world's voice, or `WorldStill` in place.
+
+**Consistency.** A read-only Grok audit produced 15 ranked findings (report kept at `/tmp/grok8.log`); a second Grok applied them. The real ones: every label was a raw `TextStyle` in the stock face and the story itself was 13px in it; refusals came up as a stock `SnackBar`; the failure state said the world was *"not published"*; `_StoryPanel` had **no height ceiling** while the petition beside it caps at 66% and scrolls; the conversation parchment was a fixed clamp that ignored `textScaler`; the map title had no shadow and sat on top of a landmark's name; the map's primary action was Material's default pill whose busy state dropped the label. Also a third brass that was neither token, landmarks a screen reader could not see, and a line of copy naming a tab.
+
+⚠️ **Splitting a read-only audit from the pass that applies it worked well** and is worth repeating: the auditor had no stake in the fix, ranked honestly, and explicitly listed what was deliberate and should be left alone (the parchment documents, the fog, the numberless bars).
+
 ---
 
 ## 3. HOW TO DRIVE THE OTHER AGENTS
