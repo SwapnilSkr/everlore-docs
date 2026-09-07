@@ -29,8 +29,8 @@ git log --format="%H %s%n%b" -20 | grep -iE "co-authored|generated with|claude" 
 | Repo | Branch | Head | Pushed |
 |---|---|---|---|
 | `everlore-server` | `feat/interactive-world-markers` | `c753c8c` | **no** |
-| `everlore` (Flutter) | `feat/interactive-world-markers` | `d2fa37d` | **no** |
-| `everlore-docs` | `docs/iron-verdict-world` | `0daba6d` | **no** |
+| `everlore` (Flutter) | `feat/interactive-world-markers` | `0e269c6` | **no** |
+| `everlore-docs` | `docs/iron-verdict-world` | (this commit) | **no** |
 
 Nothing is on prod. `everlore` carries a large pile of **unrelated** uncommitted work (UX hygiene, Play compliance, gradle, `create_character_screen`, `autofill_card`, `main.dart`, `auth_screen`, `everlore_nav_bar`). **Leave it alone** — do not stage, revert or "tidy" it. Commit only files your own work touched.
 
@@ -184,6 +184,38 @@ Two Grok passes, both reviewed and driven on the emulator before committing.
 **Consistency.** A read-only Grok audit produced 15 ranked findings (report kept at `/tmp/grok8.log`); a second Grok applied them. The real ones: every label was a raw `TextStyle` in the stock face and the story itself was 13px in it; refusals came up as a stock `SnackBar`; the failure state said the world was *"not published"*; `_StoryPanel` had **no height ceiling** while the petition beside it caps at 66% and scrolls; the conversation parchment was a fixed clamp that ignored `textScaler`; the map title had no shadow and sat on top of a landmark's name; the map's primary action was Material's default pill whose busy state dropped the label. Also a third brass that was neither token, landmarks a screen reader could not see, and a line of copy naming a tab.
 
 ⚠️ **Splitting a read-only audit from the pass that applies it worked well** and is worth repeating: the auditor had no stake in the fix, ranked honestly, and explicitly listed what was deliberate and should be left alone (the parchment documents, the fog, the numberless bars).
+
+### 2A.6 The staging module — ⚠️ UNCOMMITTED AND UNFINISHED
+
+The owner's verdict on the first duel and conversation: *"The fight sequences are nowhere close to how they should be. And the dialogue sequences aren't consistent across all locations. Shouldn't they be modular and centralized so they can be reusable? The boxes are inconsistent and generic."* All three were true — the duel and the conversation had each invented their own panel, plate and bubble.
+
+**What exists on disk, uncommitted:** `lib/features/interactive/presentation/stage/` — one staging vocabulary both surfaces are built from. `stage_tokens.dart` holds every shared measurement plus `StageDuelLayout`, which returns an explicit rect for every band; the primitives are `StageBackdrop`, `StageFigure` (+`StageStandard`), `StageNamePlate`, `StagePanel`, `StageBubble`, `StageMeter`, `StageAvatar`, `StageFloat`, `StageInscription`, `StageSkip`, `StageAdvance`, with `stage.dart` as the barrel. **This module is good and should be kept.** `flutter analyze lib/features/interactive/` is clean.
+
+⚠️ **The first composition it produced was worse than what it replaced**, and only the emulator showed it: both fighters rendered centred and on top of each other, the no-face standard was a translucent slab across the arena, the reading panel floated at 78% width, one name plate was clipped off the right edge, and **the conversation was broken outright — the speaker's cut-out was not drawn at all and the panel was empty**. A second, correcting pass fixed the causes:
+
+- the figures were `Align`ed inside a full-bleed `Stack`, which centres them; they are `Positioned` rects now (far = right half 14–56%, near = left half 34–100%, ≤0.08 shared width)
+- **D8**: `StageFigure` sized the bitmap from slot height × 1.42 × ⅔ and clipped at `topLeft`/`topRight`, so a published portrait painted only the transparent margin of its 2:3 cut-out — it rendered as nothing
+- **D9**: the panel used `panelHeightMax` as a FLOOR, and the authored `first_met` line was never seeded as the opening beat when the visit list was empty
+
+**Still open at handoff — verified on device, not yet fixed or fixed-but-unverified:**
+1. Two render overflows were visible: the skip control (6px) and the reading panel (16px). **I fixed both** (`skipColumn`/`skipExtent`, and `panelChrome` folded into the panel's height estimate) — analyze is clean but this is **NOT verified on a device**.
+2. The far fighter's name plate still truncated to `DOVI…`, and the skip label to `Hear the…`.
+3. A Grok agent (`/tmp/grok-task12.txt`, log `/tmp/grok12.log`) was **still running at handoff** on the owner's other complaint: people in a ROOM stand small and centred instead of the reference framing (large half-body, one side, cropped by the bottom edge). It owns the same three files plus `stage/`. **Check whether it landed, review it, and re-verify everything above together.**
+
+⛔ **DO NOT COMMIT `lib/features/interactive/` blind.** It currently holds three different agents' work plus mine, and the composition has already regressed once while passing `flutter analyze`. Build it, drive it on the emulator, and only then commit.
+
+### 2A.7 The duel opponents have no faces — art in flight
+
+The owner asked *"where is the character asset of the opponent in fight?"* **There is none, and there never was.** `Dovin Kell` and `Rell Halloran` are authored only as duel combatants, not cast members, so no portrait was ever generated — `resolveFighter` returns a null portrait for anyone without a `cast_id`, and the client draws the hanging standard. That is why a letter on cloth appears where a champion should be.
+
+**In flight at handoff:** `portrait_dovin_kell` was sent to Codex (§3.2 recipe) using the house portrait prompt copied verbatim from `everlore-docs/memory/IRON_VERDICT_ALL_PROMPTS.md` (§ PORTRAITS), told to write to the drop folder at exactly `portrait_dovin_kell.png`. **`portrait_rell_halloran` was NOT started.**
+
+To finish this, all of it is still to do:
+1. generate `portrait_rell_halloran` the same way;
+2. reconcile the drop folder for `_v2` / `.provisional` strays (§3.2 has the script);
+3. `bun run assets:process -- --upload`, then `bun run audit:asset-reachability`;
+4. add both ids to the world's `assets` manifest — **new ids do NOT need a revision bump**;
+5. ⚠️ **the server cannot yet carry them.** `WorldDuelCombatant` has no portrait field and `resolveFighter` only resolves a face through `cast_id`. Add an authored portrait id to the combatant and resolve it in `duel.service.ts`, then extend the audit to assert every authored combatant portrait is in the manifest — otherwise the art will exist and still not reach the screen.
 
 ---
 
@@ -385,19 +417,23 @@ Each failure is invisible — the scene still plays, it is just no longer a judg
 
 ## 6. NOT DONE
 
-1. **IN FLIGHT AT HANDOFF — check these first.**
-   - *Loading and image readiness* (Grok, Flutter, task at `/tmp/grok-task7.txt`, log `/tmp/grok7.log`). Owns the five files in `lib/features/interactive/presentation/`; added `world_frame.dart`. Replaces the bare `CircularProgressIndicator`s with `EverloreSessionLoader`, and holds the screen until the images of the FIRST FRAME are decoded (bounded, so one dead image cannot hang it). **Review its diff and run `flutter analyze lib/features/interactive/` before trusting it.**
-   - *The UI consistency audit is DONE and its findings are NOT yet applied* — full report in `/tmp/grok8.log`. Fifteen ranked findings with file:line. Findings **3 and 4** (loader, `Image.network` → `EverloreNetworkImage`) belong to the agent above; the rest are unclaimed. The big ones: **(1)** almost every label on the map and in the room is a raw `TextStyle` in the default Material face, and scene/petition prose is 13–14px there instead of `aiText`; **(2)** refusals go through a stock `SnackBar` instead of `showEverloreNotice`; **(5)** `_StoryPanel` has no max height and will overflow the stack on a long scene; **(6)** the conversation parchment is a fixed clamp that ignores `textScaler`; **(9)** a third brass `0xC8A96A` sits next to `gold`/`goldDim`; **(13)** copy that names the app rather than the fiction (`"Enter from My Worlds to play"`, the `Sealed` enum stamped on a card).
+1. **⚠️ `lib/features/interactive/` IS UNCOMMITTED AND UNVERIFIED.** Read §2A.6 before touching it. A Grok agent may still have been running when this was written. Build it, drive it, then commit.
+2. **The duel opponents still have no faces.** §2A.7 lists every remaining step, including a server change without which the art cannot reach the screen.
+3. **The reference staging is not fully met.** The owner supplied screenshots of an arena duel and a visual-novel dialogue. Achieved: diagonal fighters, mirrored status strips with medallions, name plates, damage floats, hit flash, speech bubbles, skip. Deliberately NOT copied: the reference's bright blue-and-gold chrome (this world is obsidian, brass and parchment) and its "Level: 250 / Attack: 3915" readouts with six-figure counts inside the bars — **we do not have those numbers and they were not invented**; the strips show the fighter's name and role, and the bars are drawn, not counted. **The owner has not agreed to that substitution — ask.**
+4. **Two "AI" strings deliberately left** — the disclaimer above the message field and the wordmark superscript. Ask before changing. `autofill_card.dart` has its fixes edited but uncommitted because that file carries someone else's work.
+5. **A walkable world still only appears in My Worlds.** The card is world-agnostic now, but nowhere a new player would look shows one.
+6. **Ripening has never been observed firing live**; the duel's other two fights (`let_cassian_throw`, `fight_succession`) have never been seen in the app — only `witness_verdict` was driven end to end.
+7. **No pushes, no prod deploy.**
 
-2. **Two "AI" strings deliberately left** — the disclaimer above the message field and the wordmark superscript. **Ask the user; do not change unilaterally.** See §2A.4. `autofill_card.dart` has its fixes edited but uncommitted because the file carries someone else's work.
+### ⚠️ ON BURNING THE OWNER'S CONTEXT BUDGET
 
-3. **My Worlds is world-agnostic now, but the entrance is still only in My Worlds.** A walkable world does not appear anywhere a new player would look.
+This session spent an unacceptable amount of the owner's usage, and they said so. Two causes, both avoidable, both mine:
 
-4. **Ripening has never been observed firing live** — it needs an ending and then 3 rulings. Verified by audit and by construction only.
+- **`ToolSearch` with a broad keyword query.** `{query: "computer-use", max_results: 30}` loads the FULL JSON schema of ~20 tools — `computer_batch`, `teach_step` and `teach_batch` each embed the same long nested action schema, and the machine's entire installed-application list appears twice. Loaded schemas are **permanent for the session**: they are re-sent on every subsequent request. The MCP instructions actively recommend that bulk query. **Do not follow it.** Use `select:` and name only what you need — for the Codex recipe that is `app_menu`, `app_list_windows`, `app_batch`, `app_key`.
+- **Repo-wide greps that print whole files.** One grep of `IRON_VERDICT_ALL_PROMPTS.md` dumped eight near-identical 400-word prompts to get at one. Read a line range.
+- **Emulator screenshots are the other big cost.** Take them at `scale: 0.3`, only to see a change you cannot verify any other way, and never twice to confirm the same state. Several here were wasted re-capturing a screen because a coordinate conversion was wrong.
 
-5. **The duel's other two fights have never been seen in the app** — only `witness_verdict` was driven end to end. `let_cassian_throw` (fatal) and `fight_succession` (the player is a combatant, so one side has no portrait) are covered by the audit but not by eyes.
-
-6. **No pushes, no prod deploy.**
+⚠️ **Screenshot coordinate arithmetic:** the emulator is 1280x2856. If you downscale a capture to 448 wide, the factor back to device pixels is **2.857**, not the 1.43 that applies to an 896-wide render. Getting this wrong makes taps land silently in the wrong place and costs a screenshot every time.
 
 ## 6A. ⚠️ ACCOUNT STATE CHANGED ON PROD
 
