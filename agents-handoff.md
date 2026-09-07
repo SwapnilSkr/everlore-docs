@@ -208,10 +208,23 @@ The owner's verdict on the first duel and conversation: *"The fight sequences ar
 
 The owner asked *"where is the character asset of the opponent in fight?"* **There is none, and there never was.** `Dovin Kell` and `Rell Halloran` are authored only as duel combatants, not cast members, so no portrait was ever generated — `resolveFighter` returns a null portrait for anyone without a `cast_id`, and the client draws the hanging standard. That is why a letter on cloth appears where a champion should be.
 
-**In flight at handoff:** `portrait_dovin_kell` was sent to Codex (§3.2 recipe) using the house portrait prompt copied verbatim from `everlore-docs/memory/IRON_VERDICT_ALL_PROMPTS.md` (§ PORTRAITS), told to write to the drop folder at exactly `portrait_dovin_kell.png`. **`portrait_rell_halloran` was NOT started.**
+**✅ `portrait_dovin_kell` is GENERATED and sitting in the drop folder** (Sept 8 2026, Codex, §3.2 recipe, house portrait prompt copied verbatim from `everlore-docs/memory/IRON_VERDICT_ALL_PROMPTS.md` § PORTRAITS). It is **not processed, not uploaded and not in the manifest** — it is a loose PNG and nothing else.
+
+Verified before recording it, by sampling pixels rather than by eye (cheaper, and the eye is not the thing that fails here):
+
+```
+1024x1536, aspect 0.667          exact 2:3, matching every other portrait
+border mean RGB   6 169 66       target #00B140 is 0 177 64
+border stdev      1.6            flat, no gradient or vignette
+green samples     246/246        chroma backing runs edge to edge
+```
+
+That is the check that matters: two earlier portraits came back on BLACK and the matte pass rejected them (§2.1). This one will matte. No `_v2` / `.provisional` stray was written. ⚠️ There IS a pre-existing stray in that folder — `scene_blackreach_hold_v2.png` — which predates this session; reconcile before any `assets:process` run.
+
+**`portrait_rell_halloran` was NOT started.**
 
 To finish this, all of it is still to do:
-1. generate `portrait_rell_halloran` the same way;
+1. generate `portrait_rell_halloran` the same way (Rell Halloran — *"Champion bought for the Sable Court claim… patient, expensive, and entirely aware of how little he is being asked to do"*);
 2. reconcile the drop folder for `_v2` / `.provisional` strays (§3.2 has the script);
 3. `bun run assets:process -- --upload`, then `bun run audit:asset-reachability`;
 4. add both ids to the world's `assets` manifest — **new ids do NOT need a revision bump**;
