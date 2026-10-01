@@ -48,7 +48,30 @@ Invariants every workstream keeps (AGENTS.md §3): the world is data; the server
 
 **Invariant:** the tap only paces the fight. **It never changes the outcome** (authored, or trait-contested on the server). The client decides nothing.
 
-**Contract change (server):** each exchange must say **whose strike it is** (`attacker: 'player' | 'opponent'`) and how it lands (`landing: 'hit' | 'blocked' | 'grazed'`). These are derived from authored data, never from prose. → backend task.
+**Contract change (server) — W3-C, fixed Oct 1.** Every field is derived in `duel.service.ts` from authored data and the bound lead. None comes from prose or the model, and existing fields are unchanged (additive only).
+
+```ts
+// StagedDuel / OfferedDuel — added
+player_side: 'challenger' | 'defender' | null
+  // the side whose combatant is_player, or whose cast_id === the bound lead.
+  // null = a Verdict the player only watches (no shield at all).
+near_side: 'challenger' | 'defender'
+  // drawn small, bottom-left. = player_side ?? 'challenger'. The other side is top-right.
+
+// StagedBeat — added
+striker: 'near' | 'far'
+  // which corner lunges this exchange: actor === near_side ? 'near' : 'far'
+awaits_player: boolean
+  // true iff player_side !== null && actor === player_side.
+  // The client shows the pulsing shield and waits for a tap. Never true for the opponent.
+impact: 'blocked' | 'glancing' | 'solid' | 'decisive'
+  // decisive  iff the beat is the decisive one
+  // blocked   iff toll === 0
+  // glancing  iff toll * 4 < duel vigour   (under a quarter of a full bar)
+  // solid     otherwise
+```
+
+Client rule: a tap on the shield releases the next `awaits_player` beat and nothing else. It never picks, skips or changes an outcome. Spectator Verdicts (`player_side === null`) play on their own with a tap-to-advance at most.
 
 **Assets (Codex app):** the shield emblem (brass and iron, front-on, on chroma green), an impact spark/slash sheet, and possibly the bar frames. The animation itself is code.
 
