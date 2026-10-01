@@ -83,6 +83,32 @@ Client rule: a tap on the shield releases the next `awaits_player` beat and noth
 - The client ignores `reign_opened` (`_apply`, `interactive_world_screen.dart:143–270`). The ending's opening beat is never shown.
 - `wayOnOf` (`interactive-world.service.ts:288–358`) can return null, so a post-action room can have a panel but no speaker and no way on.
 
+**Contract — W4-S, fixed Oct 1** (server; the client is unchanged except for showing `reign_opened`):
+
+```ts
+// Authored, optional, on a cast member
+ties?: string[]            // cast ids this person is close to (kin, sworn, household). Read SYMMETRICALLY.
+// Authored, optional, on a choice (and a petition resolution)
+word?: 'private' | 'circle' | 'public'   // default 'circle'
+// World-level, authored, optional
+word_travel?: { circle_after: number, public_after: number }   // default { circle_after: 2, public_after: 4 }
+
+// Stored on each material event (choose / rule / duel), never parsed from player_input
+deed: { kind: 'choose' | 'rule', id: string, location_id: string, witnesses: string[] /* cast ids */ }
+  // witnesses = presentCast at that location BEFORE the action applied (pre-action),
+  //             so someone the deed itself revealed did NOT witness it.
+
+// Derived on read, never stored, from the ACTIVE event log (restore-safe), per cast member C, per deed D:
+//   saw    if C ∈ D.witnesses
+//   heard  if word ≠ private and C shares a faction (≠ 'none') or a tie with some witness W,
+//          and ≥ circle_after material actions have happened since D        → from: W
+//   heard  if word = public and C's home realm = D's location realm,
+//          and ≥ public_after material actions since D                       → from: 'word on the road'
+//   else   unknown
+```
+
+`speakAs` receives `witnessed` (deeds C saw) and `heard` (`{ text, from }`) as **separate lists**, built from the above. This replaces `witnessedHere`'s location-based inference. "Material actions" = choose + rule + move; talk and train don't advance word.
+
 **Fix order:** (1) record the **pre-action cast** on each deed event as its witnesses, with structured `{deed_kind, deed_id, location_id, seq}` on the event (never parse `player_input`); (2) author ties + per-deed travel scope; (3) derive `heard` on read from the active event log (restore-safe), passed to `speakAs` as its own list alongside `witnessed` and `knowledge`; (4) client shows `reign_opened`; audit fails on any reachable state with no way on.
 
 **Target:**
