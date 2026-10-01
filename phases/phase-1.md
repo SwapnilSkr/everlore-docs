@@ -148,3 +148,12 @@ The three UI workstreams all live in `everlore/lib/features/interactive/presenta
 
 - Uncommitted on disk: training no longer prompts a character to speak (server + app), and the seed always rewrites the fixture. Verify on the emulator, then commit.
 - The Iron Verdict is seeded **unpublished**, so it's not on the Walks shelf. Owner to decide: publish to all, or only to their account.
+
+## W2a — The veil: words while the world loads  ·  UI (agy)   *(owner's request, Oct 1)*
+
+Every wait on images (opening a Walk, walking into a place, the fight's opening) shows today's `WorldMist` alone, which reads as a blank screen for up to 8s. Replace it with one shared **`WorldVeil`**: the mist plus **animated text in the world's own voice**.
+
+- **Words come from data the client already has, never from client copy:** opening a Walk shows the chapter title, then the world's `blurb`. Walking into a place shows the place's name, then its first description sentence. A fight shows the Herald's question. The client never names a world. With no data, show the mist alone.
+- **Motion:** the title fades and rises (12px → 0, 700ms, `easeOutCubic`) in `serifDisplay` (Cinzel, titles only), letter-spaced. The line below reveals word by word (each word fading in over 260ms, staggered 90ms) in `aiText` (EB Garamond) at 70% parchment. A thin brass rule draws outward from the centre beneath the title (500ms). After the full line shows, a slow breathing opacity (0.75 ↔ 1, 2.4s) on the line, so a long wait still feels alive.
+- **Exit:** when the frame is ready, text and mist lift together (the existing `lifting`/`onLifted` path). If the wait is shorter than the title's entrance, still show the title for ≥ 600ms so it never flickers.
+- Respects `disableAnimations` (static text, no stagger) and `textScaler`; centred; max 3 lines; never covers the safe area.
