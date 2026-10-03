@@ -1,6 +1,8 @@
 # THE IRON VERDICT — AGENT HANDOFF
 
-*Written Sept 8 2026. Supersedes the previous session dump. Self-contained: assume the reader knows nothing about this session.*
+*Written Sept 8 2026; state, §2B and §6 refreshed Oct 3 2026. Self-contained: assume the reader knows nothing about this session.*
+
+**Work is now orchestrated through the root [`AGENTS.md`](../AGENTS.md)** (lanes, briefs, the guard, the dev loop). The current phase plan and every payload contract are in [`phases/phase-1.md`](phases/phase-1.md) (W1–W8). Read those two before this file's history.
 
 **Addressed to whichever agent picks this up — Claude or Codex.** Cursor/Grok does not need it (monthly limits, not a rolling window).
 
@@ -28,8 +30,8 @@ git log --format="%H %s%n%b" -20 | grep -iE "co-authored|generated with|claude" 
 
 | Repo | Branch | Head | Pushed |
 |---|---|---|---|
-| `everlore-server` | `feat/interactive-world-markers` | `c753c8c` | **no** |
-| `everlore` (Flutter) | `feat/interactive-world-markers` | `0e269c6` | **no** |
+| `everlore-server` | `feat/interactive-world-markers` | `134949e` (Oct 3) | **no** — 48 ahead of origin |
+| `everlore` (Flutter) | `feat/interactive-world-markers` | `10740fc` (Oct 3) | **no** — 17 ahead |
 | `everlore-docs` | `docs/iron-verdict-world` | (this commit) | **no** |
 
 Nothing is on prod. `everlore` carries a large pile of **unrelated** uncommitted work (UX hygiene, Play compliance, gradle, `create_character_screen`, `autofill_card`, `main.dart`, `auth_screen`, `everlore_nav_bar`). **Leave it alone** — do not stage, revert or "tidy" it. Commit only files your own work touched.
@@ -45,9 +47,10 @@ Expected tail:
 
 ```
 sidecars: 20 characters, 32 portraits, 16 petitions, 4 standing tracks
-playable: 30/30 locations, 27/27 choices, 4/4 endings over 5 roads
+playable: 30/30 locations, 38/38 choices, 4/4 endings over 19 roads
+topics: 60 authored offers, ask/spent/restore checked
 cast: 20 characters across 15 places, 12 gated, 16 can open a road, 1 guarded secrets
-duels: 3 fought Verdicts over 18 exchanges, 1 fatal
+duels: 3 fought duels over 18 exchanges, 1 fatal
 ripening: 6 rungs, a season is 3 rulings, 11/16 petitions seed one
 58 assets referenced
 all checks passed
@@ -59,7 +62,7 @@ asset-reachability — iron-verdict (58 assets)
 All 58 assets reachable.
 ```
 
-Flutter: `flutter analyze lib/features/interactive/` must be clean. Use the **global** `flutter` (3.47.2+); the old SDK pin is retired.
+Also `bun run audit:all` (41 checks, Oct 3). Flutter: `flutter analyze lib/features/interactive/` must be clean and `flutter test` green (308 on Oct 3). Use the **global** `flutter` (3.47.2+); the old SDK pin is retired.
 
 **There is no test framework on the server — the audit IS the harness.** Add new invariants there, and always verify a new check BITES by tampering, then restore.
 
@@ -185,7 +188,7 @@ Two Grok passes, both reviewed and driven on the emulator before committing.
 
 ⚠️ **Splitting a read-only audit from the pass that applies it worked well** and is worth repeating: the auditor had no stake in the fix, ranked honestly, and explicitly listed what was deliberate and should be left alone (the parchment documents, the fog, the numberless bars).
 
-### 2A.6 The staging module — ⚠️ UNCOMMITTED AND UNFINISHED
+### 2A.6 The staging module — ✅ RESOLVED (committed and emulator-verified in Sept/Oct; history kept below)
 
 The owner's verdict on the first duel and conversation: *"The fight sequences are nowhere close to how they should be. And the dialogue sequences aren't consistent across all locations. Shouldn't they be modular and centralized so they can be reusable? The boxes are inconsistent and generic."* All three were true — the duel and the conversation had each invented their own panel, plate and bubble.
 
@@ -204,7 +207,7 @@ The owner's verdict on the first duel and conversation: *"The fight sequences ar
 
 ⛔ **DO NOT COMMIT `lib/features/interactive/` blind.** It currently holds three different agents' work plus mine, and the composition has already regressed once while passing `flutter analyze`. Build it, drive it on the emulator, and only then commit.
 
-### 2A.7 The duel opponents have no faces — art in flight
+### 2A.7 The duel opponents have no faces — ✅ RESOLVED (`portrait_dovin_kell` and `portrait_rell_halloran` are in the world file and published; history kept below)
 
 The owner asked *"where is the character asset of the opponent in fight?"* **There is none, and there never was.** `Dovin Kell` and `Rell Halloran` are authored only as duel combatants, not cast members, so no portrait was ever generated — `resolveFighter` returns a null portrait for anyone without a `cast_id`, and the client draws the hanging standard. That is why a letter on cloth appears where a champion should be.
 
@@ -231,6 +234,14 @@ To finish this, all of it is still to do:
 5. ⚠️ **the server cannot yet carry them.** `WorldDuelCombatant` has no portrait field and `resolveFighter` only resolves a face through `cast_id`. Add an authored portrait id to the combatant and resolve it in `duel.service.ts`, then extend the audit to assert every authored combatant portrait is in the manifest — otherwise the art will exist and still not reach the screen.
 
 ---
+
+## 2B. OCT 1–3 2026 (orchestrated sessions — see `phases/phase-1.md`)
+
+- **W1–W6 shipped:** map markers and place card, arrival and room panel, the fight stage, word travels between characters, stale/phantom choices fixed engine-wide, and "every screen says what to do next" (Next row that names where and why, Standing deltas, a full-screen ending sheet).
+- **OpenRouter only** (`4e6c7f8`): every chat/structured call goes through OpenRouter (bare OpenAI ids map to `openai/…`); **memory embeddings stay on OpenAI-direct** by the owner's decision.
+- **W7 — walkable speech is a streamed chat turn** (`696ca40`, `752431c`, `134949e`, app `10740fc`). `act()` returns in ~0.5 s with `speech {id, character_id, name, portrait_url}`; the line streams over `user:<id>:events` → `/ws/play` as `world_speech_started/delta/end/failed`. Prompt is chat-shaped: system card, player's words or `*deed*` as user, the character's own replies as assistant. Checks run after the stream; a flagged line stays visible and never enters history. Acting or rewinding cancels the line. **Model: walkable = Luna 6 (`AI_MODELS.characterSpeech`) at `WORLD_SPEECH_REASONING=low` (~1.2 s to first word); chat worlds keep the DeepSeek narrator; duels keep Luna 6 medium.** Root cause of NPCs "speaking as the lead" was the old prompt sending NPC replies as role:user — never patch that symptom again.
+- **Secrets are authored, never model-judged:** a cast topic with `"reveals": true` sets the member's `reveals_flag` in `act()`. ⚠️ Never give a reveal topic to a member whose `reveals_flag` is also their home's unlock flag — its `forbids` makes the question dead (9 such were reverted). 7 live reveal topics.
+- **Replay tool:** `bun run walk:playthrough -- --world=iron-verdict --lead=<id> --steps=N --out=… --log=<server log>` (throwaway `+9100000090xx` only; collects WS speech, TTFT, cost).
 
 ## 3. HOW TO DRIVE THE OTHER AGENTS
 
@@ -428,15 +439,16 @@ Each failure is invisible — the scene still plays, it is just no longer a judg
 
 ---
 
-## 6. NOT DONE
+## 6. NOT DONE (Oct 3 2026)
 
-1. **⚠️ `lib/features/interactive/` IS UNCOMMITTED AND UNVERIFIED.** Read §2A.6 before touching it. A Grok agent may still have been running when this was written. Build it, drive it, then commit.
-2. **The duel opponents still have no faces.** §2A.7 lists every remaining step, including a server change without which the art cannot reach the screen.
-3. **The reference staging is not fully met.** The owner supplied screenshots of an arena duel and a visual-novel dialogue. Achieved: diagonal fighters, mirrored status strips with medallions, name plates, damage floats, hit flash, speech bubbles, skip. Deliberately NOT copied: the reference's bright blue-and-gold chrome (this world is obsidian, brass and parchment) and its "Level: 250 / Attack: 3915" readouts with six-figure counts inside the bars — **we do not have those numbers and they were not invented**; the strips show the fighter's name and role, and the bars are drawn, not counted. **The owner has not agreed to that substitution — ask.**
-4. **Two "AI" strings deliberately left** — the disclaimer above the message field and the wordmark superscript. Ask before changing. `autofill_card.dart` has its fixes edited but uncommitted because that file carries someone else's work.
-5. **A walkable world still only appears in My Worlds.** The card is world-agnostic now, but nowhere a new player would look shows one.
-6. **Ripening has never been observed firing live**; the duel's other two fights (`let_cassian_throw`, `fight_succession`) have never been seen in the app — only `witness_verdict` was driven end to end.
-7. **No pushes, no prod deploy.**
+In flight (W8, `phases/phase-1.md` § W8): fighters carry real Level/Strength and bars show counts (server cmd + app agy); the Iron Verdict declares `"published": true` so a deploy's seed publishes it; speech checks stop flagging mixed quoted/unquoted speech and catch repeats across all recalled replies (Codex); a capped live-coverage script (Grok) to SEE ripening fire, the `let_cassian_throw` and `fight_succession` duels end to end, and an act sent mid-line.
+
+1. **No pushes, no prod deploy** — the owner decides. Pending for prod: OpenRouter migration, W6/W7/W8, presence shadow mode (`JEV_PRESENCE_SHADOW`).
+2. **A mature walk has no rating field** — every walk uses the SFW model path today.
+3. **Multi-process API:** speech cancellation is in-process; if prod runs several API processes, a cancel on another process can't stop the old stream (the app ignores it; the history write is version-guarded).
+4. **Only one walkable world exists.** A second would prove authoring end to end.
+5. Two "AI" strings deliberately left (message-field disclaimer, wordmark superscript) — ask before changing.
+6. Housekeeping: a legacy `line` fallback in the iron-verdict audit fixture; untracked `everlore/lib/_duel_preview.dart`.
 
 ### ⚠️ ON BURNING THE OWNER'S CONTEXT BUDGET
 
@@ -474,4 +486,4 @@ adb install -r -d build/app/outputs/flutter-apk/app-debug.apk
 - The app reads `everlore/.env` → `API_BASE_URL=http://192.168.29.61:8081`. **The LAN IP changes** — check `ipconfig getifaddr en0` and update `.env` (it is a bundled asset, so a full restart is needed).
 - Emulator is `Pixel_10_Pro`, **1280×2856**. Wrong-resolution taps fail silently. Scale factor from a 420-wide preview is **3.0476**.
 - Seed a playable save: `bun run seed:iron-verdict --email=<addr>` (idempotent, leaves the template unpublished).
-- Reaching the map in-app: **Profile → My Worlds & Playtests → The Iron Verdict**. It is deliberately **not** in Your Realms any more.
+- Reaching the map in-app: the **Walks** tab (bottom bar) → The Iron Verdict → Continue. Explore also has a Walks filter.
