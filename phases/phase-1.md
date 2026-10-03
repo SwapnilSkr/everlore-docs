@@ -157,3 +157,107 @@ Every wait on images (opening a Walk, walking into a place, the fight's opening)
 - **Motion:** the title fades and rises (12px → 0, 700ms, `easeOutCubic`) in `serifDisplay` (Cinzel, titles only), letter-spaced. The line below reveals word by word (each word fading in over 260ms, staggered 90ms) in `aiText` (EB Garamond) at 70% parchment. A thin brass rule draws outward from the centre beneath the title (500ms). After the full line shows, a slow breathing opacity (0.75 ↔ 1, 2.4s) on the line, so a long wait still feels alive.
 - **Exit:** when the frame is ready, text and mist lift together (the existing `lifting`/`onLifted` path). If the wait is shorter than the title's entrance, still show the title for ≥ 600ms so it never flickers.
 - Respects `disableAnimations` (static text, no stagger) and `textScaler`; centred; max 3 lines; never covers the safe area.
+
+---
+
+## W6 — Every screen says what to do next  ·  backend (Codex) + data (cmd) + UI (agy, Grok)   *(owner's play-test, Oct 2)*
+
+The owner played the Iron Verdict and lost the thread: after the fight the Herald spoke one long paragraph and the only control was "Say something"; meeting Nara Voss, the same. The room stacked four echo lines over the scene, the title and stats sat on the figure's head, and Cassian's face changed between exchanges in a fight.
+
+### Contract
+
+**Cast data** (`iron-verdict.cast.json`, authored):
+
+```jsonc
+{
+  "id": "nara_voss",
+  "pronouns": "she",                 // "she" | "he" | "they" — matches the painted portrait
+  "topics": [                        // 2–3 things the player can ask this person
+    { "id": "nara_debt", "ask": "Who holds the debt now?", "requires": ["verdict_witnessed"], "forbids": [] }
+  ]
+}
+```
+
+- `ask` is what the player says: first person, under 60 characters, no flag or id words.
+- A topic is offered while its `requires`/`forbids` hold and it has not been asked in this save.
+
+**Presence** (`present[]` in the state payload) gains `topics: [{ id, ask }]` — only the open, unasked ones. Asked topics are part of the conversation record, so a rewind past the asking makes the topic open again.
+
+**Talk** — `act({ type: 'talk', character_id, topic_id })` is accepted as well as `said`. The server sets `said` to the topic's `ask`; a topic that isn't offered right now gets a 400 with an in-world message. The query budget for talk stays at 9.
+
+**Spoken** (`spoken` in the act response, and each `echoes[].replied`) gains an optional `beat`:
+
+```jsonc
+{ "character_id": "the_herald", "name": "The Herald", "line": "The debt stands. It passes to the house that buried him.", "beat": "The Herald lowers the trumpet.", "portrait_url": "…" }
+```
+
+- `line` is only the words the character says aloud, at most 3 sentences.
+- `beat` is at most one sentence of what they do, or absent.
+- The split is made **structurally** from the model's text, not asked for by instruction: quoted spans become `line`, and the first non-quoted sentence becomes `beat`. Text with no quotes is treated as speech.
+- A `beat` whose pronoun disagrees with the speaker's authored `pronouns` is dropped.
+- The speaker's `pronouns` are passed into `SpeechContext.situation`.
+
+**Fight** — a fighter wears **one face for the whole fight**: their default portrait, the same one the room shows. `beats[].portrait_url` equals the fighter's `portrait_url`. Bearings stay in use outside fights.
+
+**`way_on`** is unchanged, but it is now shown in the conversation as well as in the room.
+
+### UI
+
+- **Room header:** the kicker and title only. Strength, Charisma, Leadership and the standings move into a collapsible strip, closed by default, like the chat's Realm Status. It never covers the figure.
+- **Figure** (room and conversation):
+  - It sits in the zone from the header's bottom (plus the open strip, if any) + 12px down to the panel.
+  - It is scaled to fit that zone, with its feet behind the panel's top edge (submerged by about 10% of its height).
+  - It is never taller than 60% of the screen and never touches the safe area.
+- **Room panel:**
+  - At most **one** echo line (the newest).
+  - The scene title and its prose.
+  - The way on, marked "Next".
+  - The other choices.
+  - "Earlier words" opens a sheet; it is never expanded inline.
+- **Conversation:**
+  - The `beat` is small and italic, and the `line` is the speech.
+  - Under it: the topics, then the way on ("Next · …", which closes the conversation and follows it), then "Say something" and "Step away".
+  - The first meeting shows the topics too.
+- **Advance mark:** the pulsing chevron points right (›) everywhere — fights, conversation, prologue, overture.
+
+## W7 — A character answers like a chat turn, streamed  ·  backend (Codex) + UI (agy)   *(owner, Oct 3)*
+
+**Why.** Walkable speech was a blocking structured-JSON call inside `act()` (2.4–4.5 s before the room, the echo or Next appeared) with a brief that sent the NPC's own past replies as the player's turns and gave no player turn before an NPC spoke first — so the model wrote two-person scenes and spoke as the lead. Chat worlds never have this: the player's message is the user turn, the character is the assistant, and the reply streams. The walkable world now does the same. Map: `.agents/reports/r6-speech-stream-map.md`.
+
+**Decisions (owner).** (1) A character's secret (`reveals_flag`) is authored to a **topic**: asking that topic, when its gates hold, sets the flag in `act()` itself; the model only voices the answer — no model judgement moves story state. (2) Words already on screen are never taken back (chat's rule): a streamed line that fails a post-stream check stays visible, is logged, and is NOT written into the character's conversation history.
+
+### Data
+- A cast topic may carry `"reveals": true`. At most one per cast member; only on a member with `reveals_flag`. Asking it (`act({type:'talk', topic_id})`) with its `requires`/`forbids` satisfied sets that member's `reveals_flag` through `worldVocabulary()` exactly as the old `turned` path did. Topic consumption (`asked_topic_ids`) is recorded in `act()` when asked — no longer contingent on a reply.
+- Model-driven `turned`, `disposition_delta` and `bearing` are removed. Disposition stays at its authored value (context only; nothing gates on it). The speaker shows their default portrait (one face per conversation, as with fighters).
+
+### `act()` — returns at once
+- No model call inside `act()` for speech. State, echo, `way_on`, cast, progression, the reveal flag (if any) and the event are committed and returned immediately.
+- When someone will speak (the talk target; or the existing post-action speaker rule — `speakerAfter` / `addressCue` conditions), the response carries
+  `speech: { id: string, character_id: string, name: string, portrait_url: string | null }`
+  and the server starts the stream after responding. `spoken` is no longer returned by `act()`.
+- `state.speaking = { id, character_id, started_at }` while a stream is live (omit the key when idle — never null).
+
+### The stream
+- Prompt, chat-shaped: **system** = the character card (name, role, voice, wants, fears, knowledge via `knowledgeFor`, witnessed/heard deeds with the doer named, where they are, who they're speaking to, the world's voice). **messages** alternate: `user` = what the player said, or the player's deed rendered as a chat action line, e.g. `*Cassian Vale swears a challenge on the sand.*` (via `deedForWitness`); `assistant` = the character's own earlier replies verbatim. Format asked for: chat style — spoken words in quotes, one short action in `*asterisks*` at most, 1–3 sentences.
+- Model: the chat narrator's streaming path (`callLLMStreamWithFallback`, the world's SFW/NSFW narrator model and fallbacks, `sessionId: instanceId`, first-token/idle timers). Configurable via `CHARACTER_SPEECH_MODEL` for comparison.
+- Frames on `user:<playerId>:events` → `/ws/play` (existing relay; the client filters by `instanceId` and `speechId`):
+  - `world_speech_started { instanceId, speechId, characterId }`
+  - `world_speech_delta { instanceId, speechId, delta }`
+  - `world_speech_end { instanceId, speechId, line, beat? }` — `line` = the words, `beat` = the `*action*` if it passes the gesture rules
+  - `world_speech_failed { instanceId, speechId, fallback? }` — only before any delta; `fallback` = `cast_unanswered` for direct talk, absent for an initiated address
+- After the stream: split words/action, run the speech checks (narration, self-address, lead voice, repeat, grounding). Pass → append `{said, replied, beat?}` to `conversations[character_id]` (version-guarded write). Fail → keep visible, log `world_speech.flagged { reason }`, append nothing. Either way clear `state.speaking`.
+- No retries once a delta has been sent. Before the first delta, a provider error may fall back to the next model (chat's rule).
+- Where it runs: in the API process right after `act()` responds (no queue hop, so first token is the model's own TTFT), with an in-memory `instanceId → AbortController` registry for cancellation, publishing through the existing Redis user channel. If the API restarts mid-stream, the stream is lost: `state.speaking` older than 60 s is treated as idle and cleared on the next read.
+
+### Concurrency, rewind, reconnect
+- Any `act()` or restore while `state.speaking` is set cancels that stream: abort the request, send `world_speech_end` with whatever was already sent (or `world_speech_failed` if nothing was), commit nothing to history. Late frames for a cancelled `speechId` are ignored by the client.
+- On reconnect the client drops any half-shown stream and refetches state (history shows the line if it committed).
+
+### Client
+- Apply `act()` immediately (room, echo, Next). If `speech` is present: show the speaker (default portrait) with a speaking indicator, render deltas incrementally (chat's buffered cadence), finalise on `end`, show `fallback` or remove the indicator on `failed`. The player can act at any time; a new act cancels the stream.
+- `WsManager` gains the four frame types; the interactive screen ensures the socket is connected while open.
+
+### Audits
+- `audit:act-queries`: talk/move/choose/rule make no model call and stay within budget.
+- New `audit:world-speech`: prompt roles (no NPC reply ever in a `user` turn; a deed is a `user` turn), frame order, cancel-on-act, cancel-on-restore, flagged line not in history, reveal-by-topic sets the flag only when gated, no reveal without a topic.
+- `audit:iron-verdict`: every `reveals_flag` is reachable through its reveal topic or an authored choice on some road.
