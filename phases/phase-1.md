@@ -261,3 +261,30 @@ The owner played the Iron Verdict and lost the thread: after the fight the Heral
 - `audit:act-queries`: talk/move/choose/rule make no model call and stay within budget.
 - New `audit:world-speech`: prompt roles (no NPC reply ever in a `user` turn; a deed is a `user` turn), frame order, cancel-on-act, cancel-on-restore, flagged line not in history, reveal-by-topic sets the flag only when gated, no reveal without a topic.
 - `audit:iron-verdict`: every `reveals_flag` is reachable through its reveal topic or an authored choice on some road.
+
+---
+
+## W8 — Fight bars that count; the Verdict ships published; seen live  ·  backend (cmd, Codex, Grok) + UI (agy)   *(owner, Oct 3)*
+
+The owner wants the fight's bars **accurate**: real numbers on screen, never invented ones.
+
+### Contract — fighters carry their real stats
+
+- Every staged fighter (`StagedFighter`, and the wire `duel.challenger/defender`) gains `level: number` and `strength: number`.
+  - The **bound lead**: their *live* `state.traits` (after training).
+  - A **cast member**: their authored `start_traits`.
+  - A **duel-only combatant** (no `cast_id`): authored `traits: {strength, level}` on that combatant in the world file. Validation **rejects** a duel combatant without them — no defaults, no client fallback.
+- `vigour` (start) and per-beat `challenger_vigour`/`defender_vigour` are already the real authored arithmetic (start − authored tolls). Unchanged.
+- Outcomes stay authored. Stats are shown, never rolled.
+
+### Client
+
+- Each status strip shows the fighter's name, `Lv <level>` and `Str <strength>`, and the bar shows its count: `<current> / <vigour>`, updating beat by beat with the bar. Numbers in tabular figures, no other numbers anywhere.
+
+### Publishing
+
+- The world file may declare `"published": true`. `upsertWorldFromAuthored` then sets `is_published: true` on every upsert (not only on insert); a file without it leaves the stored flag alone. The Iron Verdict declares it, so a deploy's seed publishes it. Nobody writes prod by hand.
+
+### Seen live (no new contract)
+
+A capped live coverage run drives, through the local API as a throwaway player: (a) reign petitions ruled until a **ripened** petition appears and is ruled; (b) the `let_cassian_throw` and `fight_succession` duels end to end; (c) an act sent **mid-stream** — the old line ends/fails, its history is not written, the new speech streams.
