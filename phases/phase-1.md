@@ -450,3 +450,12 @@ The approved mockup takes its goals from Assassin's Creed. There is **one tracke
   - a hidden locked item serialises to `{id, locked, hidden}` only;
   - rewind keeps unlocks;
   - deletion purges at all three sites.
+
+### W10a — Characters follow the pinned goal  *(owner, Oct 4)*
+
+The pin stays a client preference: it is never stored on the server. The app sends it with each action, and the server only reads it.
+
+- `act()` accepts an optional `pinned_goal_id: string` (1–80 chars, route-validated) on every action type.
+- The server derives open goals as usual. If `pinned_goal_id` names a goal that is **open right now** (tracked, or one of the leads), the speech context's `trackedGoal` is that goal. Otherwise it is the derived tracked goal. An unknown, done or unreachable pin is ignored silently.
+- The pin never changes the payload's `goals.tracked`, `leads`, `way_on`, `goals_completed` or achievements. It only changes what a speaking character is told.
+- **Client:** every `act()` call passes the pinned goal id for this save from `GoalPinStore`, when there is one.
