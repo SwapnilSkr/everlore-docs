@@ -692,3 +692,9 @@ Lane A runs first and adds **all** new payload parsing to `domain/` (for lane B 
   - burn → no writ goals.
 
   Spend cap for the replay: ₹60 / $0.70.
+
+### W12 — may need art rather than code  *(owner asked to track these, Oct 4)*
+
+1. **Sceneless places.** In W12, the ten places with no painting open over the darkened map plate. Their own scene paintings (Fetterstone, Bone Orchard, Grimsdal Mine, Coldwatch Tower, Weeping Quarry, Harrowfield, Ferryman's Post, Debtors' Terrace, Spice Vaults, Cheira Isle) are an optional asset batch from the Codex app, waiting on the owner's go-ahead.
+2. **North map seam.** Lane A finds out whether the renderer or the painting causes it. If it's the painting, the map plate is regenerated and re-published (a new revision key).
+3. **Empty Ravensgate room.** Lane A finds the cause. If it's missing art or data, it's reported and fixed there, not hidden in code.
