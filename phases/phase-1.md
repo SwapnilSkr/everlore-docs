@@ -596,6 +596,7 @@ The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it
   - World speech logs one usage line per reply (model, tokens in/out, cost), in the same shape as fight staging.
   - "Fight the Verdict" and "Take the known road" take 4–10 s. Find where the time goes, with the fixed timer. No model call may block `act()` (memory: walkable speech is a chat turn). Report the numbers before and after.
 - **S15 · Achievements view:** each achievement carries a `hint` for locked, non-hidden ones (its blurb, phrased as an aim), and a hidden one carries a lead-neutral hint ("One of the walk's endings").
+- **S17 · Ending variants** (schema for D5): an ending may carry `variants: [{ when?, for_leads?, cost?, reign_description? }]`. The first whose predicate matches the walk's flags and whose `for_leads` admits the lead replaces those fields in the ending view. Cast `knows` entries may be a string or `{ text, requires?, forbids? }` (S7.3).
 - **S16 · Audits that model the client.** In `audit:iron-verdict`:
   - every choice, drill and petition sits at a place the lead can stand in;
   - every `by` goal can still complete on some route after each of its `forbids` fires;
@@ -614,7 +615,7 @@ The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it
   - Cassian: "Cassian is not a prisoner…", "Yours is in your coat", "A folded paper with your mark…", and "You are still on the sand" after he has left.
   - Sereth (holding the writ): "the woman under the bronze dial" and "Pick up the mark".
   - Sereth's Verdict Upheld: "The Court owns your calendar".
-  - Verdict Upheld on the burn route: "you are paid for it". Use per-lead or per-route variants (`cost_when` keyed on flags if the schema needs it; tell the server task).
+  - Verdict Upheld on the burn route: "you are paid for it". Use the new optional ending `variants: [{ when?: FlagPredicate, for_leads?: string|string[], cost?, reign_description? }]` (S17, first match wins; absent fields fall back to the ending's own).
   - Broken Ring promises a barricaded Court and a shut Marblegate. Make the reign deliver them (`opens_with`/visibility under `broken_ring`), or cut the promise.
 - **D6 · The stair.** `take_the_stair` gets lead-neutral copy that doesn't assume the writ (or requires `writ_read`, then its copy may mention it), and `moves_to` the place the stair comes out at. `nothing_left_unread` requires `writ_read` as well as `stair_taken`.
 - **D7 · Goal text:** "Ask Gaunt what his spare key opens" matches the button. Topic: "door on your belt" becomes "key". "Trace the matrix" is replaced with plain words. The Arbiter's "I named it myself" is replaced. "What became of the old rolls?" `forbids: rolls_named`.
@@ -629,7 +630,9 @@ The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it
   - "Hob's figure is missing when Nara arrives": confirm it's the gate. If so, the room says so.
 - **D12 · Deaths:** the death copy is said once (no repeated sentence).
 
-### UI lane A (agy) — `interactive_world_screen.dart`, `map/**`, `world_map_view.dart`, `room/**`, `stage/**`, `world_veil.dart`, `travel_transition.dart`
+### UI lane A (agy) — `domain/**`, `data/**`, `interactive_world_screen.dart`, `map/**`, `world_map_view.dart`, `room/**`, `stage/**`, `world_moments.dart`, `world_veil.dart`, `travel_transition.dart`, `world_mist.dart`, `world_frame.dart`
+
+Lane A runs first and adds **all** new payload parsing to `domain/` (for lane B too: achievement `hint`, ending achievement `new`, spoken `kind: 'action'`, `goals.before_you`). Lane B runs after it.
 
 - **A1 · Enter any place (S1).** The room opens over the map plate, cropped and framed on the place's marker and darkened. The tracker's "Here" always lands in that room.
 - **A2 · Room panel.** No springback: the scroll position holds, and a tap lands on the row under the finger. The last row clears the bottom fade, at any row count. Only the tapped row shows a spinner, and the other rows are disabled while it's pending. A reflow during a pending tap can't move the target.
@@ -645,13 +648,14 @@ The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it
   - No grey flash: precache the plate before the map shows.
   - The north seam: find out if it's the renderer (tiling, a filter edge) or the painting, and fix the renderer case. Report the painting case.
 - **A6 · Rewind:** lands in the room when `view: 'room'`, drops queued moments from after the checkpoint (a held ending card never plays), updates the step count, and shows a spinner on the tapped step only. "FATAL" in red becomes plain words ("Nara falls here").
-- **A7 · Rebind:** shows the new lead's prologue, the spinner sits on "Walk as …" not on "Take the fight again", and the "Before you" goals (S3) show in the journal under their own heading.
+- **A7 · Rebind:** shows the new lead's prologue, and the spinner sits on "Walk as …" not on "Take the fight again".
 - **A8 · Death sheet:** no stray small figure of the dead lead.
 - **A9 · Ravensgate:** the room is empty and the lead's figure is missing there. Find out why (asset, presence, layout) and fix it.
-- **A10 · Training:** a "+1 Strength" moment.
+- **A10 · Standing:** the chip and the strip say what standing means in words (no bare "−2 · 1 more").
+- **A12 · Petition panel:** doesn't cover the petitioner; three rulings fit; a two-line ruling label never overlaps the outcome.
 - **A11 · Accessibility:** controls behind opaque sheets are excluded (`BlockSemantics`), and every visible marker has a semantics label.
 
-### UI lane B (agy) — `world_characters.dart`, `world_duel.dart`, `world_ending.dart`, `world_moments.dart`, `goals/**`, `world_identity.dart`, `world_overture.dart`, `world_prologue.dart`, the realm walk list
+### UI lane B (agy) — `world_characters.dart`, `world_speech_stream.dart`, `world_duel.dart`, `world_ending.dart`, `goals/**`, `world_identity.dart`, `world_overture.dart`, `world_prologue.dart`, the realm walk list
 
 - **B1 · Conversation.**
   - The conversation tracker's place line goes to the map marker (`onLocationTap`), and the panel stops being hit-testable after "Step away".
@@ -667,8 +671,8 @@ The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it
 - **B4 · Lead picker:**
   - "Turn them. Stand with one." is replaced with plain words.
   - Each stat has a one-line explanation.
-- **B5 · Standing:** the chip and the strip say what standing means in words (no bare "−2 · 1 more").
-- **B6 · Petition panel:** it doesn't cover the petitioner. Three rulings fit. A two-line ruling label never overlaps the outcome.
+- **B5 · Training:** a "+1 Strength" moment, queued like the other moments.
+- **B6 · Journal:** the "Before you" goals (S3) under their own heading, never in Done.
 - **B7 · Achievements:**
   - The progress bar reads "3 of 18".
   - Locked achievements are legible and show their `hint` (S15).
