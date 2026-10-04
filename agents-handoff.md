@@ -28,6 +28,16 @@ git log --format="%H %s%n%b" -20 | grep -iE "co-authored|generated with|claude" 
 
 ## 1. STATE
 
+### ▶ Oct 4 2026, evening — W12 in flight (read this first)
+
+Contract: `phases/phase-1.md` § W12 (S/D/A/B items), plus "W12 — may need art rather than code" and "W12 review — queued for fix-1". Evidence: `playtests/2026-10-04-iron-verdict-nine-runs.md`.
+
+- **Committed:** server and data (`everlore-server` `e405a18`). typecheck clean; `audit:all` 41/41 green.
+- **Uncommitted, partial: lane A** (`everlore` on top of `104aeb7`). agy hit its 1-hour print timeout mid-turn and wrote **no report**. The 9 files are in `git -C everlore status` (`lib/_duel_preview.dart` is NOT ours), plus a new `test/world_w12_a_test.dart`. analyze is clean and `flutter test` all passes. The tests cover A1, A2, A3, A4, A5 (known-road line and camera clamp only), A6, A7, A9, A10, A11 and A12.
+  - **Missing or unverified:** A5 rest (tracker `via`, opening zoom, markers under scrim, first-tap "World map", plate precache, north-seam investigation); A8 death sheet stray figure (it was searching `WorldDeathSheet` when cut off); A9 root cause; the report.
+  - **Next:** dispatch `w12-ui-a-cont` (NOT `w12-fix-N`: those names belong to an older Oct 2 series) for the missing items and the report. Review the full lane A diff, then lane B (`.agents/tasks/w12-ui-b.md`, already written). Then `w12-server-fix-1` / `w12-data-fix-1` from the fix-1 queue. Then the emulator replay in the Done-when list (cap ₹60 / $0.70).
+- Owner's save `6ac1bde2c3afc98eba18bff5` was restored before W12. Back it up again before any live test. Clean up test walks **by id only**.
+
 | Repo | Branch | Head | Pushed |
 |---|---|---|---|
 | `everlore-server` | `feat/interactive-world-markers` | `134949e` (Oct 3) | **no** — 48 ahead of origin |
