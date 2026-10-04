@@ -698,3 +698,18 @@ Lane A runs first and adds **all** new payload parsing to `domain/` (for lane B 
 1. **Sceneless places.** In W12, the ten places with no painting open over the darkened map plate. Their own scene paintings (Fetterstone, Bone Orchard, Grimsdal Mine, Coldwatch Tower, Weeping Quarry, Harrowfield, Ferryman's Post, Debtors' Terrace, Spice Vaults, Cheira Isle) are an optional asset batch from the Codex app, waiting on the owner's go-ahead.
 2. **North map seam.** Lane A finds out whether the renderer or the painting causes it. If it's the painting, the map plate is regenerated and re-published (a new revision key).
 3. **Empty Ravensgate room.** Lane A finds the cause. If it's missing art or data, it's reported and fixed there, not hidden in code.
+
+### W12 review — queued for fix-1 (next session)
+
+The server and data work are committed. Review found these; none blocks play:
+
+1. **Hard-coded flag (pre-existing).** `act()` marks a hinge fatal when its flags include `cassian_dead` (`interactive-world.service.ts` ~656). That names a flag in `src/`, and it labels Nara's thrown fight "FATAL". Fatal only when the bound lead's `dies_with` is set, `player_fallen` is set, or the lead's own duel outcome is fatal.
+2. **Fight narration.** `act()` now composes fights from the authored beats only, which removes the 4–10 s wait. `stageDuel` (the model's flavour pass) has no callers. Either delete it, or run it off the response path with a revision frame. Owner's call.
+3. **Request timer.** `durationMs` now comes from an `onRequest` hook in the logger plugin. Confirm in the live run that it's non-zero on every route (Elysia hook scoping).
+4. **Live timing.** Measure a fight and a known-road move with `world_act.timing` in the live replay.
+5. **Data:**
+   - Cassian's honest loss meets Verdict Upheld (the ending outranks the death), which is the intended road. Add a `succession_lost` flag to the loss and a Verdict Upheld variant that reads as an honest loss, not a throw.
+   - The stair comes out at Marblegate, the gate it avoids. Add a road from the drowned stair to Ravensgate Bridge and `moves_to` it.
+   - Achievements need authored aim-phrased `hint`s. The blurbs are written as past deeds.
+   - Sereth still sees "Pick up the mark Cassian left", and she needs `cassian_trust` for the north road. Give her a lead-specific label.
+   - `sell_the_writ` is offered to Cassian and kills him (it ends in Verdict Upheld). Decide whether it should be offered to him at all.
