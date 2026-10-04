@@ -343,7 +343,13 @@ The approved mockup takes its goals from Assassin's Creed. There is **one tracke
 **Derived on every read, never persisted:**
 - A `by` goal is **open** while any of its choices is offered at a place the player can reach. Reachability uses the same rules as `wayOnOf`: unlocked, open, along travel edges. The goal's `at` is the nearest such place and `roads` is the number of moves to get there (0 means here).
 - A `by` goal is **done** once any of its choices has been taken. A `petitions` goal is open while there are unruled petitions, and is never done.
-- **Tracked** is the nearest open goal without `warn`. If every open goal has a `warn`, it is the nearest of those. Ties are broken by file order.
+- **Tracked** is the first open goal in this order:
+  1. no `warn` before `warn`;
+  2. **what the last deed opened**: the latest position in `taken_choice_ids` of a taken choice whose `sets` includes a flag that the goal's choices `require`;
+  3. `roads`;
+  4. file order.
+
+  Leads use the same order. *(Revised after the live run: nearest-first pointed away from where the story had just turned.)*
 - `way_on` now points at the tracked goal: its first step, or the choice itself when the goal is here. The map cue and the tracker never disagree.
 
 **Payload.** State and `act()` responses gain `goals`:
