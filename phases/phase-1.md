@@ -288,3 +288,159 @@ The owner wants the fight's bars **accurate**: real numbers on screen, never inv
 ### Seen live (no new contract)
 
 A capped live coverage run drives, through the local API as a throwaway player: (a) reign petitions ruled until a **ripened** petition appears and is ruled; (b) the `let_cassian_throw` and `fight_succession` duels end to end; (c) an act sent **mid-stream** — the old line ends/fails, its history is not written, the new speech streams.
+
+---
+
+## W10 — Know what to do; earn it; read it plainly  ·  backend (Codex) + data (cmd) + UI (agy)   *(owner's play-test, Oct 4)*
+
+The owner played the Verdict and could not follow it:
+- the Herald was handed the *outcome text* of a choice as if the player had said it, repeated it back, then told the player "You said the debt stands";
+- "Earlier words" printed walks and choices as "You: *…*";
+- the Herald pointed to the Iron Fane while the Next card pointed to the Chainhouse;
+- the prose is too dense to follow, the conversation box is cluttered, the player's own portrait vanished once the other side spoke, and nothing is ever *earned*.
+
+The approved mockup takes its goals from Assassin's Creed. There is **one tracked goal**, always top-left: quest name, goal, where. Goal complete and New goal get centred moments. A goals journal opens from the tracker. Achievements arrive as a slide-up card and are listed beside the walks.
+
+### 1. Story fixes (server)
+
+- **A deed is not speech.** A conversation exchange is stored as:
+  - `{ said, replied, beat? }` — the player typed or tapped words;
+  - `{ did, replied, beat? }` — the player walked, chose or ruled.
+
+  Old records whose `said` is wholly wrapped in `*…*` read as `did`.
+- **The deed sent to a character is what the lead *did*,** not what came of it: the choice's `label`, or the resolution's `label` for a ruling, recast with the lead named (*Cassian Vale chose to stand by the verdict*). Never `echo`, `summary` or a duel verdict — those are outcomes, often in the world's own voice. A walk is "<lead> arrived at <place>."
+  - The deed turn is framed as an event, not as words the lead spoke.
+  - A character may answer it, or say nothing new.
+- **No echoing.** A reply that substantially restates the deed or the scene prose is flagged with the same structural check as `nearPrevious`, and is kept out of history.
+- **Characters point where the tracker points.** The speech context gains one situation line naming the tracked goal and its place. If asked what to do next, the character can answer the same way.
+- **Plain words.** The speech brief asks for plain, modern, everyday English and short sentences. The world's own prose is rewritten plain in data (w10-plain).
+
+### 2. Goals — data `<world>.goals.json`
+
+```jsonc
+{
+  "quests": [ { "id": "the_sealed_verdict", "title": "The sealed verdict" } ],
+  "goals": [
+    {
+      "id": "gaunts_key",
+      "quest": "the_sealed_verdict",
+      "text": "Ask Gaunt what the Duke's unused key opens",          // ≤ 60 chars, imperative, plain
+      "why":  "The Duke had a key nobody used. Gaunt keeps every key in the Chainhouse.", // ≤ 160 chars, 1–2 sentences
+      "by":   ["gaunts_key"],                                       // choice ids
+      "warn": "Destroys your only proof."                           // optional, ≤ 60 — for choices that close doors
+    },
+    { "id": "hear_petitions", "quest": "the_reign", "text": "Hear the petitions waiting in the duchy",
+      "why": "…", "petitions": true }                               // instead of `by`
+  ]
+}
+```
+
+- Every choice id belongs to **at most one** goal.
+- Every choice reachable on some road (the `audit:iron-verdict` walk) belongs to **exactly one**.
+- `quest` names a quest in the file, and quests are listed in story order.
+- No flag, id or mechanic words in `text`, `why` or `warn`.
+
+**Derived on every read, never persisted:**
+- A `by` goal is **open** while any of its choices is offered at a place the player can reach. Reachability uses the same rules as `wayOnOf`: unlocked, open, along travel edges. The goal's `at` is the nearest such place and `roads` is the number of moves to get there (0 means here).
+- A `by` goal is **done** once any of its choices has been taken. A `petitions` goal is open while there are unruled petitions, and is never done.
+- **Tracked** is the nearest open goal without `warn`. If every open goal has a `warn`, it is the nearest of those. Ties are broken by file order.
+- `way_on` now points at the tracked goal: its first step, or the choice itself when the goal is here. The map cue and the tracker never disagree.
+
+**Payload.** State and `act()` responses gain `goals`:
+
+```jsonc
+"goals": {
+  "tracked": { "id", "quest_title", "text", "why", "at", "at_title", "roads", "warn"? } | null,
+  "leads":   [ /* same shape, other open goals, nearest first, ≤ 6 */ ],
+  "done":    [ { "id", "quest_title", "text" } ]            // in the order the choices were taken
+}
+```
+
+`act()` also returns `goals_completed: [{ id, quest_title, text }]`: the goals that are done after this act and were not done before it. It is empty on restore or rewind.
+
+### 3. Achievements — data `<world>.achievements.json`
+
+```jsonc
+[ {
+  "id": "ink_before_blood",
+  "title": "Ink before blood",                    // ≤ 28 chars
+  "blurb": "Prove the verdict was written before the fight",   // ≤ 70 chars
+  "icon": "award",                                // award | gavel | sword | scroll | key | map | crown | skull | shield | eye | coin | flame
+  "hidden": false,                                // true ⇒ locked shows as "???" (endings, twists)
+  "when": { "flags": ["…"] }                      // ALL keys present must hold
+} ]
+```
+
+- `when` keys:
+  - `flags`: all of these authored flags are true;
+  - `any_taken`: at least one of these choice ids has been taken;
+  - `ending`: an ending id, or `"any"`;
+  - `rulings_at_least`: ledger length is at least this;
+  - `visited_at_least`: unlocked places are at least this;
+  - `goals_done_at_least`: done goals are at least this.
+- There are 12–20 achievements per world, and every one must be reachable on some road (audit).
+
+**Persisted — this is a record of the player, not world state.**
+- Achievements are stored in the collection `interactive_achievements` as `{ user_id, world_key, achievement_id, instance_id, unlocked_at }`, with a **unique** index on `(user_id, world_key, achievement_id)`.
+- `act()` checks them in its tail, **after** the version-guarded state write succeeds. A duplicate insert is ignored.
+- Rewind never takes one away.
+- Account deletion purges them, at **all three** purge sites in `deletion.service.ts`.
+- `act()` returns `achievements_unlocked: [{ id, title, blurb, icon }]`. Any `act()`, including the first one after a deploy, may unlock several at once.
+- `GET /interactive-worlds/achievements` is authed and returns only the caller's own records:
+
+  ```jsonc
+  [ { "world_key", "world_title", "unlocked": 4, "total": 18,
+      "items": [ { "id", "title", "blurb", "icon", "unlocked_at" }          // unlocked
+               , { "id", "title", "blurb", "icon", "locked": true }         // locked, not hidden
+               , { "id", "locked": true, "hidden": true } ] } ]            // hidden + locked: NOTHING else sent
+  ```
+
+  It lists the worlds the player has a walk in or an achievement from. Unlocked items come first, newest first.
+
+### 4. Client (agy) — the approved mockup
+
+- **Tracker.**
+  - It sits top-left on the room and conversation screens, under the back arrow and clear of the figure.
+  - It shows the quest title in Cinzel small caps (10–11 pt, brass), a diamond marker with the goal `text` (EB Garamond 16), and `at_title · N roads away`. When `roads == 0` the last line reads "Here".
+  - Tapping it opens the **goals journal**.
+  - It is hidden in fights, the prologue, the overture and endings, and when `tracked` is null.
+- **Goals journal** (a sheet):
+  - "Tracking": the goal, its `why` and its `warn`;
+  - "Other leads": tapping one pins it, so the tracker shows the pinned goal while it stays open. The pin is a client-local preference per save, not world state;
+  - "Done": a checklist.
+- **Goal complete / New goal.** On `goals_completed`, a centred moment with thin brass rules: "GOAL COMPLETE" + the goal, about 2 s; then "NEW GOAL" + the new tracked goal. It never stacks on top of a fight or the prologue — it waits until they close.
+- **Achievement card.**
+  - On `achievements_unlocked`, it slides up from the bottom and fades after about 3 s.
+  - Several arriving together queue one after another. After 3, a single "+N more achievements" card replaces the rest.
+- **Achievements tab.**
+  - The clock-icon screen (`my_walks_screen.dart`) gets two tabs, **Walks | Achievements**.
+  - Achievements are grouped per world, with an "N of M" bar and a grid of round badges.
+  - A locked badge has a dashed outline and a lock, and shows its title. A hidden one shows "???".
+- **Conversation, decluttered.**
+  - Both figures (the speaker and the lead) stay on screen for the whole conversation. The lead never vanishes when the other side starts speaking.
+  - The panel shows, in order:
+    - the speaker's name (Cinzel kicker);
+    - **your last words** as one small muted line ("You asked: …"), or nothing if the last turn was a deed;
+    - the reply (the only large text);
+    - the topics as wrap chips;
+    - one row with the "Say something" field plus two icon buttons: Earlier words (a history icon that opens a sheet) and Step away (a door icon).
+  - **No Next card** — the tracker replaces it. No inline history.
+- **Earlier words sheet** shows only `said` turns ("You: …") and replies. `did` turns are not shown.
+- **Room panel:** the Next card is removed there too (the tracker replaces it). The scene prose and the choices stay.
+
+### Audits
+
+- `audit:iron-verdict`:
+  - goal coverage (every reachable choice is in exactly one goal);
+  - tracked is never null before an ending, along every road;
+  - `way_on` agrees with the tracked goal;
+  - every achievement is reachable on some road.
+- `audit:world-speech`:
+  - a deed turn never carries `echo`, `summary` or verdict text;
+  - a `did` exchange is never presented as player words;
+  - an echoing reply is flagged and kept out of history.
+- A new achievements check, folded into `audit:iron-verdict` or a new audit:
+  - a unique-index duplicate is ignored;
+  - a hidden locked item serialises to `{id, locked, hidden}` only;
+  - rewind keeps unlocks;
+  - deletion purges at all three sites.

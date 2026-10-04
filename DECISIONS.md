@@ -4,6 +4,26 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## Walkable worlds guide the player like Assassin's Creed, and reward them with achievements  ·  Oct 4 2026
+
+**Decided (owner, approved mockup):**
+- **One tracked goal** is always shown top-left: quest title, goal, and where it is.
+  - "Goal complete" and "New goal" appear as centred moments.
+  - Tapping the tracker opens the goals journal: tracking, other leads (which can be pinned), and done.
+- **Achievements** arrive as a slide-up card and are listed in the in-world clock sheet ("The road behind you"), as a second tab.
+- The conversation shows both figures, your last words, one reply, topic chips, and a row with "Say something", history and step away. There is no Next card.
+- Every world's prose is written in plain modern English.
+
+**How:**
+- Goals and achievements are authored per world: `<world>.goals.json` and `<world>.achievements.json`.
+- Goals are derived on every read. The tracker follows what the last deed opened, then distance.
+- Achievements are a record of the *player*. They are stored in `interactive_achievements` and survive rewind and walk deletion. Only account deletion or world deletion removes them.
+- Spec: `phases/phase-1.md` § W10.
+
+**Reopen when** a world needs branching quest logic that a goal-by-choice list cannot express.
+
+---
+
 ## World art is made in the Codex app and seeded from files — no API image generation  ·  Oct 3 2026
 
 **Decided (owner):** our own worlds' art (map plates, scene paintings, portraits) keeps coming from the Codex desktop app, and worlds keep being authored as files under `everlore-server/scripts/fixtures/walks/` that a seed writes into Mongo. We do **not** build an API image-generation pipeline (OpenRouter or otherwise) for now.
