@@ -547,3 +547,144 @@ Replayed as Nara to The Bloodless Crown and one ruling. Most of W11 holds. Still
 5. **Clipped head.** After `StageRise.speak` moved to `bottomCenter`, a figure taller than its slot is cut off flat at the slot's top (Arbiter Vell's head, conversation after the ending). Keep the feet grounded and let the figure overflow upward, not clip.
 6. **The tracker covers the lead's face** in the room (Nara at the Iron Fane and the market). The room figure's head must clear the tracker.
 7. **The first achievement card may not show.** `sand_and_silence` unlocked on the first act of a fresh walk (goal complete + achievement in the same response), yet no card was seen 6.5 s later. On the second such act the sequence played correctly. Reproduce it with a widget test that starts from `_goals == null`. Fix it if it is real.
+
+---
+
+## W12 — Every finding from the nine walks  ·  backend (Codex) + data (cmd) + UI (agy ×2)   *(owner: "FIX EVERYTHING", Oct 4)*
+
+The source is `playtests/2026-10-04-iron-verdict-nine-runs.md`. Every item in it is in scope, P2 polish included. Each item below has one owner. `S` = server (Codex), `D` = data (cmd), `A` = UI lane A (map, rooms, rewind, rebind), `B` = UI lane B (conversation, fights, endings, moments, sheets).
+
+### Decisions taken
+
+- **Every place can be entered.** A place without a scene painting is no longer "travelled past, never entered": the room opens over the **map plate, framed on that place's marker** (the plate paints its places), darkened behind the stage. Choices, drills, petitions and the people who live there all work there exactly as in a painted room. Paintings for the ten sceneless places can come later from the asset lane; nothing waits on them.
+- **One source for a fight's strength.** A choice that stages a contested duel carries no `require_traits` (audit fails if it does). What the lead needs is the duel's own rating, sent before the tap, and shown on the button.
+- **An ending outranks a death.** When one act both ends the lead's life and meets an ending trigger, the player sees the ending; the death sheet is only for a death that ends nothing.
+- **Flagged speech is never left on screen.** Speech streams live, so hygiene that flags a line after the stream sends a revision, and the client replaces the line.
+
+### Server (Codex)
+
+- **S1 · Sceneless places.** Nothing on the server may treat a sceneless place as unenterable: presence, talk, choices, drills and petitions resolve there as anywhere. The wire carries enough for the client to frame the plate on the place (the location's existing map coordinates; confirm they're sent).
+- **S2 · Ending beats death.** An act that sets the lead's `dies_with` flag *and* meets an ending trigger returns the ending (as `progression.ending`) with the lead's death recorded as part of it. `lead_dead` / the fall fork is not raised for it. The rebind that follows starts the new lead **in the reign**, with the ending already seen, so it is not shown again.
+- **S3 · Rebinding a new lead.**
+  - The new lead's `prologue` is returned and is shown (client A).
+  - World flags stay: they are history. But goals the previous lead completed are reported as **"Before you"** (`goals.before_you: [{id,text}]`), never as the new lead's done list, and achievements are not re-credited to the new lead for the old lead's deeds.
+  - Choices whose `for_leads` was the dead lead are never offered again.
+- **S4 · Strength, from the duel.**
+  - Each offered choice that stages a contested duel carries `stakes: { opponent, need_strength, have_strength, winnable_now, winnable_at_cap }`, where `need_strength` is the lowest strength at which `contestScore` (with the lead's other traits as they are) meets the opponent's rating.
+  - `require_traits` is refused by the loader on such a choice (audit check that bites).
+  - Taking it below `need_strength` is allowed and plays the authored loss.
+- **S5 · Turning-point hints are derived, not shared.** The "train your arm" sentence is added by the engine only to a contested duel the lead fights. Authored `critical.hint` carries only the story half.
+- **S6 · Choice `moves_to`** (new optional field): after the deed the lead stands at that place (it is added to `visited_location_ids` and counts as a move for presence and first meetings). The loader validates it is a real location.
+- **S7 · Speech knows who it is talking to and what just happened.** The speech context gains:
+  1. the lead's identity: name, role and the authored tie between the speaker and the lead (`ties` on either cast member), so the Duke knows his niece and the Ring's people know their champion. A `first_met` line is used only when no tie exists.
+  2. the deeds of this walk that involve the speaker: as `character_id`, as a witness, a ruling on a petition they are party to (with the shown outcome), and the latest deed at this place. Newest first, capped, and filtered by what the player is never sent.
+  3. `knows` entries may be gated (`requires`/`forbids`, same predicate as topics); a gated fact is withheld until it is true.
+- **S8 · The echo check catches retellings.** Compare each sentence of the reply with the deed's label, echo and summary, after normalising the person (second-person, first-person and the lead's name collapse to one token) and the tense, by content-word overlap. A sentence that restates the deed is dropped. If nothing is left, the reply falls back to the authored line. No word lists: the normalisation is structural (pronoun class from the grammar the model is asked to write in, the lead's name from the cast). Shown on the three lines in the playtest.
+- **S9 · Flagged speech is revised on screen.** When post-stream hygiene changes or rejects a reply, a `speech.revise` frame carries the final text (or the fallback), and the stored conversation holds only that. `world_speech.flagged` still logs.
+- **S10 · An action in asterisks** is stored and replayed as an action (`kind: 'action'`), not as a question, and is in the Earlier words payload.
+- **S11 · Goals.**
+  - A goal whose deed is no longer possible is withdrawn: a `by` goal is tracked only when at least one of its `by` choices could still be offered (its `forbids` are not set and its `for_leads` admits the lead).
+  - **Next road:** a goal's way gains `via`, the next place on the shortest path along roads the lead can walk now, plus `hops`. When the target is not revealed, the way names only `via`.
+  - Done credit is per choice, not per flag: a goal is done only by one of its own `by` choices having been taken.
+- **S12 · Rewind.**
+  - The response says where the lead was standing at the checkpoint (`view: 'room'` when the checkpoint was taken in a room).
+  - Step count comes from the restored checkpoint.
+  - Achievement records this walk unlocked after the checkpoint are withdrawn, and `ending_achievements` is recomputed.
+- **S13 · `ending_achievements`** lists every achievement this walk's state meets at the ending, each with `new: boolean` (earned now, or already held from another walk). Rewound-away ones never appear.
+- **S14 · Latency and logs.**
+  - `http.request` logs a real `durationMs` (wall time from request start to response). Show a before and after line.
+  - World speech logs one usage line per reply (model, tokens in/out, cost), in the same shape as fight staging.
+  - "Fight the Verdict" and "Take the known road" take 4–10 s. Find where the time goes, with the fixed timer. No model call may block `act()` (memory: walkable speech is a chat turn). Report the numbers before and after.
+- **S15 · Achievements view:** each achievement carries a `hint` for locked, non-hidden ones (its blurb, phrased as an aim), and a hidden one carries a lead-neutral hint ("One of the walk's endings").
+- **S16 · Audits that model the client.** In `audit:iron-verdict`:
+  - every choice, drill and petition sits at a place the lead can stand in;
+  - every `by` goal can still complete on some route after each of its `forbids` fires;
+  - no contested choice has `require_traits`;
+  - every `moves_to` is real;
+  - every lead can reach every ending that is not `not_for_leads` for them (report which).
+  Each check must bite.
+
+### Data (cmd)
+
+- **D1 · Forbids.** `name_the_date`, `keep_the_days_writ`, `read_writ` and `demand_the_paper` forbid `writ_burned`, `writ_sold`, `succession_passed`. Sweep every choice for the same "pointing at something already gone" leak and list what you changed.
+- **D2 · Cassian fights the succession.** A `for_leads: cassian_vale` choice "Fight the succession Verdict honestly" at the Ring (requires `writ_burned`, forbids `succession_passed`; sets `succession_fought`, `succession_passed`). It has its own contested duel: Cassian is the challenger with his live traits against Halloran. The win reaches Iron Verdict. The loss is authored and fatal (Cassian dies on the sand: `cassian_dead`, `succession_passed`, never `succession_fought`). The loss meets no ending trigger, so it is a death, and rebinding goes on in the reign.
+- **D3 · Remove `require_traits`** from every contested choice (S4).
+- **D4 · Turning-point hints:** each `critical.hint` is the story half only, and specific to its choice. "Throw" and "Let Cassian throw" don't mention losing.
+- **D5 · Lead-specific text.** Fix each, and sweep for the class:
+  - Cassian: "Cassian is not a prisoner…", "Yours is in your coat", "A folded paper with your mark…", and "You are still on the sand" after he has left.
+  - Sereth (holding the writ): "the woman under the bronze dial" and "Pick up the mark".
+  - Sereth's Verdict Upheld: "The Court owns your calendar".
+  - Verdict Upheld on the burn route: "you are paid for it". Use per-lead or per-route variants (`cost_when` keyed on flags if the schema needs it; tell the server task).
+  - Broken Ring promises a barricaded Court and a shut Marblegate. Make the reign deliver them (`opens_with`/visibility under `broken_ring`), or cut the promise.
+- **D6 · The stair.** `take_the_stair` gets lead-neutral copy that doesn't assume the writ (or requires `writ_read`, then its copy may mention it), and `moves_to` the place the stair comes out at. `nothing_left_unread` requires `writ_read` as well as `stair_taken`.
+- **D7 · Goal text:** "Ask Gaunt what his spare key opens" matches the button. Topic: "door on your belt" becomes "key". "Trace the matrix" is replaced with plain words. The Arbiter's "I named it myself" is replaced. "What became of the old rolls?" `forbids: rolls_named`.
+- **D8 · Chapter title** names no ending ("Chapter I · The Iron Verdict" or the world's own chapter name, not one of the four endings).
+- **D9 · Abbey:** `greywither_abbey` `opens_with: ["abbey_opened"]`. Check every goal's target for "granted but hidden".
+- **D10 · Ties:** every cast member who has a relationship with a playable lead names it in `ties` (Duke ↔ Sereth, Gaunt/Hob/Herald ↔ Cassian, and the rest). Gate the Herald's folded-paper fact on the Verdict that leaves it.
+- **D11 · Copy:**
+  - Kell is "Kell" in the fight narration (no "Dovin" alone).
+  - Hob's gate line says what opens him ("Hob Cardew works for the Ring. Win Cassian's trust and he'll talk").
+  - The overture's "The Hinge" says how to take a moment again (the clock button).
+  - Sereth's opening hall: either Aldric and Barran are present for her start (start flags), or the scene doesn't name them.
+  - "Hob's figure is missing when Nara arrives": confirm it's the gate. If so, the room says so.
+- **D12 · Deaths:** the death copy is said once (no repeated sentence).
+
+### UI lane A (agy) — `interactive_world_screen.dart`, `map/**`, `world_map_view.dart`, `room/**`, `stage/**`, `world_veil.dart`, `travel_transition.dart`
+
+- **A1 · Enter any place (S1).** The room opens over the map plate, cropped and framed on the place's marker and darkened. The tracker's "Here" always lands in that room.
+- **A2 · Room panel.** No springback: the scroll position holds, and a tap lands on the row under the finger. The last row clears the bottom fade, at any row count. Only the tapped row shows a spinner, and the other rows are disabled while it's pending. A reflow during a pending tap can't move the target.
+- **A3 · Strength on the button (S4).** A contested choice shows the opponent and "Strength N needed · you have M" before the tap. Below the need it reads as a risk, not a lock.
+- **A4 · Echo line:** the line at the top of the room belongs to the deed done **at this place**. After a move, the room shows its arrival line. The deed's echo never follows you.
+- **A5 · Map.**
+  - "The road is known" only when there's a Travel or known-road button. Otherwise the card names the next road ("2 roads away · via The Rimegate") and draws the route.
+  - The tracker shows `via` (S11).
+  - Camera clamp: the painting always covers the viewport, at every zoom (fixes the W11 regression).
+  - The opening zoom shows the lead's place and its neighbours.
+  - Markers under the header scrim or the place card are pushed clear or stay tappable.
+  - "World map" works on the first tap.
+  - No grey flash: precache the plate before the map shows.
+  - The north seam: find out if it's the renderer (tiling, a filter edge) or the painting, and fix the renderer case. Report the painting case.
+- **A6 · Rewind:** lands in the room when `view: 'room'`, drops queued moments from after the checkpoint (a held ending card never plays), updates the step count, and shows a spinner on the tapped step only. "FATAL" in red becomes plain words ("Nara falls here").
+- **A7 · Rebind:** shows the new lead's prologue, the spinner sits on "Walk as …" not on "Take the fight again", and the "Before you" goals (S3) show in the journal under their own heading.
+- **A8 · Death sheet:** no stray small figure of the dead lead.
+- **A9 · Ravensgate:** the room is empty and the lead's figure is missing there. Find out why (asset, presence, layout) and fix it.
+- **A10 · Training:** a "+1 Strength" moment.
+- **A11 · Accessibility:** controls behind opaque sheets are excluded (`BlockSemantics`), and every visible marker has a semantics label.
+
+### UI lane B (agy) — `world_characters.dart`, `world_duel.dart`, `world_ending.dart`, `world_moments.dart`, `goals/**`, `world_identity.dart`, `world_overture.dart`, `world_prologue.dart`, the realm walk list
+
+- **B1 · Conversation.**
+  - The conversation tracker's place line goes to the map marker (`onLocationTap`), and the panel stops being hit-testable after "Step away".
+  - Enter sends. The first tap on Speak with the keyboard open sends.
+  - An *asterisk* action is shown as an action (italic, no "You asked:"), and Earlier words includes actions and is easy to read (S10).
+  - `speech.revise` replaces the line in place (S9).
+- **B2 · Fights.**
+  - The tap control is worded as what it does (the next blow), not "Raise your shield".
+  - The result card: the outcome line first, then "What was decided" heading the decision. Every block has its label, and fates come after.
+- **B3 · Ending.**
+  - Expanding "What changed" keeps the buttons reachable (the sheet scrolls, and the buttons are pinned).
+  - "Achievements earned" shows `new` ones as new and held ones as held (S13).
+- **B4 · Lead picker:**
+  - "Turn them. Stand with one." is replaced with plain words.
+  - Each stat has a one-line explanation.
+- **B5 · Standing:** the chip and the strip say what standing means in words (no bare "−2 · 1 more").
+- **B6 · Petition panel:** it doesn't cover the petitioner. Three rulings fit. A two-line ruling label never overlaps the outcome.
+- **B7 · Achievements:**
+  - The progress bar reads "3 of 18".
+  - Locked achievements are legible and show their `hint` (S15).
+- **B8 · Walk list rows** don't wrap mid-phrase ("1d ago" stays whole).
+- **B9 · Accessibility** for the sheets lane B owns, as in A11.
+
+### Done when
+
+- `bun run typecheck`, `bun run audit:all`, `flutter analyze lib/features/interactive/` and `flutter test` are all green.
+- Every new check bites.
+- On the emulator, the orchestrator replays every P0 route with each lead, plus a sample of P1s:
+  - the south chain to selling the writ;
+  - the north chain to the moot;
+  - each sceneless petition ruled;
+  - Cassian's throw → Verdict Upheld;
+  - Cassian's honest fight (won → Iron Verdict, and lost → death → rebind into the reign);
+  - burn → no writ goals.
+
+  Spend cap for the replay: ₹60 / $0.70.
