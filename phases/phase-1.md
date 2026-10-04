@@ -529,3 +529,21 @@ The source is `playtests/2026-10-04-iron-verdict-full-run.md`. Every item there 
   - this walk's achievements as compact badges (not the old marks);
   - the primary button reads `<verb> — <reign_hint>`.
 - **Walk list sheet:** "Nara Voss · The Sundial Market · 15 steps · 2h ago".
+
+### W11 fix-1 — what the replay found  *(Oct 4)*
+
+Replayed as Nara to The Bloodless Crown and one ruling. Most of W11 holds. Still wrong:
+
+**Server + data (Codex)**
+1. **The reign runs dry after one ruling.** Most petition places are rumoured or gated (`gate_passed`, `stair_open`, `cassian_trust`), so a short route reaches the reign with two petitions in range, one of them the lead's own. New optional location field **`opens_with: string[]`**: when any of these flags is set, the place is `open`, ignoring its rumour and its unlock gate. `visibilityFor` honours it, and so does the client's copy. It goes into `worldVocabulary`. Data: every place that holds a petition gets `"opens_with": ["petitions_open"]`. Audit (must bite): for each ending, from the ending's place with that ending's flags plus `petitions_open`, every petition whose `requires` is met is at a reachable place, and the goal tracker has a tracked petitions goal.
+2. **Goal text for one lead.** "Watch the Verdict in the Ring" is shown to Nara, who hears it from the market ("Here"). Use lead-neutral goal text ("Learn how the Verdict ends").
+3. **Nara's Ring scene** says "The Sundial Market is open." She has just come from there. Drop that sentence from the two `lead: nara_voss` Ring variants.
+
+**UI (agy)**
+1. **The map still opens on the Ring.** `_selectedId ??= _state.currentLocationId` latches the unbound start place on first load. Binding a lead moves them to the market, but the selection, the card and the camera stay on the Ring. When `currentLocationId` changes through bind, rebind or restore, the selection follows it.
+2. **Read `opens_with`** in `WorldLocation.visibilityFor`.
+3. **Contrast.** The "TURNING POINT · …" caption (`brassHot` on parchment) and the ending's "WHAT CHANGED" / "ACHIEVEMENTS EARNED" captions (`brassDeep` on near-black) are unreadable.
+4. **The ending is still long.** Above the fold sit the tagline, the description and the ~100-word reign premise. Collapse the premise into the "What changed" section, so that the title, cost, ≤ 60-word description, badges and buttons fit without scrolling on a 1280×2856 screen.
+5. **Clipped head.** After `StageRise.speak` moved to `bottomCenter`, a figure taller than its slot is cut off flat at the slot's top (Arbiter Vell's head, conversation after the ending). Keep the feet grounded and let the figure overflow upward, not clip.
+6. **The tracker covers the lead's face** in the room (Nara at the Iron Fane and the market). The room figure's head must clear the tracker.
+7. **The first achievement card may not show.** `sand_and_silence` unlocked on the first act of a fresh walk (goal complete + achievement in the same response), yet no card was seen 6.5 s later. On the second such act the sequence played correctly. Reproduce it with a widget test that starts from `_goals == null`. Fix it if it is real.
