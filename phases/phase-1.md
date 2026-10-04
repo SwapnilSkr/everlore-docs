@@ -459,3 +459,73 @@ The pin stays a client preference: it is never stored on the server. The app sen
 - The server derives open goals as usual. If `pinned_goal_id` names a goal that is **open right now** (tracked, or one of the leads), the speech context's `trackedGoal` is that goal. Otherwise it is the derived tracked goal. An unknown, done or unreachable pin is ignored silently.
 - The pin never changes the payload's `goals.tracked`, `leads`, `way_on`, `goals_completed` or achievements. It only changes what a speaking character is told.
 - **Client:** every `act()` call passes the pinned goal id for this save from `GoalPinStore`, when there is one.
+
+---
+
+## W11 — Every bug from the full playthrough  ·  backend (Codex) + data (cmd) + UI (agy)   *(owner: "fix all of it", Oct 4)*
+
+The source is `playtests/2026-10-04-iron-verdict-full-run.md`. Every item there is in scope, and the numbers below refer to the sections of that file.
+
+### Server contract (Codex)
+
+1. **A lead's place is always theirs.**
+   - The `world.locations[].visibility` the player is sent is `open` for the lead's current location, whatever its seal.
+   - **New `state.visited_location_ids: string[]`**: the places the lead has actually stood in. `bind`/`begin` adds the start place, and every `move` appends. It is snapshotted with checkpoints, so a rewind restores it. Absent on old saves means `[current_location_id]`.
+   - The client opens the map on `current_location_id`.
+2. **Goals.**
+   - A `by` goal's `at` is the place offering one of its choices that **the most recent deed opened**: a place whose offered choice `requires` a flag set by the latest taken choice. Failing that, the nearest place, as before.
+   - **After an ending** (`progression.ending` set), pre-ending `by` goals are no longer offered: tracked is the `petitions` goal while it is open, and `leads` is empty. `goals_completed` never reports a goal on the act that produced an ending; the ending is the moment.
+3. **Achievements, one system.**
+   - The older `progression.marks` are **removed from the payload** and from the ending view. Achievements are the only record.
+   - The ending screen shows the achievements unlocked by this walk. `progression.ending_achievements: [{id,title,blurb,icon}]` lists the ones whose record has this `instance_id`.
+   - `when.visited_at_least` counts `visited_location_ids`, not unlocked places.
+4. **Who speaks after a deed.**
+   - After `choose`/`rule`/`train`, a character speaks only if the deed names them (`choice.character_id`), or the deed was a fight they witnessed (current duel rule).
+   - After `move`, someone speaks only on a **first meeting** at that place.
+   - Otherwise there is no `speech`. A talk the player starts is unchanged.
+5. **No silent speech.**
+   - Every speech job ends in exactly one logged terminal line: `world_speech.end`, `.flagged`, `.failed` or `.cancelled`, each with a reason.
+   - Investigate why a wordless "Speak with … again" talk produced no frames, then fix it. It must either speak, or end with a fallback line the player sees.
+6. **Echo check sources:** the deed label, the deed's `echo` and `summary` (or the resolution's `echo` and `consequence` for a ruling), and the scene body.
+7. **The lead is never a party to a petition.** Petition parties may carry `cast_id` (data). A petition with a party whose `cast_id` is the lead is not offered to that lead.
+8. **Ruling outcome:** the `rule` act response gains `ruling: { title, label, consequence_shown }`. `consequence_shown` is the resolution's `echo`, never `consequence`. The client shows it as a moment.
+9. **Walk deletion** skips vector-store cleanup for interactive instances, and a 404 there counts as already gone. No error log.
+10. **Walk list:** each walk carries `lead_name` and `place_title` (`GET /interactive-worlds/instances` and the "wandered here before" listing).
+
+### Data (cmd)
+
+- **Scene text written for one lead:**
+  - every `scene_body`/`scene_when` variant and every echo or summary that describes a lead in the third person gets a lead-neutral rewrite or a per-lead variant (`for_leads`/`not_for_leads`);
+  - add post-Verdict and post-ending variants where the scene still describes the time before;
+  - place `description`s must be timeless (no "A new clue waits").
+- **`hear_the_ring`** gains `forbids: [verdict_witnessed]`. Check every lead's opening choice for the same leak.
+- **Petition parties** that are cast members get `cast_id`.
+- **Achievement copy** is lead-neutral. "Seven names on the road" now means places *visited*: keep 7 and reword it ("Stood in seven places").
+- **The marks block** in `.progression.json` is deleted. Each mark worth keeping becomes an achievement.
+- **Endings:** each `reign_description` is ≤ 60 words, and each ending gets a one-line `reign_hint` explaining its reign verb ("Reform: hear the duchy's petitions and remake its law").
+
+### UI (agy)
+
+- **The map:**
+  - opens centred on the lead's place;
+  - tapping the tracker's place line centres the map on that marker and selects it;
+  - pan and centring keep markers clear of the tracker and the place card;
+  - marker labels never ellipsize (wrap to two lines).
+- **Tracker:** shown after an ending, during the reign.
+- **Moments:**
+  - goal and achievement moments are blocked while the ending screen is up, and play after it;
+  - the queue never drops items: every queued card is shown, including on acts that don't open a conversation (root cause required);
+  - the goal moment does not dim the conversation panel;
+  - no undimmed flicker between "Goal complete" and "New goal".
+- **Ruling outcome moment** from `ruling`.
+- **Conversation:** figures stay grounded when the tracker is hidden (after the ending).
+- **Room panel:** the last button is never clipped (scroll padding plus a fade cue). Turning-point choices get a distinct treatment and show their warning on the button itself.
+- **Fight:**
+  - the count sits beside the bar, not on its ticks;
+  - at the end both strips stay, or both go;
+  - the result card is one plain outcome line plus "What was decided", with the italic preamble removed.
+- **Ending screen:**
+  - title, tagline, the ≤ 60-word description, the bullets collapsed under "What changed";
+  - this walk's achievements as compact badges (not the old marks);
+  - the primary button reads `<verb> — <reign_hint>`.
+- **Walk list sheet:** "Nara Voss · The Sundial Market · 15 steps · 2h ago".
