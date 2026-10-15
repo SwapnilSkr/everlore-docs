@@ -125,7 +125,7 @@ portrait?: {
 
 | Shot | Length | Made from | Rules |
 |---|---|---|---|
-| **Opening** | 3–4 s | the turn's narration **before** the line | Wide or detail framing: the place, hands, a silhouette, the character from behind. **No face close-up**: video models drift on faces (Seedance did in the probe). Image-to-video from a "Picture this"-style still of the moment, so the painted look carries over |
+| **Opening** | 3–4 s | the turn's narration **before** the line | Wide or detail framing: the place, hands, a silhouette, the character from behind. **No face close-up**: video models drift on faces (Seedance did in the probe). Image-to-video from **its own wide still** (one image call, ≈ $0.017), painted in the house style with no face close-up, so the painted look carries over. **Never start from a portrait or a face-framed picture:** the scene probe showed a close-up first frame cannot be prompted into a wide shot (models duplicated the woman or reframed abruptly) |
 | **The line** | the clip's length (≈ 3–8 s) | the character's portrait + **the exact voice clip the player heard** | The talking portrait (§9.1). The only shot with the face up close |
 | **Closing** (optional) | 2–3 s | the narration **after** the line | Same framing rules as the opening. Left out when nothing follows the line |
 
