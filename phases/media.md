@@ -129,8 +129,68 @@ portrait?: {
 | **The line** | the clip's length (≈ 3–8 s) | the character's portrait + **the exact voice clip the player heard** | The talking portrait (§9.1). The only shot with the face up close |
 | **Closing** (optional) | 2–3 s | the narration **after** the line | Same framing rules as the opening. Left out when nothing follows the line |
 
-- **Assembly in code.** The server joins the shots with ffmpeg: short cross-fades, one aspect ratio and frame rate, our voice clip over the line shot, and the scene shots' ambient sound (if the model makes any) under it at low volume, never a voice. The narration is not shown as text; optional subtitles of the spoken line are a later choice.
-- **One description pass** turns the turn into the shot list (who, where, framing, mood, passing looks) as words; code picks the shots, lengths and order. It goes through the same SFW gates as a picture (§7): description gate before, frame check on **every** shot after.
+- The narration is not shown as text. Optional subtitles of the spoken line are a later choice.
+
+### 3A.1 The director pass (premium)
+
+The quality of the cut is decided by its direction, not by the video model (owner, Oct 16 2026). One call to a **premium director model** turns the turn into a structured shot plan.
+- **The prompt and output schema are fixed:** `server/MEDIA_DIRECTOR_PROMPT.md`.
+- The director writes a **continuity sheet** first: wardrobe, hair, props, time, weather, light direction, palette. Then the shots, each with:
+  - framing and camera move from closed lists;
+  - who is in the still;
+  - the exact first-frame composition;
+  - one subject action;
+  - a verbatim evidence sentence from the narration.
+- It also chooses the transitions and the voice lead-in (a J-cut), each from a closed list.
+- **Model: chosen by a text-only bake-off inside `media-server-2`.** Three to four premium models are tried on the same fight, tense and intimate turns. The criteria:
+  - rule compliance, scored by the §3A.2 validator;
+  - the intimate turn is turned SFW without refusing;
+  - the owner's read of the plans.
+- **Cost:** ≈ $0.01–0.04 per video, small next to the shots. Env `MEDIA_DIRECTOR_MODEL`.
+- **Never cached across turns;** cached per video request.
+
+### 3A.2 Validation in code: the probe's glitches, closed structurally
+
+| Probe glitch | Closed by |
+|---|---|
+| A second woman appeared at the door (Grok, Veo) | `people_in_still` is the complete cast of the shot. The compiled motion prompt says "no other people appear". The post-check counts people on the first, middle and last frames, and the counts must match `people_in_still` |
+| Abrupt reframe / foreground jump (Seedance) | Exactly one `camera_move` from the closed list. The motion is compiled as a change from the still, never a new composition |
+| Costume drift (Wan: brown leather became a black jacket) | The continuity sheet's wardrobe is pasted verbatim into every still and motion prompt. The speaker's portrait is passed as a wardrobe/hair reference for the still. The post-check compares the last frame with the still |
+| Face close-up drift | Scene framings exclude the face by construction. The post-check rejects a frame where a face fills more than a set share of the frame |
+| Shot not about the story | `evidence` must be a verbatim sentence of the right narration span (opening from before the line, closing from after it). Otherwise that shot is dropped |
+
+The validator also rejects:
+- names that don't resolve to the speaker, a present card, or nobody;
+- durations or transitions outside the lists;
+- more than one scene shot per role.
+
+A plan that fails gets **one** repair call with the validator's errors. Failing again, the cut degrades to the line shot alone.
+
+### 3A.3 Compilation and assembly in code
+
+- **Prompts are compiled, not written by the director.**
+  - Per-model templates live in data, and code fills them from the plan.
+  - Still prompt: house style + continuity + framing + `still` + "no text".
+  - Motion prompt: `camera_move` + `subject_action` + `environment_motion` + wardrobe + "no other people appear, no cut, the composition stays continuous".
+- **Post-check on every scene shot**, a vision call on the first, middle and last frames:
+  - the SFW check (§7);
+  - the people count;
+  - the wardrobe match;
+  - no face close-up;
+  - no text.
+
+  A failure gets **one** retry on the fallback scene model (Wan, audio dropped). Failing again, the shot is dropped and the cut degrades. Retries are our cost, never an extra charge to the player.
+- **Assembly** with ffmpeg, using the probe's recipe:
+  - one resolution (720×1280) and 24 fps;
+  - the director's transitions;
+  - the J-cut lead-in;
+  - our voice at full level;
+  - the ambient bed under it at about −18 dB, never a voice;
+  - loudness normalised to about −16 LUFS;
+  - one shared colour grade across shots, so the HeyGen shot and the scene shots match;
+  - the line shot trimmed to the voice plus a 0.3 s tail.
+- **The whole plan is stored** with the `media_assets` record (plan, compiled prompts, check results), so a bad cut can be diagnosed.
+- Every model call goes through the SFW gates (§7): the plan is checked before any generation, and every shot after.
 - **Degrades, never breaks.** If a scene shot fails or is rejected, the cut is delivered with the remaining shots (at minimum the line shot) and the player is charged one video. If the line shot fails, the whole video is `media_failed` and the slot is released.
 - **One video counts once**, whatever the shot count.
 
