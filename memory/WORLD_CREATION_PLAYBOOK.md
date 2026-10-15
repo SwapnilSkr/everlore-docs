@@ -2,7 +2,9 @@
 
 **What this is:** the exact, repeatable procedure for an agent to create **real, publishable** worlds — GM / sentient / character — as the dev user, WITH a generated cover image, and leave them **published and ready to play**. The user then opens the app and jumps in. The agent does NOT auto-play and does NOT delete.
 
-**Audience:** an autonomous agent with Bash + `jq` against the running local stack (`localhost:3000`).
+**Audience:** an autonomous agent with Bash + `jq` against the running local stack. ⚠️ The port is now **8081** (`PORT` in `.env`), not 3000. Read `localhost:3000` below as `localhost:8081`.
+
+> **Oct 15 2026: covers for our own chat worlds come from the Codex desktop app (§4B), not the API (§4).** §4 is still how a *player's* image preview works, and it's a fallback. Worlds made here land in the **local dev DB**; reaching players needs a separate, agreed prod step.
 
 **Sibling doc:** `AUTOCHAT_PLAYBOOK.md` covers logging in and *auto-playing* worlds. This doc is the *creation* half and **intentionally inverts its image policy** — see below.
 
@@ -116,6 +118,35 @@ echo "cover=$IMG"
 - Tier-gated (creator/premium ✓) and rate-limited (`image_generate`). On 429, wait and retry.
 - Image gen runs BEFORE template validation, so only generate once the body is otherwise ready.
 - For a **character** world, this same portrait is the character's avatar — make the visual core describe the *person*, not a landscape.
+
+---
+
+## 4B. Cover from the Codex desktop app (default for our own chat worlds)
+
+The same idea as walkable-world art (AGENTS.md §5): the orchestrator drives the **Codex desktop app** (bundle `com.openai.codex`) through computer use **in the background**, using the `app_*` tools against the app's own windows. Never take full control of the screen. Image generation is included in the ChatGPT Pro plan, so this costs nothing extra. Seedream via §4 costs $0.04 an image.
+
+1. **Batch brief first.** Write `.agents/assets/chat-covers-<batch>.md`. For each world, list:
+   - the exact filename `cover_<slug>.png`;
+   - the full prompt: the §4 decorated shape (visual core + the style hint for its `narrative_style` + the 9:16 / no-device / no-text tail);
+   - the target folder: the drop folder `~/Desktop/sample files/sample files for everlore/world assets/chat-covers/`.
+
+   Ask in the prompt for **a tall vertical 9:16 image saved as `<filename>` in that folder**, and end the prompt with the sentinel `END.`.
+2. **Per window** (recipe from AGENTS.md §5):
+   - Open a window: `app_menu {path:["File","New Window"]}` → `app_list_windows`.
+   - In **one** `app_batch`: `screenshot` → `click [600,786]` → `type` with `coordinate:[600,786]` **and** `overwrite_existing:true`.
+   - Zoom on the field to confirm `END.` is there. New windows share one unsent draft.
+   - Then `app_key {combo:"return", coordinate:[600,800]}` and `app_screenshot`.
+   - 4+ windows in parallel is fine. Check the project reads `rpg-ai`.
+3. **Reconcile the folder** against the brief. Codex writes `_v2` / `.provisional` variants when a name is taken. Keep exactly one file per world, and confirm by eye that it is **portrait and full-bleed, with no letterbox, no phone mockup and no text**.
+4. **Upload each cover** with the existing endpoint, which validates the image, resizes it to ≤2048, and stores it as lossless WebP under `previews/`:
+   ```bash
+   IMG=$(curl -sX POST "$BASE/templates/image/upload" -H "authorization: Bearer $TOKEN" \
+     -F "image=@$HOME/Desktop/sample files/sample files for everlore/world assets/chat-covers/cover_<slug>.png" | jq -r '.url')
+   ```
+   Needs a creator/premium user. It's rate-limited (`image_upload`): on 429, wait and retry.
+5. **Pass `$IMG` as `image_url` in §5 within 24 h.** `previews/` expires after a day. Saving the template promotes the image to `media/` (`storageService.promote`), which is permanent. A cover uploaded and never saved is simply lost; regenerate nothing, just re-upload the file.
+
+Skip §4 entirely on this path. No autofill `image_prompt` is needed; write the visual core yourself from the world's text.
 
 ---
 

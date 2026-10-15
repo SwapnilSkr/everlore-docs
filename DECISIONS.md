@@ -4,6 +4,19 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## Launch catalog: our chat worlds go straight to prod, covers from the Codex app  ·  Oct 15 2026
+
+**Decided (owner):** the ~40 launch chat worlds are created **directly on prod**, with no staging step. Prod has no real users yet. Covers come from the Codex desktop app (`WORLD_CREATION_PLAYBOOK.md` §4B), not the image API.
+
+**How:**
+- Worlds are authored as files and written by an idempotent seed (keyed by slug), the same "worlds are data" pattern as walks.
+- The seed runs locally against dev first, then on `everlore-prod` (EC2 `i-0c113fabad76aecf4`) through SSM with the box's own env.
+- Worlds are published under one official account named **Everlore**, not the owner's personal one.
+
+**Reopen when** prod has real players. From then on, new catalog worlds go through dev first and a reviewed prod run.
+
+---
+
 ## Walkable worlds guide the player like Assassin's Creed, and reward them with achievements  ·  Oct 4 2026
 
 **Decided (owner, approved mockup):**
