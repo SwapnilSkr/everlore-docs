@@ -172,6 +172,8 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
 
 `spoken_lines` is also included on the event in `GET` instance/event payloads, so a reload shows the same lines.
 
+**Feature switch on the wire.** While `MEDIA_ENABLED` is off, the server sends no `spoken_lines` (no socket message, no payload field) and `GET /media/usage` returns 404. The app shows media affordances only when a turn has `spoken_lines` (voice, video) or `/media/usage` answered 200 this session (Picture this, portraits). Switching media off therefore hides it without an app release.
+
 ---
 
 ## 7. Safety (pictures, portraits, video)
