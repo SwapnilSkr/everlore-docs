@@ -238,7 +238,7 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 | Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
 | Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017; the painted look matches the house style). `flux-3-image-klein` ($0.009, more photographic) is the cheaper swap | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
 | Talking video (the line shot) | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | **chosen** (owner, Oct 16 2026) | `MEDIA_VIDEO_MODEL` |
-| Scene shots (§3A) | decided by the scene probe (`.agents/reports/scene-probe.md`) | open | `MEDIA_SCENE_MODEL` |
+| Scene shots (§3A) | `x-ai/grok-imagine-video-1.5-lite`, 480p, about $0.02/s plus $0.01 per input image; it had the best painted look and was cheapest. **Fallback `alibaba/wan-3.0`**, used automatically when Grok fails: a scene shot has no voice to keep consistent. Wan's own audio track is **always dropped**, because it returned audio even with `generate_audio:false` and the voice check flagged it | **chosen** (owner, Oct 16 2026) | `MEDIA_SCENE_MODEL`, `MEDIA_SCENE_FALLBACK_MODEL` |
 
 API shapes the probe established:
 - **Images:** `POST /api/v1/images` with `prompt`, `aspect_ratio`, `n`, `input_references`.

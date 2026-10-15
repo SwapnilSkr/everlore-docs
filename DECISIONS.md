@@ -39,6 +39,7 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 **Models (owner, Oct 16 2026, after a paid probe, `.agents/reports/media-probe.md`, ≈ $0.73 / ₹62):**
 - **Images:** Flux 2 Klein, ≈ ₹1.40 per image. Its painted look matches the house style. Flux 3 Klein is the cheaper, more photographic swap.
+- **Scene shots (the scene cut):** Grok Imagine Video 1.5 Lite, with Wan 3.0 as the automatic fallback (owner, Oct 16 2026, after the scene probe, ≈ $0.64 / ₹55). A full cut costs ≈ $0.40–0.44 (₹34–38). Each shot starts from its own wide still, never a face close-up.
 - **Video:** HeyGen Avatar IV, ≈ ₹25 per 6 s clip. It lip-syncs the portrait to our exact recording and keeps the painted face. Seedance swapped in a different voice and drifted to a photoreal face; Veo invents its own voice.
 - No model refused the intimate voice lines.
 
