@@ -34,7 +34,10 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 **Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures stay SFW for everyone.
 
-**Still open:** the image model (Flux 2 Klein, painted look, vs Flux 3 Klein, cheaper and more photographic) and confirming the video model (HeyGen Avatar IV is the probe's pick: it kept our exact voice and the painted face). Both are decided before `media-server-2`. The probe (`.agents/reports/media-probe.md`) cost ≈ $0.73 (₹62), and no model refused the intimate lines.
+**Models (owner, Oct 16 2026, after a paid probe, `.agents/reports/media-probe.md`, ≈ $0.73 / ₹62):**
+- **Images:** Flux 2 Klein, ≈ ₹1.40 per image. Its painted look matches the house style. Flux 3 Klein is the cheaper, more photographic swap.
+- **Video:** HeyGen Avatar IV, ≈ ₹25 per 6 s clip. It lip-syncs the portrait to our exact recording and keeps the painted face. Seedance swapped in a different voice and drifted to a photoreal face; Veo invents its own voice.
+- No model refused the intimate voice lines.
 
 **Reopen when** costs per player run over the caps, or a tier split is wanted after the promo.
 

@@ -1,6 +1,6 @@
 # Phase: voiced lines, scene pictures and talking-character video
 
-Status: **contract, Oct 16 2026.** The voice model is chosen (§2.3, owner after listening to the probe). The image and video models are the probe's recommendations and are confirmed before `media-server-2` (§9.1). Probe: `.agents/reports/media-probe.md`.
+Status: **contract, Oct 16 2026.** All three models are chosen (§9.1, owner after the probe). Probe: `.agents/reports/media-probe.md`.
 Decisions behind this: `DECISIONS.md` → "Voiced lines, scene images and talking-character video in chat worlds".
 
 Chat worlds only. The interactive (walkable) world is out of scope.
@@ -219,8 +219,8 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 |---|---|---|---|
 | Voice | `elevenlabs/eleven-v4-turbo` | **chosen** (owner, Oct 16 2026) | `MEDIA_VOICE_MODEL` |
 | Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
-| Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017, painted look); alternative `flux-3-image-klein` ($0.009, more photographic) | probe recommendation; the owner picks before `media-server-2` | `MEDIA_IMAGE_MODEL` |
-| Talking video | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | probe recommendation; confirmed before `media-server-2` | `MEDIA_VIDEO_MODEL` |
+| Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017; the painted look matches the house style). `flux-3-image-klein` ($0.009, more photographic) is the cheaper swap | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
+| Talking video | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | **chosen** (owner, Oct 16 2026) | `MEDIA_VIDEO_MODEL` |
 
 API shapes the probe established:
 - **Images:** `POST /api/v1/images` with `prompt`, `aspect_ratio`, `n`, `input_references`.
