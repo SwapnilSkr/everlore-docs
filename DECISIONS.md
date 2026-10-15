@@ -15,15 +15,19 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
   - Intimate lines are voiced only for players who opted in to mature themes in their profile.
 - **Images.** A "Picture this" button on a turn.
 - **Video.** A "See them say it" button on a spoken line. The character's portrait is lip-synced to the voice line they already heard (a talking character, not an acted scene with an invented voice). It is generated in the background and arrives in the chat.
-- **Portraits.** Codex characters have no image today. The first time one is needed, the character gets **one generated SFW portrait**, made from their card, the prose and the world's style. It is saved on the character and reused as the reference for every image and video, so the face stays the same, and it appears on the card.
-  - A character world's cover is used as the portrait, unless the creator uploaded it. Uploaded covers get a generated portrait instead.
-  - Unnamed figures have no portrait or video until they become a carded character.
-  - The player's own lines are never voiced or animated.
-  - The first portrait is free (it doesn't count against images), capped at ~20 new portraits per player per day. Repainting a face from the card counts as one image.
+- **Portraits, one per character, separate from the cover.** Covers are never animated, edited or used as a face. Each character gets its own head-and-shoulders portrait, used to lip-sync videos and as the face reference in "Picture this" scenes.
+  - **A portrait belongs where the character belongs.** The world's cast (and a character world's companion) has a portrait **on the world**, made once and shared by every save and player. A character born during play has a portrait **on that save's card only**; the same name in two saves is two people.
+  - **Made only on a tap, then kept.** A world cast portrait is made the first time any player taps for that character. Our launch worlds get theirs painted in the Codex app with the covers. A character born during play needs a card first; passers-by can't be pictured.
+  - **An unknown look is filled in and becomes canon.** At the first tap, a concrete look consistent with everything known (world/card `appearance`, prose, role, style) is written to the card's `appearance`. The narrator already reads that field, so the story then describes the person in the picture.
+  - **Lasting vs passing looks.** Face, hair, build and permanent marks are lasting: they update that save's card. Clothes, dirt, blood and costume are passing: they go into one picture's prompt and never change the portrait. A lasting change counts only with a quoted sentence from the turn as evidence, never a model's guess.
+  - **A change never generates on its own.** It updates the card text at once and marks the portrait out of date. The repaint happens only on the next tap that needs the face, using the old portrait as reference so it stays the same person. A story-caused repaint is free (within the ~20 portraits/day cap). A repaint the player asks for counts as one image. A player repainting a world character overrides it for that save only.
+  - **The player's own character** is never voiced or animated, but can appear in pictures. Until they have a face, pictures are framed through their eyes or over the shoulder. A "Give yourself a face" offer paints one from the world protagonist's `appearance` or the persona's description. A protagonist's portrait starts on the world, like the cast. A persona's lives on the persona and follows it across worlds; lasting changes stay on the save.
+  - **Creator worlds.** Portraits made on a player's tap need no review: they come from already-approved text and pass the image safety check. A creator repainting a cast face on a public world is a meaningful edit and goes back to review, like a cover change.
+  - **No uploaded photo is ever a face**: not a cover, not a selfie, not a persona. Every image records its source (`generated`, `authored`, `uploaded`), and only `generated` and `authored` faces may be animated or used as references. Older images with no record count as `uploaded`.
+  - The first portrait is free (not counted against images), capped at ~20 new portraits per player per day.
 - **Images and video are always SFW**, enforced structurally, not only by prompt:
   - the visual description is safety-checked before generation, and the result is checked before it is shown;
   - a rejected moment shows "This moment stays unseen", is not charged and does not count.
-  - Videos start only from portraits we generated, **never from uploaded photos**, so no real person can be animated.
 - **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 150 voiced lines, 15 images, 3 videos. Hitting one shows a calm in-world line, not an error.
 - **Triggers.** Only the player's tap starts generation; the story never generates media on its own.
 
