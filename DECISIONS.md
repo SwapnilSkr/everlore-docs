@@ -15,6 +15,11 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
   - Intimate lines are voiced only for players who opted in to mature themes in their profile.
 - **Images.** A "Picture this" button on a turn.
 - **Video.** A "See them say it" button on a spoken line. The character's portrait is lip-synced to the voice line they already heard (a talking character, not an acted scene with an invented voice). It is generated in the background and arrives in the chat.
+- **Portraits.** Codex characters have no image today. The first time one is needed, the character gets **one generated SFW portrait**, made from their card, the prose and the world's style. It is saved on the character and reused as the reference for every image and video, so the face stays the same, and it appears on the card.
+  - A character world's cover is used as the portrait, unless the creator uploaded it. Uploaded covers get a generated portrait instead.
+  - Unnamed figures have no portrait or video until they become a carded character.
+  - The player's own lines are never voiced or animated.
+  - The first portrait is free (it doesn't count against images), capped at ~20 new portraits per player per day. Repainting a face from the card counts as one image.
 - **Images and video are always SFW**, enforced structurally, not only by prompt:
   - the visual description is safety-checked before generation, and the result is checked before it is shown;
   - a rejected moment shows "This moment stays unseen", is not charged and does not count.
