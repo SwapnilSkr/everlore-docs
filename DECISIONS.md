@@ -15,7 +15,10 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
   - Feeling comes from how the line is written plus at most one performed tag: `[shouting]`, `[whispers]`, `[sighs]` or `[breathless]`, the four the probe proved are performed, not spoken. Genlife proved a written style note is read aloud on OpenRouter.
   - Intimate lines are voiced only for players who opted in to mature themes in their profile.
 - **Images.** A "Picture this" button on a turn.
-- **Video.** A "See them say it" button on a spoken line. The character's portrait is lip-synced to the voice line they already heard (a talking character, not an acted scene with an invented voice). It is generated in the background and arrives in the chat.
+- **Video.** A "See them say it" button on a spoken line. It is generated in the background and arrives in the chat.
+  - **A scene cut, not only a talking head** (owner, Oct 16 2026): an opening shot from the narration, then the character saying the line, then an optional closing shot. About 10–12 s.
+  - The character's portrait is lip-synced to the voice line they already heard (never an invented voice).
+  - Scene shots avoid face close-ups, because video models drift on faces. Estimated ≈ $0.45–0.65 (₹38–55) a video against $0.30 for the talking head alone. The cap drops from 3 to 2 a day to hold the cost.
 - **Portraits, one per character, separate from the cover.** Covers are never animated, edited or used as a face. Each character gets its own head-and-shoulders portrait, used to lip-sync videos and as the face reference in "Picture this" scenes.
   - **A portrait belongs where the character belongs.** The world's cast (and a character world's companion) has a portrait **on the world**, made once and shared by every save and player. A character born during play has a portrait **on that save's card only**; the same name in two saves is two people.
   - **Made only on a tap, then kept.** A world cast portrait is made the first time any player taps for that character. Our launch worlds get theirs painted in the Codex app with the covers. A character born during play needs a card first; passers-by can't be pictured.
@@ -29,7 +32,7 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 - **Images and video are always SFW**, enforced structurally, not only by prompt:
   - the visual description is safety-checked before generation, and the result is checked before it is shown;
   - a rejected moment shows "This moment stays unseen", is not charged and does not count.
-- **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 100 voiced lines (owner, Oct 16 2026: a heavy player then costs at most ≈ $6 / ₹510 a month in voice), 15 images, 3 videos. Hitting one shows a calm in-world line, not an error.
+- **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 100 voiced lines (owner, Oct 16 2026: a heavy player then costs at most ≈ $6 / ₹510 a month in voice), 15 images, 2 videos (owner, Oct 16 2026, with the scene cut). Hitting one shows a calm in-world line, not an error.
 - **Triggers.** Only the player's tap starts generation; the story never generates media on its own.
 
 **Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures stay SFW for everyone.

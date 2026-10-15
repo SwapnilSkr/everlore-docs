@@ -119,6 +119,21 @@ portrait?: {
 
 ---
 
+## 3A. The video: a scene cut
+
+"See them say it" is a short cinematic cut (~10–12 s), not only a talking head (owner, Oct 16 2026). The narration becomes what is seen; the quoted line is what is heard.
+
+| Shot | Length | Made from | Rules |
+|---|---|---|---|
+| **Opening** | 3–4 s | the turn's narration **before** the line | Wide or detail framing: the place, hands, a silhouette, the character from behind. **No face close-up**: video models drift on faces (Seedance did in the probe). Image-to-video from a "Picture this"-style still of the moment, so the painted look carries over |
+| **The line** | the clip's length (≈ 3–8 s) | the character's portrait + **the exact voice clip the player heard** | The talking portrait (§9.1). The only shot with the face up close |
+| **Closing** (optional) | 2–3 s | the narration **after** the line | Same framing rules as the opening. Left out when nothing follows the line |
+
+- **Assembly in code.** The server joins the shots with ffmpeg: short cross-fades, one aspect ratio and frame rate, our voice clip over the line shot, and the scene shots' ambient sound (if the model makes any) under it at low volume, never a voice. The narration is not shown as text; optional subtitles of the spoken line are a later choice.
+- **One description pass** turns the turn into the shot list (who, where, framing, mood, passing looks) as words; code picks the shots, lengths and order. It goes through the same SFW gates as a picture (§7): description gate before, frame check on **every** shot after.
+- **Degrades, never breaks.** If a scene shot fails or is rejected, the cut is delivered with the remaining shots (at minimum the line shot) and the player is charged one video. If the line shot fails, the whole video is `media_failed` and the slot is released.
+- **One video counts once**, whatever the shot count.
+
 ## 4. The player's actions (UX)
 
 | Action | Where | What happens |
@@ -197,7 +212,7 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 |---|---|---|---|
 | Voice lines | 100 | `MEDIA_DAILY_VOICE` | "Their voices rest until tomorrow." |
 | Pictures (incl. repaints) | 15 | `MEDIA_DAILY_PICTURE` | "The painter rests until tomorrow." |
-| Videos | 3 | `MEDIA_DAILY_VIDEO` | "The visions rest until tomorrow." |
+| Videos | 2 | `MEDIA_DAILY_VIDEO` | "The visions rest until tomorrow." |
 | New portraits (free) | 20 | `MEDIA_DAILY_PORTRAIT` | (silent; the requested media waits until tomorrow) |
 
 - **Accounting** mirrors ink reservations: a `media_usage` row is reserved on request, settled on delivery and released on failure or rejection. Counts come from rows, so a free cached replay costs no slot (a cache hit never reserves).
@@ -222,7 +237,8 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 | Voice | `elevenlabs/eleven-v4-turbo` | **chosen** (owner, Oct 16 2026) | `MEDIA_VOICE_MODEL` |
 | Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
 | Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017; the painted look matches the house style). `flux-3-image-klein` ($0.009, more photographic) is the cheaper swap | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
-| Talking video | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | **chosen** (owner, Oct 16 2026) | `MEDIA_VIDEO_MODEL` |
+| Talking video (the line shot) | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | **chosen** (owner, Oct 16 2026) | `MEDIA_VIDEO_MODEL` |
+| Scene shots (§3A) | decided by the scene probe (`.agents/reports/scene-probe.md`) | open | `MEDIA_SCENE_MODEL` |
 
 API shapes the probe established:
 - **Images:** `POST /api/v1/images` with `prompt`, `aspect_ratio`, `n`, `input_references`.
