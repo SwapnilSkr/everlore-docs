@@ -1,6 +1,6 @@
 # Phase: voiced lines, scene pictures and talking-character video
 
-Status: **contract draft, Oct 15 2026.** Models are chosen after the probe (`.agents/reports/media-probe.md`).
+Status: **contract, Oct 16 2026.** The voice model is chosen (§2.3, owner after listening to the probe). The image and video models are the probe's recommendations and are confirmed before `media-server-2` (§9.1). Probe: `.agents/reports/media-probe.md`.
 Decisions behind this: `DECISIONS.md` → "Voiced lines, scene images and talking-character video in chat worlds".
 
 Chat worlds only. The interactive (walkable) world is out of scope.
@@ -61,23 +61,34 @@ The first time a player taps any line in a turn, one cheap structured call proce
   is_speech: boolean            // false for a quoted sign, letter, title, or thought
   speaker_name: string | null   // a name as written in the prose, never an id
   spoken_text: string           // the words actually said, narration removed
-  tags: string[]                // 0–2 from the allowed performed-tag list (§2.3)
+  tags: string[]                // 0–1 from the allowed performed-tag list (§2.3)
 }
 ```
 
 The server accepts a line only if:
 - `spoken_text`, ignoring whitespace, is a **verbatim substring** of that line's span. This is the evidence rule: the model can drop narration but can't invent words.
 - `speaker_name` resolves through the existing codex name/alias resolution to a card in this save that isn't the player.
-- `tags` are filtered to the allowed list, at most 2.
+- `tags` are filtered to the allowed list, at most 1.
 
 Any line that fails is marked `unvoiceable`: the tap gets a soft haptic and nothing else, and the line is never offered again. Results are saved on the event (`spoken_lines[i].voice`) so the call runs once per turn.
 
 ### 2.3 Voice
 
-- **Voice per character.** The first time a card speaks, a voice is chosen deterministically from the model's preset voices (fit by gender, age and temperament known on the card; ties broken by catalogue order; no two cards in a save share one) and saved on the card as `voice: { model, voice_id }`. World cast voices are stored on the world's cast entry and shared by every save, the same as portraits.
-- **Feeling** comes from the written line plus 0–2 performed tags. **No style note** is sent: on OpenRouter it is read aloud (proven in Genlife 7.19). The allowed tag list depends on the model chosen by the probe.
-- **Mature lines** are voiced only for players with `preferences.nsfw_enabled`. For everyone else, a line from a turn the narrator classified as mature is `unvoiceable`.
+- **Model: `elevenlabs/eleven-v4-turbo`** via OpenRouter `/audio/speech` (env `MEDIA_VOICE_MODEL`). It returns mp3; no transcoding.
+  - Chosen by the owner on Oct 16 2026 after listening to the probe. It had the best performance and the cleanest transcripts, and was the fastest (~0.8 s per line). It refused none of the test lines, intimate ones included.
+  - Price: $20 per million input characters, tags included, ≈ $0.002 (₹0.17) per ~100-character line. Fish Drama 3 was 10× cheaper but less good, and its launch price may be a promotion.
+- **No automatic fallback model.** Another model would give the character a different voice. A provider failure is `media_failed` and the slot is released.
+- **The voice catalogue is data**, not code: a file listing each of the model's 21 preset voices (`george`, `sarah`, … as `supported_voices` on `/api/v1/models`) with authored traits (gender presentation, age band, timbre). Changing models means a new catalogue file, not new code.
+- **Voice per character.** The first time a card speaks, a voice is chosen deterministically and saved as `voice: { model, voice_id }`.
+  - The fit uses the gender, age and temperament known on the card (structural fields, never a word list). Ties are broken by catalogue order.
+  - **Within a save, prefer a voice no other speaking card uses.** World cast voices count as used in every save of that world.
+  - With 21 voices, a busy save can run out. Then the fitting voice whose current holder spoke least recently is reused. Two characters only share a voice when there is no free fitting one.
+  - World cast voices are stored on the world's cast entry and shared by every save, the same as portraits.
+- **Feeling** comes from the written line plus at most one performed tag, placed at the start of the line. **No style note** is sent: on OpenRouter it is read aloud (proven in Genlife 7.19).
+- **Allowed tags (probe-proven): `[shouting]`, `[whispers]`, `[sighs]`, `[breathless]`.** No transcript showed any of them spoken aloud on either voice. Two tags together and any other tag are untested. Widen the list only after a new probe.
+- **Mature lines** are voiced only for players with `preferences.nsfw_enabled`. For everyone else, a line from an event with `nsfw_intent: true` is `unvoiceable`.
 - **Cache key:** `event_id + line_id + voice_id + model`. A replayed line costs nothing.
+- **Cost per call** is computed from the characters actually sent × the catalogue rate, then replaced by the OpenRouter generation cost when the lookup succeeds. During the probe, OpenRouter's `/generation` lookup returned 404 for most speech calls.
 
 ---
 
@@ -182,7 +193,7 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 
 | Kind | Default | Env | Resting copy |
 |---|---|---|---|
-| Voice lines | 150 | `MEDIA_DAILY_VOICE` | "Their voices rest until tomorrow." |
+| Voice lines | 100 | `MEDIA_DAILY_VOICE` | "Their voices rest until tomorrow." |
 | Pictures (incl. repaints) | 15 | `MEDIA_DAILY_PICTURE` | "The painter rests until tomorrow." |
 | Videos | 3 | `MEDIA_DAILY_VIDEO` | "The visions rest until tomorrow." |
 | New portraits (free) | 20 | `MEDIA_DAILY_PORTRAIT` | (silent; the requested media waits until tomorrow) |
@@ -201,6 +212,21 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 - **Collections**: `media_assets` (player, instance, event, kind, line_id, character_id, source, model, cost_usd, status, asset_key, created_at), `media_usage` (reservation rows). No explicit `null` under any unique+sparse index.
 - **Deletion**: both collections join the shared purge list in `deletion.service.ts`, with S3 object deletion. Rewinding deletes media of the removed events. Deleting a world deletes its cast portraits.
 - **Audits**: `audit:media`: detection rules (unclosed quotes, apostrophes, nested quotes, scare quotes, paragraph runaway), the verbatim-substring rule, cache-hit-reserves-nothing, unseen-is-free, mature-voice gate, uploaded-never-a-reference, limit reset. Every check shown to bite.
+
+### 9.1 Models
+
+| Kind | Model | Status | Env |
+|---|---|---|---|
+| Voice | `elevenlabs/eleven-v4-turbo` | **chosen** (owner, Oct 16 2026) | `MEDIA_VOICE_MODEL` |
+| Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
+| Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017, painted look); alternative `flux-3-image-klein` ($0.009, more photographic) | probe recommendation; the owner picks before `media-server-2` | `MEDIA_IMAGE_MODEL` |
+| Talking video | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | probe recommendation; confirmed before `media-server-2` | `MEDIA_VIDEO_MODEL` |
+
+API shapes the probe established:
+- **Images:** `POST /api/v1/images` with `prompt`, `aspect_ratio`, `n`, `input_references`.
+- **Video:** `POST /api/v1/videos`, `GET /videos/{id}`, `GET /videos/{id}/content`.
+  - HeyGen rejects `first_frame`. It takes the portrait and the audio as `input_references`, and the audio must be at a reachable HTTPS URL. Our CDN URL serves.
+  - Seedance swapped in a different voice and drifted to a photoreal face. Veo invents its own voice. Neither is a fallback.
 
 ## 10. App shape
 

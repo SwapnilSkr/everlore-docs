@@ -10,8 +10,9 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 - **Voice.** Only the quoted lines a character speaks are voiced, never the narration.
   - Each spoken line gets a play button; the player taps to hear it. Auto-play may come later as a profile switch.
-  - Each character gets one voice the first time they speak, chosen from the model's built-in voices by a deterministic fit (no model call), then kept.
-  - Feeling comes from how the line is written plus 0–2 performed tags (`[whispers]`, `[laughs]`…). Genlife proved a written style note is read aloud on OpenRouter.
+  - **Model: ElevenLabs v4 Turbo** (owner, Oct 16 2026, after listening to the probe): the best acting and cleanest delivery. At $20 per million characters it costs ≈ ₹0.17 per line. Fish Drama 3 was 10× cheaper but less good, and its launch price may be a promotion. It is the fallback to revisit.
+  - Each character gets one voice the first time they speak, chosen from the model's 21 built-in voices by a deterministic fit (no model call), then kept. There is no automatic fallback model, because it would change the character's voice.
+  - Feeling comes from how the line is written plus at most one performed tag: `[shouting]`, `[whispers]`, `[sighs]` or `[breathless]`, the four the probe proved are performed, not spoken. Genlife proved a written style note is read aloud on OpenRouter.
   - Intimate lines are voiced only for players who opted in to mature themes in their profile.
 - **Images.** A "Picture this" button on a turn.
 - **Video.** A "See them say it" button on a spoken line. The character's portrait is lip-synced to the voice line they already heard (a talking character, not an acted scene with an invented voice). It is generated in the background and arrives in the chat.
@@ -28,12 +29,12 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 - **Images and video are always SFW**, enforced structurally, not only by prompt:
   - the visual description is safety-checked before generation, and the result is checked before it is shown;
   - a rejected moment shows "This moment stays unseen", is not charged and does not count.
-- **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 150 voiced lines, 15 images, 3 videos. Hitting one shows a calm in-world line, not an error.
+- **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 100 voiced lines (owner, Oct 16 2026: a heavy player then costs at most ≈ $6 / ₹510 a month in voice), 15 images, 3 videos. Hitting one shows a calm in-world line, not an error.
 - **Triggers.** Only the player's tap starts generation; the story never generates media on its own.
 
 **Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures stay SFW for everyone.
 
-**Still open:** the voice model (Gemini 3.8 Flash TTS vs Fish Audio Drama 3 vs ElevenLabs v4 Turbo) and the video model (HeyGen Avatar IV vs Seedance 2.0 Mini). A paid probe (cap $3) decides both, including which voice models refuse intimate lines.
+**Still open:** the image model (Flux 2 Klein, painted look, vs Flux 3 Klein, cheaper and more photographic) and confirming the video model (HeyGen Avatar IV is the probe's pick: it kept our exact voice and the painted face). Both are decided before `media-server-2`. The probe (`.agents/reports/media-probe.md`) cost ≈ $0.73 (₹62), and no model refused the intimate lines.
 
 **Reopen when** costs per player run over the caps, or a tier split is wanted after the promo.
 
