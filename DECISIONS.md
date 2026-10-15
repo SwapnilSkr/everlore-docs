@@ -4,6 +4,32 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## Voiced lines, scene images and talking-character video in chat worlds  ·  Oct 15 2026
+
+**Decided (owner):** chat worlds get three optional media layers, all through OpenRouter on our one key. Unlike the authored world art below, these are generated **while playing**, at the player's request. That is a new use, not a reopening of the Codex-app decision.
+
+- **Voice.** Only the quoted lines a character speaks are voiced, never the narration.
+  - Each spoken line gets a play button; the player taps to hear it. Auto-play may come later as a profile switch.
+  - Each character gets one voice the first time they speak, chosen from the model's built-in voices by a deterministic fit (no model call), then kept.
+  - Feeling comes from how the line is written plus 0–2 performed tags (`[whispers]`, `[laughs]`…). Genlife proved a written style note is read aloud on OpenRouter.
+  - Intimate lines are voiced only for players who opted in to mature themes in their profile.
+- **Images.** A "Picture this" button on a turn.
+- **Video.** A "See them say it" button on a spoken line. The character's portrait is lip-synced to the voice line they already heard (a talking character, not an acted scene with an invented voice). It is generated in the background and arrives in the chat.
+- **Images and video are always SFW**, enforced structurally, not only by prompt:
+  - the visual description is safety-checked before generation, and the result is checked before it is shown;
+  - a rejected moment shows "This moment stays unseen", is not charged and does not count.
+  - Videos start only from portraits we generated, **never from uploaded photos**, so no real person can be animated.
+- **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 150 voiced lines, 15 images, 3 videos. Hitting one shows a calm in-world line, not an error.
+- **Triggers.** Only the player's tap starts generation; the story never generates media on its own.
+
+**Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures stay SFW for everyone.
+
+**Still open:** the voice model (Gemini 3.8 Flash TTS vs Fish Audio Drama 3 vs ElevenLabs v4 Turbo) and the video model (HeyGen Avatar IV vs Seedance 2.0 Mini). A paid probe (cap $3) decides both, including which voice models refuse intimate lines.
+
+**Reopen when** costs per player run over the caps, or a tier split is wanted after the promo.
+
+---
+
 ## Launch catalog: our chat worlds go straight to prod, covers from the Codex app  ·  Oct 15 2026
 
 **Decided (owner):** the ~40 launch chat worlds are created **directly on prod**, with no staging step. Prod has no real users yet. Covers come from the Codex desktop app (`WORLD_CREATION_PLAYBOOK.md` §4B), not the image API.
