@@ -296,7 +296,10 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 |---|---|---|---|
 | Voice | `elevenlabs/eleven-v4-turbo` | **chosen** (owner, Oct 16 2026) | `MEDIA_VOICE_MODEL` |
 | Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
-| Portrait / picture | `black-forest-labs/flux.2-klein-4b` ($0.015–0.017; the painted look matches the house style). `flux-3-image-klein` ($0.009, more photographic) is the cheaper swap | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
+| Portrait / picture / scene still | `black-forest-labs/flux-3-image-klein` ($0.009 per 9:16 image at 768×1360; up to 10 face references; returns **JPEG**). It replaced `flux.2-klein-4b` ($0.015) because Flux 2 Klein's own filter refused ordinary scarred faces as "graphic violence" while Flux 3 Klein accepted them, and it matched the painted house style best in a side-by-side (`.agents` test, Oct 16 2026, $0.14). It also draws anime well when the prompt asks for it. Black Forest Labs still filters, so a refusal goes down the provider-refusal path (§7) | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
+| Director (§3A.1) | `openai/gpt-6.1-sol`: valid on every bake-off turn at about $0.013 per plan; Opus 5.5 was also valid at about 3× the price | **chosen** (bake-off, Oct 16 2026) | `MEDIA_DIRECTOR_MODEL` |
+| Moderation gate (§7) | `openai/gpt-4o-mini`, structured verdict, about $0.0001 per check | chosen | `MEDIA_MODERATION_MODEL` |
+| Vision gate (§7) | `google/gemini-2.5-flash-lite`, about $0.0002 per image | chosen | `MEDIA_VISION_MODEL` |
 | Talking video (the line shot) | `heygen/avatar-iv` (~$0.05/s; it kept our exact recording, 0.985 correlation, and the painted face) | **chosen** (owner, Oct 16 2026) | `MEDIA_VIDEO_MODEL` |
 | Scene shots (§3A) | `x-ai/grok-imagine-video-1.5-lite`, 480p, about $0.02/s plus $0.01 per input image; it had the best painted look and was cheapest. **Fallback `alibaba/wan-3.0`**, used automatically when Grok fails: a scene shot has no voice to keep consistent. Wan's own audio track is **always dropped**, because it returned audio even with `generate_audio:false` and the voice check flagged it | **chosen** (owner, Oct 16 2026) | `MEDIA_SCENE_MODEL`, `MEDIA_SCENE_FALLBACK_MODEL` |
 
