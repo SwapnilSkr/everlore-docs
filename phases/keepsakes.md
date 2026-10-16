@@ -102,7 +102,7 @@ Auth required. Lists only `player_id = me`.
 
 Query:
 - `kind`: `all` | `picture` | `video` | `portrait` (default `all`). **`all` means pictures and films**: faces aren't moments, so they appear only under `portrait`;
-- `before`: an ISO cursor;
+- `before`: the opaque cursor from the previous page's `next_before`, sent back as given;
 - `limit`: 1–40, default 20.
 
 Returns:
@@ -125,7 +125,7 @@ Returns:
     speaker_name?: string        // line film only, from the line's attribution
     character?: { id: string; name: string }   // face only
   }>
-  next_before?: string           // absent on the last page
+  next_before?: string           // opaque; absent on the last page. A page is never empty while next_before is present.
 }
 ```
 
