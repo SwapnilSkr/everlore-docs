@@ -294,7 +294,7 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 
 - **Accounting** mirrors ink reservations: a `media_usage` row is reserved on request, settled on delivery and released on failure or rejection. Counts come from rows, so a free cached replay costs no slot (a cache hit never reserves).
 - Spend per call is logged from the OpenRouter generation id.
-- A global kill switch `MEDIA_ENABLED` (default false until launch) and per-kind switches.
+- A global kill switch `MEDIA_ENABLED`, **on by default** (owner, Oct 16 2026: no players yet, production prep). Set `MEDIA_ENABLED=false` to switch everything off, or `MEDIA_<KIND>_ENABLED=false` for one kind.
 
 ---
 
