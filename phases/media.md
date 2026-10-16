@@ -293,6 +293,17 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
 
 `spoken_lines` is also included on the event in `GET` instance/event payloads, so a reload shows the same lines.
 
+**A turn's media rides on the turn** (gap found in the Oct 16 2026 live check: thumbnails vanished on reload). Every event the server sends (the socket `instance_loaded`, event pages, edits and replays) carries `data.media`: the turn's own pictures and films, oldest first:
+
+```ts
+media: Array<{ media_id, kind: 'picture' | 'video', status: 'ready' | 'queued', url?, poster_url?, line_id?, duration_ms? }>
+```
+
+- `queued` covers queued and processing, so a reload still shows "Taking shape…".
+- Failed, unseen, voice, portrait and passing-face rows never appear.
+- Removing a piece from Keepsakes doesn't remove it from its turn.
+- Built in one batched query per page of events, never one per event.
+
 A public line carries only `{line_id, start, end}`, plus `voice: {status: 'unvoiceable'}` when refused. Every voiced line can be filmed (§3B).
 
 **Feature switch on the wire.** While `MEDIA_ENABLED` is off, the server sends no `spoken_lines` (no socket message, no payload field) and `GET /media/usage` returns 404. The app shows media affordances only when a turn has `spoken_lines` (voice, video) or `/media/usage` answered 200 this session (Picture this, portraits). Switching media off therefore hides it without an app release.
