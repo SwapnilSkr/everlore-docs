@@ -28,7 +28,41 @@ git log --format="%H %s%n%b" -20 | grep -iE "co-authored|generated with|claude" 
 
 ## 1. STATE
 
-### ▶ Oct 4 2026, evening — W12 in flight (read this first)
+### ▶ Oct 16 2026, evening — media and Keepsakes (read this first)
+
+Paused at the owner's request. No agent runs, no servers, emulator up. Nothing below is on prod.
+
+| Repo | Branch | Head | Pushed |
+|---|---|---|---|
+| `everlore-server` | `release/launch-promo` | `06fe66a` | no upstream |
+| `everlore` (Flutter) | `release/launch-promo` | `9098a97` | no upstream |
+| `everlore-docs` | `docs/iron-verdict-world` | (this commit) | no upstream |
+
+**Shipped this session (committed, audits green: 37/37, media bites 318/318):**
+- Keepsakes on its painting with story-styled captions; back button on Your worlds (app `9098a97`).
+- "Film this": wardrobe only for shots with people; stale "unvoiceable" lines re-judged (`e0964cd`).
+- The moment's place, never the world title (`385c0fb`).
+- The content gate checks our own words only; the policy sentence is added after (`35b1a9f`).
+- **8-second line film**, director-owned, one director call, the excerpt sliced from the full voiced line; over budget is delivered and logged `media.film_over_budget`; the fallback model only on a provider failure (`68f492d`). "Hear it" still plays the whole line.
+- A first-person sentient narrator's lines belong to the world's character; a line prompt never has an empty name (`a632682`).
+- **No lasting face from nothing** (`06fe66a`): a carded character's portrait is painted from the card look, then the authored world look, then bounded story narration; with none, it ends `no_appearance`, with no image call and no charge. Passing faces are unchanged.
+- `scripts/ingest-cast-portraits.ts` (`80260a3`), **never applied**.
+
+**Next, in order:**
+1. Ingest the written looks to dev: `bun run scripts/ingest-cast-portraits.ts --apply --yes-db everlore` (manifest `.agents/assets/cast-portraits/manifest.json`, 21 looks, 6 kept). **Looks only**: per DECISIONS (Oct 16), portraits are painted on the first tap, not pre-painted. The script reports the PNGs as missing; that is expected.
+2. One live "See them say it" on Rin (save `6ad21e5b5ad437add901e31c`) to verify the 8-second film end to end. This needs a spend cap from the owner and the AWS login rule. A shot with a person in it (the gate fix, portrait references) has also not been verified live.
+3. **The ~40-world launch catalog: NOT STARTED** (DECISIONS "Launch catalog", Oct 15). Ask the owner whether a list exists.
+4. The prod deploy, with the owner's OK.
+
+**Open decisions for the owner:**
+- `storePortrait` (`portraits.ts:124`) writes the filled look back to the card / template `appearance` after a successful paint. This is existing behaviour and was left unchanged; `phases/media.md` §3 still says looks are "written as canon".
+- The evidence path matches a name as a substring of the prose ("Rin" matches "bring"), so it can pass extra turns to the filler. The filler still decides for this person; tighten it if it ever misfires.
+
+**Small follow-ups:** passing-face filler line context; the director avoiding people in "Film this"; the composer's "visions rest" placeholder; a Keepsakes nav icon; the `olderEventsLoaderForTesting` hook; the Rin test save on dev (the owner's call). `MEDIA_DAILY_VIDEO` was only raised in my own server's environment; the default is still 2.
+
+### ▶ Oct 4 2026, evening — W12 in flight (superseded; kept for its W12 notes)
+
+
 
 Contract: `phases/phase-1.md` § W12 (S/D/A/B items), plus "W12 — may need art rather than code" and "W12 review — queued for fix-1". Evidence: `playtests/2026-10-04-iron-verdict-nine-runs.md`.
 
