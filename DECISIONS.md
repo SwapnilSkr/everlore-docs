@@ -42,6 +42,7 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 - **Scene shots (the scene cut):** Grok Imagine Video 1.5 Lite, with Wan 3.0 as the automatic fallback (owner, Oct 16 2026, after the scene probe, ≈ $0.64 / ₹55). A full cut costs ≈ $0.40–0.44 (₹34–38). Each shot starts from its own wide still, never a face close-up.
 - **Video:** HeyGen Avatar IV, ≈ ₹25 per 6 s clip. It lip-syncs the portrait to our exact recording and keeps the painted face. Seedance swapped in a different voice and drifted to a photoreal face; Veo invents its own voice.
 - No model refused the intimate voice lines.
+- **Art style follows the world** (owner, Oct 16 2026). Media is drawn in the style the world's locked narrative voice maps to, the same table the cover uses, with mood words left out so pictures stay SFW. There is no separate authored art-style field for now. The player's own face is kept per style, painted on first tap in a world of that style. A portrait painted in an older style repaints on the next tap.
 
 **Reopen when** costs per player run over the caps, or a tier split is wanted after the promo.
 

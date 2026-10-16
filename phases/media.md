@@ -132,7 +132,7 @@ A world's media is drawn the way its cover is: an anime world gets anime portrai
 
   The line shot inherits the style from the portrait it animates.
 - **Stored on the portrait.** `portrait.art_style` holds the style key it was painted in. A portrait whose key differs from the world's current key is **out of date**, exactly like a behind `appearance_version`. It repaints on the next tap that needs it, never on its own, using the old portrait as the identity reference with the new style in the prompt. The cache key includes the style key.
-- **Persona portraits** follow the persona across worlds. Each one is kept **per style key** (`personas.portraits[<key>]`) and painted on the first tap in a world of that style. The first painting in a new style counts against the free portrait allowance. *(Owner to confirm, see the brief.)*
+- **Persona portraits** follow the persona across worlds. Each one is kept **per style key** (`personas.portraits[<key>]`) and painted on the first tap in a world of that style. The first painting in a new style counts against the free portrait allowance. (owner, Oct 16 2026)
 
 ---
 
