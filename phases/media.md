@@ -274,6 +274,8 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
 
 `spoken_lines` is also included on the event in `GET` instance/event payloads, so a reload shows the same lines.
 
+A public line carries only `{line_id, start, end}`, plus `voice: {status: 'unvoiceable'}` when refused, plus `filmable: false` once attribution has found its speaker has no card (§2.2). The app hides "See them say it" for a `filmable: false` line. Before the first tap nothing is known, so it is offered, and a video request for an uncarded speaker answers 422 `{ status: 'unvoiceable' }`-style with the calm line *"This moment stays unseen."*, uncharged.
+
 **Feature switch on the wire.** While `MEDIA_ENABLED` is off, the server sends no `spoken_lines` (no socket message, no payload field) and `GET /media/usage` returns 404. The app shows media affordances only when a turn has `spoken_lines` (voice, video) or `/media/usage` answered 200 this session (Picture this, portraits). Switching media off therefore hides it without an app release.
 
 ---
