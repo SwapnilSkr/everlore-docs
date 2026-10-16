@@ -177,6 +177,8 @@ The quality of the cut is decided by its direction, not by the video model (owne
 - **Never cached across turns;** cached per video request.
 - **Place is the turn's place, never the world's title** (live check, Oct 16 2026: a rider in *Ashen Crown* was painted wearing a spiked crown). A picture or cut gets the turn's recorded `location_anchor`, or the save's current place on the newest turn, or nothing. A portrait or passing face gets no place (`385c0fb`).
 - **A shot with no people carries no wardrobe or hair.** The director wrote "No clothing is visible" for an empty insert shot, and the content gate rejected that prompt 3/3, so every peopleless cut failed (`e0964cd`).
+- **8 seconds, whole film (owner, Oct 16 2026).** No film runs past 8 s. In a line film the director chooses which part of the line is spoken on screen: a contiguous run of whole sentences, quoted exactly, that carries the line's main point, plus scene shots that fit the rest. Code enforces the total after the plan. The full line stays playable as audio ("Hear it") as before.
+- **The fallback model is for a provider failure, not a failed check.** A shot that rendered and then failed the people, face, wardrobe or text check is dropped, not re-rendered on Wan.
 - **Measured cost, Oct 16 2026:** a 16 s line film cost **$1.21**: HeyGen ≈ $0.79 for the line shot (it scales with the line's length) plus $0.42 for an opening shot that was rendered twice and then dropped by the face check. Budget long lines at about $1 or more, not $0.50.
 
 ### 3A.2 Validation in code: the probe's glitches, closed structurally
