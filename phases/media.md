@@ -175,6 +175,9 @@ The quality of the cut is decided by its direction, not by the video model (owne
   - the owner's read of the plans.
 - **Cost:** ≈ $0.01–0.04 per video, small next to the shots. Env `MEDIA_DIRECTOR_MODEL`.
 - **Never cached across turns;** cached per video request.
+- **Place is the turn's place, never the world's title** (live check, Oct 16 2026: a rider in *Ashen Crown* was painted wearing a spiked crown). A picture or cut gets the turn's recorded `location_anchor`, or the save's current place on the newest turn, or nothing. A portrait or passing face gets no place (`385c0fb`).
+- **A shot with no people carries no wardrobe or hair.** The director wrote "No clothing is visible" for an empty insert shot, and the content gate rejected that prompt 3/3, so every peopleless cut failed (`e0964cd`).
+- **Measured cost, Oct 16 2026:** a 16 s line film cost **$1.21**: HeyGen ≈ $0.79 for the line shot (it scales with the line's length) plus $0.42 for an opening shot that was rendered twice and then dropped by the face check. Budget long lines at about $1 or more, not $0.50.
 
 ### 3A.2 Validation in code: the probe's glitches, closed structurally
 
@@ -228,7 +231,7 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
 - **Kept per save, keyed like the passing voice (§2.2):** `instance_id` + the normalized speaker handle, or `event_id` + `line_id` when the prose gives no handle. The second video of "the Thorne rider" in a save reuses his face.
 - **Painted on the first video that needs it,** from what the prose says about the speaker. It uses the world's art style and the portrait framing, passes the same gates as a portrait (§7), and is `source: generated`.
 - **Never on a card, never canon.** It's stored as a `media_assets` row (`kind: 'passing_face'`), never written to `characters`, never shown in the codex, and never used as a reference for a card's portrait. If the story later gives the speaker a card, the card paints its own portrait on first need, as today.
-- **Out of date** when the world's art style changes: it repaints on the next video that needs it.
+- **Out of date** when the world's art style changes, or when its prompt rules change (`PASSING_FACE_RULE_VERSION` in the cache key): it repaints on the next video that needs it. Card portraits never repaint for a rule change.
 - **Counts** against the free portrait allowance (~20 a day), like a first portrait. It is deleted with the save.
 
 ### The dialogue-free cut
