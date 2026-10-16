@@ -29,20 +29,20 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
   - **Creator worlds.** Portraits made on a player's tap need no review: they come from already-approved text and pass the image safety check. A creator repainting a cast face on a public world is a meaningful edit and goes back to review, like a cover change.
   - **No uploaded photo is ever a face**: not a cover, not a selfie, not a persona. Every image records its source (`generated`, `authored`, `uploaded`), and only `generated` and `authored` faces may be animated or used as references. Older images with no record count as `uploaded`.
   - The first portrait is free (not counted against images), capped at ~20 new portraits per player per day.
-- **Images and video are always SFW**, enforced structurally, not only by prompt:
+- **Images and video may be suggestive, never explicit** (owner, Oct 16 2026; this replaces "always SFW"). Romance, sensual mood, a kiss, an embrace, implied intimacy and revealing-but-covered clothing are allowed for every player. Full nudity and sexual acts are blocked for everyone, opted in or not. Anyone who looks underage is never shown in a sensual or suggestive way, and graphic gore stays blocked. Mature narration itself still follows the opt-in. The rule is enforced structurally, not only by prompt:
   - the visual description is safety-checked before generation, and the result is checked before it is shown;
   - a rejected moment shows "This moment stays unseen", is not charged and does not count.
 - **Limits.** Separate daily counts for voice, images and video, reset at UTC midnight like the turn cap, the same for every tier during the promo. Starting numbers: 100 voiced lines (owner, Oct 16 2026: a heavy player then costs at most ≈ $6 / ₹510 a month in voice), 15 images, 2 videos (owner, Oct 16 2026, with the scene cut). Hitting one shows a calm in-world line, not an error.
 - **Triggers.** Only the player's tap starts generation; the story never generates media on its own.
 
-**Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures stay SFW for everyone.
+**Why:** tap-to-generate means we never pay for media nobody asked for and keeps the caps fair. A talking character keeps the face and voice consistent with what the player already heard. Mature voice follows the existing opt-in, while pictures and video allow suggestive but never explicit content for everyone.
 
 **Models (owner, Oct 16 2026, after a paid probe, `.agents/reports/media-probe.md`, ≈ $0.73 / ₹62):**
 - **Images:** Flux 3 Klein, ≈ ₹0.77 per image (owner, Oct 16 2026). It replaced Flux 2 Klein (≈ ₹1.30), whose own filter refused ordinary scarred faces as "graphic violence". Flux 3 Klein accepted them, matched the painted house style best of six models tested side by side, and draws anime well. It returns JPEG.
 - **Scene shots (the scene cut):** Grok Imagine Video 1.5 Lite, with Wan 3.0 as the automatic fallback (owner, Oct 16 2026, after the scene probe, ≈ $0.64 / ₹55). A full cut costs ≈ $0.40–0.44 (₹34–38). Each shot starts from its own wide still, never a face close-up.
 - **Video:** HeyGen Avatar IV, ≈ ₹25 per 6 s clip. It lip-syncs the portrait to our exact recording and keeps the painted face. Seedance swapped in a different voice and drifted to a photoreal face; Veo invents its own voice.
 - No model refused the intimate voice lines.
-- **Art style follows the world** (owner, Oct 16 2026). Media is drawn in the style the world's locked narrative voice maps to, the same table the cover uses, with mood words left out so pictures stay SFW. There is no separate authored art-style field for now. The player's own face is kept per style, painted on first tap in a world of that style. A portrait painted in an older style repaints on the next tap.
+- **Art style follows the world** (owner, Oct 16 2026). Media is drawn in the style the world's locked narrative voice maps to, the same table the cover uses, with mood words left out of the drawing style. There is no separate authored art-style field for now. The player's own face is kept per style, painted on first tap in a world of that style. A portrait painted in an older style repaints on the next tap.
 
 **Reopen when** costs per player run over the caps, or a tier split is wanted after the promo.
 

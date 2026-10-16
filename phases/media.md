@@ -12,7 +12,7 @@ Chat worlds only. The interactive (walkable) world is out of scope.
 1. **The turn is untouched.** Nothing in this phase runs before or during the narrator stream, so TTFT is unchanged. The work added to the post-stream step is model-free.
 2. **Nothing is generated without a tap.** No voice, portrait, picture or video exists until a player asks for one. Once made, it is cached and reused.
 3. **No clutter.** The chat gets **no new always-visible buttons**. Spoken lines are tapped directly; pictures live in the turn's existing long-press menu. A finished picture or video appears once, compact, under its turn.
-4. **Pictures and video are SFW for everyone**, checked by code before and after generation (§7). Voice follows the player's mature opt-in.
+4. **Pictures and video may be suggestive, never explicit, for everyone** (owner, Oct 16 2026). This is checked by code before and after generation (§7). Voice follows the player's mature opt-in.
 5. **Only faces we painted.** No uploaded image is ever animated or used as a face reference.
 6. **A quiet failure, never a broken one.** Anything we can't voice or picture simply has no action, or ends in calm in-world copy. Never an error dialog.
 
@@ -122,7 +122,7 @@ portrait?: {
 A world's media is drawn the way its cover is: an anime world gets anime portraits, a noir world gets noir ones (owner, Oct 16 2026). Until this lands, every image is forced into one painted style.
 
 - **Source: the world's locked `narrative_style`**, the same key the cover generator already maps to an art style (`STYLE_HINT` in `image.service.ts`). There is one table for covers and media. No new authored field, and no backfill: every world in the dev database has a style (Oct 16 2026).
-- **Look, not mood.** Each table entry splits into `render` (how it is drawn, e.g. "vibrant anime illustration, clean linework") and `mood` (atmosphere, e.g. "warm intimate lighting"). Covers keep `render + mood`, so their text stays byte-identical. **Media uses `render` only**, because some moods carry words like "sensual" that have no place in an SFW picture. A missing or unknown key falls back to the painted default: "semi-realistic cinematic digital painting, warm rim light".
+- **Look, not mood.** Each table entry splits into `render` (how it is drawn, e.g. "vibrant anime illustration, clean linework") and `mood` (atmosphere, e.g. "warm intimate lighting"). Covers keep `render + mood`, so their text stays byte-identical. **Media uses `render` only**, because a mood is atmosphere, not a drawing style. The mood comes from the moment itself. A missing or unknown key falls back to the painted default: "semi-realistic cinematic digital painting, warm rim light".
 - **The template's style, never the save's.** A player may override the narrative voice for one conversation. That never changes the art style, because portraits are shared by every save of a world.
 - **Where it goes:**
   - the portrait suffix;
@@ -161,7 +161,7 @@ The quality of the cut is decided by its direction, not by the video model (owne
 - It also chooses the transitions and the voice lead-in (a J-cut), each from a closed list.
 - **Model: chosen by a text-only bake-off inside `media-server-2`.** Three to four premium models are tried on the same fight, tense and intimate turns. The criteria:
   - rule compliance, scored by the §3A.2 validator;
-  - the intimate turn is turned SFW without refusing;
+  - the intimate turn is turned suggestive-but-not-explicit without refusing;
   - the owner's read of the plans.
 - **Cost:** ≈ $0.01–0.04 per video, small next to the shots. Env `MEDIA_DIRECTOR_MODEL`.
 - **Never cached across turns;** cached per video request.
@@ -190,7 +190,7 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
   - Still prompt: the world's art style (§3.1) + continuity + framing + `still` + "no text".
   - Motion prompt: `camera_move` + `subject_action` + `environment_motion` + wardrobe + "no other people appear, no cut, the composition stays continuous".
 - **Post-check on every scene shot**, a vision call on the first, middle and last frames:
-  - the SFW check (§7);
+  - the content check (§7);
   - the people count;
   - the wardrobe match;
   - no face close-up;
@@ -207,7 +207,7 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
   - one shared colour grade across shots, so the HeyGen shot and the scene shots match;
   - the line shot trimmed to the voice plus a 0.3 s tail.
 - **The whole plan is stored** with the `media_assets` record (plan, compiled prompts, check results), so a bad cut can be diagnosed.
-- Every model call goes through the SFW gates (§7): the plan is checked before any generation, and every shot after.
+- Every model call goes through the content gates (§7): the plan is checked before any generation, and every shot after.
 - **Degrades, never breaks.** If a scene shot fails or is rejected, the cut is delivered with the remaining shots (at minimum the line shot) and the player is charged one video. If the line shot fails, the whole video is `media_failed` and the slot is released.
 - **One video counts once**, whatever the shot count.
 
@@ -270,9 +270,16 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
 
 ## 7. Safety (pictures, portraits, video)
 
-1. **Visual description.** A cheap model turns the moment into an SFW description: who is present (by portrait reference), framing, setting, mood. Intimate moments become implied, clothed and non-explicit.
-2. **Gate before generation.** A moderation check on the description. Sexual content, nudity, minors, real people, or graphic violence → `media_unseen`. This is a check, not a prompt instruction.
-3. **Gate after generation.** A vision check on the image, or on sampled frames of a video (first, middle, last). Failing → `media_unseen`, and the file is deleted.
+1. **Visual description.** A cheap model turns the moment into a description that stays within the line below: who is present (by portrait reference), framing, setting, mood. An intimate moment may be shown as sensual and suggestive (an embrace, a kiss, closeness, revealing-but-covered clothing), never nude and never a sexual act.
+2. **Gate before generation.** A moderation check on the description. The following → `media_unseen`:
+   - full nudity (exposed genitals, female nipples, buttocks);
+   - a sexual act;
+   - anyone who looks underage in a sensual or suggestive context;
+   - real people;
+   - graphic gore.
+
+   Suggestive content between adults is **allowed**. This is a check, not a prompt instruction.
+3. **Gate after generation.** A vision check on the image, or on sampled frames of a video (first, middle, last), against the same line as the gate before. Failing → `media_unseen`, and the file is deleted.
 4. **References are only `generated` / `authored` portraits.**
 5. **Never charged when unseen.** The limit is released. Copy: *"This moment stays unseen."*
 6. Every rejection is logged (kind, stage, reason code, no image) to a `media_rejections` count for review.
