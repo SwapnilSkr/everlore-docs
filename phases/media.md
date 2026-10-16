@@ -117,6 +117,23 @@ portrait?: {
 - **Repaints** use the previous portrait as the reference image.
 - **Image source.** Every image record gets `source`. Existing covers have none and count as `uploaded`.
 
+### 3.1 Art style: the world's, never one house style
+
+A world's media is drawn the way its cover is: an anime world gets anime portraits, a noir world gets noir ones (owner, Oct 16 2026). Until this lands, every image is forced into one painted style.
+
+- **Source: the world's locked `narrative_style`**, the same key the cover generator already maps to an art style (`STYLE_HINT` in `image.service.ts`). There is one table for covers and media. No new authored field, and no backfill: every world in the dev database has a style (Oct 16 2026).
+- **Look, not mood.** Each table entry splits into `render` (how it is drawn, e.g. "vibrant anime illustration, clean linework") and `mood` (atmosphere, e.g. "warm intimate lighting"). Covers keep `render + mood`, so their text stays byte-identical. **Media uses `render` only**, because some moods carry words like "sensual" that have no place in an SFW picture. A missing or unknown key falls back to the painted default: "semi-realistic cinematic digital painting, warm rim light".
+- **The template's style, never the save's.** A player may override the narrative voice for one conversation. That never changes the art style, because portraits are shared by every save of a world.
+- **Where it goes:**
+  - the portrait suffix;
+  - the picture prompt;
+  - the still template (it replaces the house style in §3A.3);
+  - the director's `art_style` input.
+
+  The line shot inherits the style from the portrait it animates.
+- **Stored on the portrait.** `portrait.art_style` holds the style key it was painted in. A portrait whose key differs from the world's current key is **out of date**, exactly like a behind `appearance_version`. It repaints on the next tap that needs it, never on its own, using the old portrait as the identity reference with the new style in the prompt. The cache key includes the style key.
+- **Persona portraits** follow the persona across worlds. Each one is kept **per style key** (`personas.portraits[<key>]`) and painted on the first tap in a world of that style. The first painting in a new style counts against the free portrait allowance. *(Owner to confirm, see the brief.)*
+
 ---
 
 ## 3A. The video: a scene cut
@@ -125,7 +142,7 @@ portrait?: {
 
 | Shot | Length | Made from | Rules |
 |---|---|---|---|
-| **Opening** | 3–4 s | the turn's narration **before** the line | Wide or detail framing: the place, hands, a silhouette, the character from behind. **No face close-up**: video models drift on faces (Seedance did in the probe). Image-to-video from **its own wide still** (one image call, ≈ $0.017), painted in the house style with no face close-up, so the painted look carries over. **Never start from a portrait or a face-framed picture:** the scene probe showed a close-up first frame cannot be prompted into a wide shot (models duplicated the woman or reframed abruptly) |
+| **Opening** | 3–4 s | the turn's narration **before** the line | Wide or detail framing: the place, hands, a silhouette, the character from behind. **No face close-up**: video models drift on faces (Seedance did in the probe). Image-to-video from **its own wide still** (one image call, ≈ $0.009), drawn in the world's art style (§3.1) with no face close-up, so the look carries over. **Never start from a portrait or a face-framed picture:** the scene probe showed a close-up first frame cannot be prompted into a wide shot (models duplicated the woman or reframed abruptly) |
 | **The line** | the clip's length (≈ 3–8 s) | the character's portrait + **the exact voice clip the player heard** | The talking portrait (§9.1). The only shot with the face up close |
 | **Closing** (optional) | 2–3 s | the narration **after** the line | Same framing rules as the opening. Left out when nothing follows the line |
 
@@ -170,7 +187,7 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
 
 - **Prompts are compiled, not written by the director.**
   - Per-model templates live in data, and code fills them from the plan.
-  - Still prompt: house style + continuity + framing + `still` + "no text".
+  - Still prompt: the world's art style (§3.1) + continuity + framing + `still` + "no text".
   - Motion prompt: `camera_move` + `subject_action` + `environment_motion` + wardrobe + "no other people appear, no cut, the composition stays continuous".
 - **Post-check on every scene shot**, a vision call on the first, middle and last frames:
   - the SFW check (§7);
