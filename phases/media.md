@@ -177,7 +177,7 @@ The quality of the cut is decided by its direction, not by the video model (owne
 - **Never cached across turns;** cached per video request.
 - **Place is the turn's place, never the world's title** (live check, Oct 16 2026: a rider in *Ashen Crown* was painted wearing a spiked crown). A picture or cut gets the turn's recorded `location_anchor`, or the save's current place on the newest turn, or nothing. A portrait or passing face gets no place (`385c0fb`).
 - **A shot with no people carries no wardrobe or hair.** The director wrote "No clothing is visible" for an empty insert shot, and the content gate rejected that prompt 3/3, so every peopleless cut failed (`e0964cd`).
-- **8 seconds, whole film (owner, Oct 16 2026).** No film runs past 8 s. The director is told it is a hard limit and plans under it. In a line film it chooses which part of the line is spoken on screen (a contiguous run of whole sentences, quoted exactly, that carries the line's main point) and the scene shots that fit the rest. The validator checks the plan's arithmetic; after that the director's plan stands, and a film that lands slightly over because the voiced line ran long is delivered and logged, never trimmed. The full line stays playable as audio ("Hear it") as before.
+- **8 seconds, whole film (owner, Oct 16 2026).** No film runs past 8 s. The director is told it is a hard limit. In a line film it chooses which part of the line the character says on screen (a contiguous run of whole sentences that carries the line's main point) and the scene shots that fit the rest. It is given each sentence's **measured** duration, read from the pauses in the clip the player heard, so its arithmetic is exact. The on-screen audio is sliced from that same clip, never re-voiced. "Hear it" always plays the full line. If the plan still totals over 8 s, it is delivered and logged, never trimmed. The full line stays playable as audio ("Hear it") as before.
 - **The fallback model is for a provider failure, not a failed check.** A shot that rendered and then failed the people, face, wardrobe or text check is dropped, not re-rendered on Wan.
 - **Measured cost, Oct 16 2026:** a 16 s line film cost **$1.21**: HeyGen ≈ $0.79 for the line shot (it scales with the line's length) plus $0.42 for an opening shot that was rendered twice and then dropped by the face check. Budget long lines at about $1 or more, not $0.50.
 
@@ -196,7 +196,7 @@ The validator also rejects:
 - durations or transitions outside the lists;
 - more than one scene shot per role.
 
-A plan that fails gets **one** repair call with the validator's errors. Failing again, the cut degrades to the line shot alone.
+**One director call per film, never a repair call** (owner, Oct 16 2026). An invalid part of the plan is handled in code: invalid shots are dropped, and an invalid line excerpt becomes the longest run of whole sentences from the start that fits. A dialogue-free plan with no valid shot fails and releases the slot.
 
 ### 3A.3 Compilation and assembly in code
 
