@@ -72,14 +72,13 @@ The server accepts a line only if:
 
 **Every other spoken line is voiced** (owner, Oct 16 2026). A line is `unvoiceable` only when it isn't speech (a sign, letter, title or thought), when it is the player's own words, when `spoken_text` fails the verbatim rule, or when it's a mature line without the opt-in (§2.3). A missing card, an unnamed speaker, an unclear gender or a child is never a reason to refuse.
 
-**The tap makes what's missing.** The speaker resolves through the codex name/alias resolution to a card in this save. When none matches, the tap mints one:
-- through the codex's own card-creation path, never a raw insert, so the later naming and merge rules apply to it;
-- named the way the prose refers to the speaker (`identity_kind: role_label` for a description like "the Thorne rider");
-- when the prose gives no handle at all, a card scoped to this turn, named by the voice traits (e.g. "a stranger").
+**Media never creates a card.** Who gets a card is the story pipeline's decision (codex extraction, its recurrence rule for unnamed people, merges), unchanged. The speaker handle resolves through the codex name/alias resolution:
+- **A card matches:** the line uses the card's voice (§2.3), and the card's portrait for pictures and video.
+- **No card matches:** the line is voiced with a voice chosen from the line's voice traits, deterministically from `instance_id` + the normalized handle, so the same handle in a save keeps the same voice. With no handle at all, the event and line ids seed it. The choice is stored on the line (`spoken_lines[i].voice.voice_id`), never on a card. Pictures draw this person from the prose. **"See them say it" is not offered** for an uncarded speaker: there is no face to animate.
+- **The speaker later earns a card:** from then on, the card's voice is used. Already-voiced lines keep the voice they were played with.
+- **Merges carry media.** When the codex merges two cards, the survivor keeps its own voice, portrait and look, and takes the source's when it has none.
 
-The minted card then gets a voice the normal way (§2.3), and a look and portrait the first time a picture or video needs one (§3). When the story later names that person, the codex merge folds the card into the named one, and the voice and portrait go with it.
-
-**Voice traits never refuse.** An unclear gender picks the best fit from the traits that are known. **A child is voiced with the lightest adult voice** (owner, Oct 16 2026): the fit treats `age_band: child` as the youngest catalogue age with a light timbre. The catalogue has no child voices.
+**Voice traits never refuse.** An unclear gender picks the best fit from the traits that are known. **A child is voiced with the lightest adult voice** (owner, Oct 16 2026): the catalogue data maps `age_band: child` to the youngest light adult voices. The catalogue has no child voices.
 
 Any line that fails is marked `unvoiceable`: the tap gets a soft haptic and nothing else, and the line is never offered again. Results are saved on the event (`spoken_lines[i].voice`) so the call runs once per turn.
 
