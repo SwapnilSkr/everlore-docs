@@ -4,6 +4,14 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## Keepsakes: a reel of everything the player has made  ·  Oct 16 2026
+
+**Decided (owner):** the Worlds tab becomes **Keepsakes**, a reel and post-style feed of every picture, film and face the player has made across their saves, in Everlore's design language. My Worlds moves into the profile menu as "Your worlds". Passing faces and voice clips are not keepsakes. Spec: `phases/keepsakes.md`.
+
+**Reopen when** `feat/interactive-world-markers` merges and Walks needs the same bar slot.
+
+---
+
 ## Voiced lines, scene images and talking-character video in chat worlds  ·  Oct 15 2026
 
 **Decided (owner):** chat worlds get three optional media layers, all through OpenRouter on our one key. Unlike the authored world art below, these are generated **while playing**, at the player's request. That is a new use, not a reopening of the Codex-app decision.
