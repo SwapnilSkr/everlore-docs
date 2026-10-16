@@ -59,7 +59,7 @@ The first time a player taps any line in a turn, one cheap structured call proce
 {
   line_id: string
   is_speech: boolean            // false for a quoted sign, letter, title, or thought
-  speaker_name: string | null   // a name as written in the prose, never an id
+  speaker_name: string | null   // how the prose refers to the speaker, as written: a name or a description ("the Thorne rider"), never an id
   spoken_text: string           // the words actually said, narration removed
   tags: string[]                // 0–1 from the allowed performed-tag list (§2.3)
 }
@@ -67,8 +67,19 @@ The first time a player taps any line in a turn, one cheap structured call proce
 
 The server accepts a line only if:
 - `spoken_text`, ignoring whitespace, is a **verbatim substring** of that line's span. This is the evidence rule: the model can drop narration but can't invent words.
-- `speaker_name` resolves through the existing codex name/alias resolution to a card in this save that isn't the player.
+- the speaker isn't the player.
 - `tags` are filtered to the allowed list, at most 1.
+
+**Every other spoken line is voiced** (owner, Oct 16 2026). A line is `unvoiceable` only when it isn't speech (a sign, letter, title or thought), when it is the player's own words, when `spoken_text` fails the verbatim rule, or when it's a mature line without the opt-in (§2.3). A missing card, an unnamed speaker, an unclear gender or a child is never a reason to refuse.
+
+**The tap makes what's missing.** The speaker resolves through the codex name/alias resolution to a card in this save. When none matches, the tap mints one:
+- through the codex's own card-creation path, never a raw insert, so the later naming and merge rules apply to it;
+- named the way the prose refers to the speaker (`identity_kind: role_label` for a description like "the Thorne rider");
+- when the prose gives no handle at all, a card scoped to this turn, named by the voice traits (e.g. "a stranger").
+
+The minted card then gets a voice the normal way (§2.3), and a look and portrait the first time a picture or video needs one (§3). When the story later names that person, the codex merge folds the card into the named one, and the voice and portrait go with it.
+
+**Voice traits never refuse.** An unclear gender picks the best fit from the traits that are known. **A child is voiced with the lightest adult voice** (owner, Oct 16 2026): the fit treats `age_band: child` as the youngest catalogue age with a light timbre. The catalogue has no child voices.
 
 Any line that fails is marked `unvoiceable`: the tap gets a soft haptic and nothing else, and the line is never offered again. Results are saved on the event (`spoken_lines[i].voice`) so the call runs once per turn.
 
