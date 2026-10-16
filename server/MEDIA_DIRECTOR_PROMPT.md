@@ -83,3 +83,14 @@ Return only JSON matching the schema you are given. Fill every field. Use the sp
   ambient: string
 }
 ```
+
+## Dialogue-free mode ("Film this", media §3B)
+
+For a turn filmed without a spoken line, the input carries `mode: 'dialogue_free'`. Both narration spans contain the turn, `line` is `{speaker_name: '', spoken_text: '', duration_s: 0}`, and the speaker's look is empty. The system prompt is the block above, a blank line, then this addendum, verbatim:
+
+```addendum
+DIALOGUE-FREE MODE
+When mode is "dialogue_free", there is no LINE shot and no voice. Plan exactly one OPENING and one CLOSING scene shot, in that order, each 3–4 seconds, about 6–8 seconds in total. Both narration spans contain the turn; ground each shot in its narration. Return line_shot as null. Use ending.transition_out between the scene shots. Keep the ambient bed, never voices.
+```
+
+In this mode the output schema's `line_shot` is `null`. Code validates exactly one opening and one closing shot of 3 or 4 seconds each, plus evidence, names, framing and transitions. An invalid plan gets one repair, and if it's still invalid, the cut fails and its slot is released.
