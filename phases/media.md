@@ -122,7 +122,7 @@ portrait?: {
 A world's media is drawn the way its cover is: an anime world gets anime portraits, a noir world gets noir ones (owner, Oct 16 2026). Until this lands, every image is forced into one painted style.
 
 - **Source: the world's locked `narrative_style`**, the same key the cover generator already maps to an art style (`STYLE_HINT` in `image.service.ts`). There is one table for covers and media. No new authored field, and no backfill: every world in the dev database has a style (Oct 16 2026).
-- **Look, not mood.** Each table entry splits into `render` (how it is drawn, e.g. "vibrant anime illustration, clean linework") and `mood` (atmosphere, e.g. "warm intimate lighting"). Covers keep `render + mood`, so their text stays byte-identical. **Media uses `render` only**, because a mood is atmosphere, not a drawing style. The mood comes from the moment itself. A missing or unknown key falls back to the painted default: "semi-realistic cinematic digital painting, warm rim light".
+- **Look, not mood.** Each table entry splits into `render` (how it is drawn, e.g. "vibrant anime illustration, clean linework") and `mood` (atmosphere, e.g. "warm intimate lighting"). Covers keep `render + mood`, so their text stays byte-identical. **Media uses `render` only**, because a mood is atmosphere, not a drawing style. When a render itself carries a mood word, the entry gets a media-only `media` render that replaces it (today only `flirty`, whose render says "sensual"; `88354b3`). The mood comes from the moment itself. A missing or unknown key falls back to the painted default: "semi-realistic cinematic digital painting, warm rim light".
 - **The template's style, never the save's.** A player may override the narrative voice for one conversation. That never changes the art style, because portraits are shared by every save of a world.
 - **Where it goes:**
   - the portrait suffix;
@@ -278,7 +278,7 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
    - real people;
    - graphic gore.
 
-   Suggestive content between adults is **allowed**. This is a check, not a prompt instruction.
+   Suggestive content between adults is **allowed**. This is a check, not a prompt instruction. The line is written once, as data (`MEDIA_VISUAL_POLICY` in `safety.ts`), and the description, moderation and vision prompts are all built from it. Each blocked item has its own reason code; looking underage in a suggestive context is `underage_suggestive`, judged from the picture, never from a stated age (`1824035`).
 3. **Gate after generation.** A vision check on the image, or on sampled frames of a video (first, middle, last), against the same line as the gate before. Failing → `media_unseen`, and the file is deleted.
 4. **References are only `generated` / `authored` portraits.**
 5. **Never charged when unseen.** The limit is released. Copy: *"This moment stays unseen."*
@@ -320,7 +320,7 @@ Daily per player, UTC midnight reset, the same for every tier during the promo (
 |---|---|---|---|
 | Voice | `elevenlabs/eleven-v4-turbo` | **chosen** (owner, Oct 16 2026) | `MEDIA_VOICE_MODEL` |
 | Line attribution (§2.2) | the existing cheap structured-call model | as today | — |
-| Portrait / picture / scene still | `black-forest-labs/flux-3-image-klein` ($0.009 per 9:16 image at 768×1360; up to 10 face references; returns **JPEG**). It replaced `flux.2-klein-4b` ($0.015) because Flux 2 Klein's own filter refused ordinary scarred faces as "graphic violence" while Flux 3 Klein accepted them, and it matched the painted house style best in a side-by-side (`.agents` test, Oct 16 2026, $0.14). It also draws anime well when the prompt asks for it. Black Forest Labs still filters, so a refusal goes down the provider-refusal path (§7) | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL` |
+| Portrait / picture / scene still | `black-forest-labs/flux-3-image-klein` ($0.009 per 9:16 image at 768×1360; up to 10 face references; returns **JPEG**). It replaced `flux.2-klein-4b` ($0.015) because Flux 2 Klein's own filter refused ordinary scarred faces as "graphic violence" while Flux 3 Klein accepted them, and it matched the painted house style best in a side-by-side (`.agents` test, Oct 16 2026, $0.14). It also draws anime well when the prompt asks for it. Black Forest Labs still filters, so a refusal goes down the provider-refusal path (§7). Media images send `safety_tolerance` 2, the provider default; a live check showed no gain at 3 (`1824035`) | **chosen** (owner, Oct 16 2026) | `MEDIA_IMAGE_MODEL`, `MEDIA_IMAGE_SAFETY_TOLERANCE` (integer 0–5) |
 | Director (§3A.1) | `openai/gpt-6.1-sol`: valid on every bake-off turn at about $0.013 per plan; Opus 5.5 was also valid at about 3× the price | **chosen** (bake-off, Oct 16 2026) | `MEDIA_DIRECTOR_MODEL` |
 | Moderation gate (§7) | `openai/gpt-4o-mini`, structured verdict, about $0.0001 per check | chosen | `MEDIA_MODERATION_MODEL` |
 | Vision gate (§7) | `google/gemini-2.5-flash-lite`, about $0.0002 per image | chosen | `MEDIA_VISION_MODEL` |
