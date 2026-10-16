@@ -74,7 +74,7 @@ The server accepts a line only if:
 
 **Media never creates a card.** Who gets a card is the story pipeline's decision (codex extraction, its recurrence rule for unnamed people, merges), unchanged. The speaker handle resolves through the codex name/alias resolution:
 - **A card matches:** the line uses the card's voice (§2.3), and the card's portrait for pictures and video.
-- **No card matches:** the line is voiced with a voice chosen from the line's voice traits, deterministically from `instance_id` + the normalized handle, so the same handle in a save keeps the same voice. With no handle at all, the event and line ids seed it. The choice is stored on the line (`spoken_lines[i].voice.voice_id`), never on a card. Pictures draw this person from the prose. **"See them say it" is not offered** for an uncarded speaker: there is no face to animate.
+- **No card matches:** the line is voiced with a voice chosen from the line's voice traits, deterministically from `instance_id` + the normalized handle, so the same handle in a save keeps the same voice. With no handle at all, the event and line ids seed it. The choice is stored on the line (`spoken_lines[i].voice.voice_id`), never on a card. Pictures draw this person from the prose. Video lip-syncs a **passing face** (§3B).
 - **The speaker later earns a card:** from then on, the card's voice is used. Already-voiced lines keep the voice they were played with.
 - **Merges carry media.** When the codex merges two cards, the survivor keeps its own voice, portrait and look, and takes the source's when it has none.
 
@@ -221,6 +221,23 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
 - **Degrades, never breaks.** If a scene shot fails or is rejected, the cut is delivered with the remaining shots (at minimum the line shot) and the player is charged one video. If the line shot fails, the whole video is `media_failed` and the slot is released.
 - **One video counts once**, whatever the shot count.
 
+## 3B. Every turn can be filmed (owner, Oct 16 2026)
+
+### Passing faces: a face for a speaker with no card
+"See them say it" on a line whose speaker has no card lip-syncs a **passing face**, not a portrait.
+- **Kept per save, keyed like the passing voice (§2.2):** `instance_id` + the normalized speaker handle, or `event_id` + `line_id` when the prose gives no handle. The second video of "the Thorne rider" in a save reuses his face.
+- **Painted on the first video that needs it,** from what the prose says about the speaker. It uses the world's art style and the portrait framing, passes the same gates as a portrait (§7), and is `source: generated`.
+- **Never on a card, never canon.** It's stored as a `media_assets` row (`kind: 'passing_face'`), never written to `characters`, never shown in the codex, and never used as a reference for a card's portrait. If the story later gives the speaker a card, the card paints its own portrait on first need, as today.
+- **Out of date** when the world's art style changes: it repaints on the next video that needs it.
+- **Counts** against the free portrait allowance (~20 a day), like a first portrait. It is deleted with the save.
+
+### The dialogue-free cut
+Any turn can be filmed, spoken lines or not. **"Film this"** in the turn's long-press menu (beside Picture this) asks the director (§3A.1) for a cut with **no line shot**: an opening shot and a closing shot from the narration, about 6–8 s. The cut has the ambient bed and no voice. A turn whose speaker the player wants to hear on screen still uses "See them say it".
+- The same gates, validation and assembly as §3A. If a shot fails, the cut is delivered with the shots that remain. If no shot survives, it is `media_failed` and the slot is released.
+- It counts as **one video** against the same daily cap. It costs about $0.20–0.30 (₹17–25).
+
+---
+
 ## 4. The player's actions (UX)
 
 | Action | Where | What happens |
@@ -228,6 +245,7 @@ A plan that fails gets **one** repair call with the validator's errors. Failing 
 | **Hear a line** | Tap a spoken line in the prose | The line shimmers softly while it loads, then plays. Tapping again stops it. A small floating player appears only while something is playing |
 | **See them say it** | Long-press a spoken line → small menu "Hear it · See them say it" | A compact placeholder ("Taking shape…") appears under the turn and becomes the video when it's ready |
 | **Picture this** | The turn's existing long-press menu (beside Rewind / Copy / Edit) | Same placeholder, then the picture |
+| **Film this** | The turn's long-press menu, beside Picture this | Same placeholder, then a dialogue-free cut (§3B) |
 | **Give yourself a face** | Offered once, the first time a picture would include the player; also on the persona screen | Paints the player's portrait |
 | **Repaint** | A card's portrait (codex / persona) | Repaints that face (counts as one picture) |
 
@@ -250,6 +268,7 @@ POST /instances/:instanceId/events/:eventId/lines/:lineId/voice
 
 POST /instances/:instanceId/events/:eventId/picture
 POST /instances/:instanceId/events/:eventId/lines/:lineId/video
+POST /instances/:instanceId/events/:eventId/video                // dialogue-free cut (§3B)
   → 202 { status: 'queued', media_id } | 200 { status: 'ready', url } | 429 resting
 
 POST /instances/:instanceId/characters/:characterId/portrait   // repaint
@@ -274,7 +293,7 @@ GET  /media/usage → { voice: {used, limit}, picture: {...}, video: {...}, port
 
 `spoken_lines` is also included on the event in `GET` instance/event payloads, so a reload shows the same lines.
 
-A public line carries only `{line_id, start, end}`, plus `voice: {status: 'unvoiceable'}` when refused, plus `filmable: false` once attribution has found its speaker has no card (§2.2). The app hides "See them say it" for a `filmable: false` line. Before the first tap nothing is known, so it is offered, and a video request for an uncarded speaker answers 422, uncharged, and the app shows the calm line *"This moment stays unseen."*
+A public line carries only `{line_id, start, end}`, plus `voice: {status: 'unvoiceable'}` when refused. Every voiced line can be filmed (§3B).
 
 **Feature switch on the wire.** While `MEDIA_ENABLED` is off, the server sends no `spoken_lines` (no socket message, no payload field) and `GET /media/usage` returns 404. The app shows media affordances only when a turn has `spoken_lines` (voice, video) or `/media/usage` answered 200 this session (Picture this, portraits). Switching media off therefore hides it without an app release.
 
