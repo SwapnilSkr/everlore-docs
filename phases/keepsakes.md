@@ -48,7 +48,7 @@ A toggle at the top right switches between the feed and a 3-column grid of 9:16 
 
 ### 3.3 Filters
 
-A segmented row under the title: **All · Pictures · Films · Faces**. Faces always shows as the grid; there's no feed for faces. A face tile is labelled with the character's name. Tapping it opens the viewer, whose action is **Open their card** instead of Return to this moment.
+A segmented row under the title: **All · Pictures · Films · Faces**. **All** is pictures and films together. Faces always shows as the grid; there's no feed for faces. A face tile is labelled with the character's name. Tapping it opens the viewer, whose action is **Open their card** instead of Return to this moment.
 
 ### 3.4 The viewer (the reel)
 
@@ -59,11 +59,41 @@ Full screen, vertical swipe between pieces in the current filter's order.
 - **Return to this moment** stays one tap away.
 - The next two pieces are precached. The viewer never shows a blank frame.
 
-### 3.5 Empty and loading states
+### 3.5 Every edge state
 
-- **Empty:** a quiet illustrated state with one line of copy in the world's voice, e.g. *"Nothing kept yet. Long-press a moment in any story to picture it or film it."*, plus a button to Realms.
-- **Loading:** shimmer posts in the feed's shape, never a bare spinner.
-- **A piece still being made** (`queued`/`processing`) doesn't appear. Its placeholder stays under its turn in the chat, where it was asked for.
+Every state below is designed, not left to fall out of the layout. Nothing shows a blank frame, a black box, a bare spinner, a raw error, or a stretched or awkwardly sparse layout. Each state uses the same shell, the same type and the same art direction as the full feed, so a new player's first look is as polished as a heavy player's.
+
+**The empty states share one composition:**
+- a soft illustrated vignette in the house painted style, from the illustrated backgrounds the Realms and Worlds empty states already use (no new art needed);
+- one title line in Cinzel display caps, and one or two lines of body copy in the world's voice;
+- one primary action, centred in the lower third, within thumb reach.
+
+The filter row stays visible above the state whenever the player has any keepsake at all.
+
+| State | What the player sees |
+|---|---|
+| **Nothing kept, has saves** | Title *"Nothing kept yet"*. Body: *"Long-press any moment in a story to picture it or film it. What you make gathers here."* Action: **Open your realms** (→ Realms). |
+| **Nothing kept, no saves** | The same title. Body: *"Begin a story, then picture or film the moments worth keeping."* Action: **Find a world** (→ Explore). |
+| **This filter is empty, others aren't** | A compact version (vignette ~40% of the height), never the full-page state. Pictures: *"No pictures yet. Long-press a moment and choose Picture this."* Films: *"No films yet. Long-press a moment and choose Film this, or long-press a spoken line."* Faces: *"No faces yet. They appear when you picture or film the people in your stories."* Action: **Show all** (→ the All filter). |
+| **One to three keepsakes** | The feed shows them normally, then closes with the **end ornament** (below) and a soft nudge: *"Picture another moment"* → Realms. The grid keeps fixed 9:16 tiles, left-aligned; tiles never stretch to fill the width. With fewer than 4 pieces, the grid toggle stays available but the feed is the default. |
+| **The end of the list** | A small brass flourish divider and *"That's everything you've kept."* Never a dead stop on blank space. |
+| **First load** | Three skeleton posts in the feed's exact shape (header, a 9:16 block, two caption lines) with the house shimmer. The grid shows skeleton tiles. No spinner. |
+| **Loading the next page** | One skeleton post at the foot. The list never jumps. |
+| **Refreshing** | Pull to refresh, with the brass refresh indicator, on every filter. |
+| **First load failed** | The shell's existing calm error composition (as on Realms): *"Your keepsakes are out of reach. Check your connection and try again."* **Try again** reloads in place. |
+| **Next page failed** | Pieces already shown stay. The foot shows *"Couldn't reach the rest."* with **Try again**. |
+| **A piece's file won't load** | The frame shows a muted parchment tile with a faint crest and *"This keepsake has faded"*, at the same 9:16 size, never black or empty. Its ⋯ menu still offers Remove. The viewer shows the same tile and lets the player swipe on. |
+| **A film won't play** | The poster stays, with a small *"Tap to try again"* over it. Without a poster, the frame shows a dark scrim gradient with the play glyph, never black. |
+| **Data saver or low power** | Films don't autoplay in the feed. The poster shows with a play glyph, and a tap plays. |
+| **Missing details** | The world was removed: the header shows *"A story no longer here"* with a neutral crest, and **Return to this moment** is hidden. No cover: the crest is a brass monogram of the world title's first letter. No excerpt: the caption is omitted, with no empty gap. No save label: that line is omitted. No duration: no chip. |
+| **Long text** | World title on one line with an ellipsis. Excerpt clamped to 3 lines with *more*. Speaker name on one line. Face names on two lines max, centred. |
+| **The moment no longer exists** | Return to this moment opens the save at the nearest surviving turn, with a calm notice: *"That moment was rewritten. Here's where the story stands."* |
+| **Removing the last piece in a view** | The post collapses smoothly and the matching empty state fades in, with no flash of a blank list. |
+| **Large text and small phones** | Everything wraps or clamps under the system text scale up to 1.3× without overflow. Action rows wrap rather than shrink their tap targets below 44 pt. |
+| **Tablet and wide screens** | The feed is centred at a max width of ~560 pt. The grid uses 4 columns from 700 pt and 5 from 1000 pt. The viewer letterboxes 9:16 on a blurred backdrop of the same piece. |
+| **Reduced motion** | No Ken Burns drift, no autoplay, and fades instead of slides. |
+
+Copy in this table is final, and no state names a mechanism ("server", "error code", "media", "AI").
 
 ## 4. API
 
@@ -71,7 +101,7 @@ Full screen, vertical swipe between pieces in the current filter's order.
 Auth required. Lists only `player_id = me`.
 
 Query:
-- `kind`: `all` | `picture` | `video` | `portrait` (default `all`);
+- `kind`: `all` | `picture` | `video` | `portrait` (default `all`). **`all` means pictures and films**: faces aren't moments, so they appear only under `portrait`;
 - `before`: an ISO cursor;
 - `limit`: 1–40, default 20.
 
