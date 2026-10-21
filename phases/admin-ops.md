@@ -54,7 +54,7 @@ Unchanged shape. `unlimited_ink` now follows the effective promo (config, else e
   "installs": {
     "reason_kind": "forbidden",
     "available": false,
-    "reason": "The service account can't read Play's install reports yet.",
+    "reason": "Play hasn't given the server's account access to install reports yet.",
     "last_updated": null,
     "total_user_installs": null
   }
