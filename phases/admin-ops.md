@@ -52,6 +52,7 @@ Unchanged shape. `unlimited_ink` now follows the effective promo (config, else e
     { "date": "2026-10-21", "signups": 0, "active_players": 0, "story_turns": 0, "new_saves": 0, "installs": null }
   ],
   "installs": {
+    "reason_kind": "forbidden",
     "available": false,
     "reason": "The service account can't read Play's install reports yet.",
     "last_updated": null,
@@ -61,7 +62,7 @@ Unchanged shape. `unlimited_ink` now follows the effective promo (config, else e
 ```
 - `active_players` is distinct players with at least one story turn that day, derived from stored story events, so history is available from day one.
 - `dau`/`wau`/`mau` are distinct players with a story turn in the last 1/7/30 days, ending now.
-- `installs` per day is Play's "Daily User Installs", or `null` when unavailable. Reports are fetched at most every 6 hours and cached in memory (or in Mongo). A fetch failure never fails the endpoint.
+- `installs` per day is Play's "Daily User Installs", or `null` when unavailable. A successful read is cached in memory for 6 hours; a failed read for 15 minutes, then retried on the next request. A fetch failure never fails the endpoint. `installs.reason_kind` is `forbidden` (Play returned 401/403), `no_reports` (no overview CSV yet), `not_configured` (no service account or developer id), `error` (anything else) or `null` on success; `reason` is a fixed sentence per kind and never carries upstream text (added 2026-10-21, server `9385a25`).
 
 ### Users, `GET /admin/users` and `GET /admin/users/:id`
 
