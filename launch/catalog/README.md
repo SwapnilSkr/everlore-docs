@@ -1,6 +1,6 @@
-# Launch catalog: 40 new worlds
+# Launch catalog: about 100 new worlds
 
-Agreed with the owner Oct 22 2026 (`DECISIONS.md`, "Launch catalog: 40 new worlds"). These 40 join the 12 already live, for 52 in all. Each is a **GM world** or a **character**; there are no sentient worlds.
+Agreed with the owner Oct 22 2026 (`DECISIONS.md`, "Launch catalog"). About 100 new worlds join the 12 already live. Each is a **GM world** or a **character**; there are no sentient worlds.
 
 ## How a world is written
 
@@ -29,38 +29,55 @@ Rules for every file:
 - The description is what the shelf and the website show, so it sells the premise in two sentences.
 - Romance worlds are `is_nsfw_capable: true`; the engine's content bounds apply as everywhere.
 
-## The slate
+## The slate (about 100 new worlds)
 
-Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts`). Live now: dark 8, epic 1, romance 1, modern 1, cozy 1.
+**Audience (owner, Oct 22 2026): 8 of every 10 worlds are aimed at men, 2 at women.** In a world aimed at men the lead or love interest is a woman, and the player may be written as a man where the trope needs it (a "fake boyfriend"); otherwise the player stays "you". The player's own persona always wins.
 
-### Romance (+11) · batch `romance` · first
-| Slug | Title | Kind | Voice |
-|---|---|---|---|
-| the-dons-debt | The Don's Debt | character | dark_romance |
-| lord-of-nightfall-manor | Lord of Nightfall Manor | character | dark_romance |
-| moonbound | Moonbound | world | dark_romance |
-| the-fae-bargain | The Fae Bargain | world | dark_romance |
-| the-season-at-ashcombe | The Season at Ashcombe | world | regency |
-| yuna-only-has-eyes-for-you | Yuna Only Has Eyes for You | character | yandere |
-| the-prince-you-were-sent-to-kill | The Prince You Were Sent to Kill | character | dark_romance |
-| your-bodyguard | Your Bodyguard | character | flirty |
-| the-siren-of-blackreef | The Siren of Blackreef | character | dark_romance |
-| the-duke-of-ravensworth | The Duke of Ravensworth | character | regency |
-| the-angel-who-fell-for-you | The Angel Who Fell for You | character | flirty |
+| Family | New worlds |
+|---|---|
+| Romance | 25 (20 for men, 5 for women) |
+| Epic adventure | ~25 |
+| Dark and atmospheric | ~20 |
+| Modern everyday | ~15 |
+| Cozy and playful | ~15 |
 
-### Epic adventure (+10)
-Summoned to the Wrong Kingdom (world, litrpg) · The Hundredth Floor (world, litrpg) · Ember Academy (world, shonen) · Wings of Valdris (world, epic_fantasy) · Salt and Cannon (world, epic_fantasy) · The Lotus Throne (world, epic_fantasy; inspired by Indian epics, no real deities or scripture) · Starfall Frontier (world) · The Long Winter Saga (world, epic_fantasy) · Kaelith, the Last Dragon (character) · Ren, Your Rival (character, shonen)
+Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts`). Live before the catalog: dark 8, epic 1, romance 1, modern 1, cozy 1.
 
-### Modern everyday (+8)
-Backstage at Starlight (world, kdrama) · Mr. Han, Your Boss (character, kdrama) · The Wedding Week (world, romcom) · Roommate Wanted (character, romcom) · Summer in Saltmere (world, slice_of_life) · Ten Years Later (world, romcom) · Startup Nights (world, modern_casual) · Your Best Friend Since Forever (character, slice_of_life)
+### Romance (25) · batch `romance` · first, agreed Oct 22
+| Slug | Title | Kind | Voice | Aimed at |
+|---|---|---|---|---|
+| lady-of-nightfall-manor | Lady of Nightfall Manor | character | dark_romance | men |
+| moonbound | Moonbound | GM world | dark_romance | men |
+| nova-your-netrunner-partner | Nova, Your Netrunner Partner | character | flirty | men |
+| the-angel-who-fell-for-you | The Angel Who Fell for You | character | flirty | men |
+| the-campus-bully-who-secretly-likes-you | The Campus Bully Who Secretly Likes You | character | tsundere | men |
+| the-demon-queens-contract | The Demon Queen's Contract | character | flirty | men |
+| the-dragon-who-claimed-you | The Dragon Who Claimed You | character | flirty | men |
+| the-elf-who-hates-humans | The Elf Who Hates Humans | character | tsundere | men |
+| the-fae-bargain | The Fae Bargain | GM world | dark_romance | men |
+| the-fake-dating-deal | The Fake Dating Deal | character | flirty | men |
+| the-heiress-you-guard | The Heiress You Guard | character | flirty | men |
+| the-ice-empresss-consort | The Ice Empress's Consort | character | dark_romance | men |
+| the-knight-commander | The Knight Commander | character | tsundere | men |
+| the-mafia-queens-debt | The Mafia Queen's Debt | character | dark_romance | men |
+| the-pirate-queens-prisoner | The Pirate Queen's Prisoner | character | flirty | men |
+| the-princess-you-were-sent-to-kill | The Princess You Were Sent to Kill | character | dark_romance | men |
+| the-siren-of-blackreef | The Siren of Blackreef | character | dark_romance | men |
+| the-witch-who-cursed-you | The Witch Who Cursed You | character | flirty | men |
+| your-maid-knows-too-much | Your Maid Knows Too Much | character | flirty | men |
+| yuna-only-has-eyes-for-you | Yuna Only Has Eyes for You | character | yandere | men |
+| lord-of-nightfall-manor | Lord of Nightfall Manor | character | dark_romance | women |
+| the-dons-debt | The Don's Debt | character | dark_romance | women |
+| the-duke-of-ravensworth | The Duke of Ravensworth | character | regency | women |
+| the-prince-you-were-sent-to-kill | The Prince You Were Sent to Kill | character | dark_romance | women |
+| the-season-at-ashcombe | The Season at Ashcombe | GM world | regency | women |
 
-### Cozy and playful (+7)
-The Little Potion Shop (world, cozy_comfort) · Hollowbrook Farm (world, cozy_comfort) · The Demon Lord's Day Off (world, chaotic_comedy) · The Kitsune Next Door (character, anime) · Mister Biscuit (character, whimsical) · The Inn at World's End (world, cozy_comfort) · Pip, the Overly Helpful Ghost (character, chaotic_comedy)
-
-### Dark and atmospheric (+4)
-The Last Safe House (world, horror) · The House on Hollow Lane (world, horror) · The Gaslight Detective (world, noir) · Wasteland Radio (world, grimdark)
-
-Totals after: dark 12, epic 11, romance 12, modern 9, cozy 8. 17 characters, 23 worlds.
+### Other families
+To be planned one at a time with the owner, at 8:2. The Oct 22 first draft for them (written before the 8:2 rule, so most will be re-cut toward male players):
+- Epic adventure: Summoned to the Wrong Kingdom, The Hundredth Floor, Ember Academy, Wings of Valdris, Salt and Cannon, The Lotus Throne (inspired by Indian epics, no real deities or scripture), Starfall Frontier, The Long Winter Saga, Kaelith the Last Dragon, Ren Your Rival.
+- Modern everyday: Backstage at Starlight, Mr. Han Your Boss, The Wedding Week, Roommate Wanted, Summer in Saltmere, Ten Years Later, Startup Nights, Your Best Friend Since Forever.
+- Cozy and playful: The Little Potion Shop, Hollowbrook Farm, The Demon Lord's Day Off, The Kitsune Next Door, Mister Biscuit, The Inn at World's End, Pip the Overly Helpful Ghost.
+- Dark and atmospheric: The Last Safe House, The House on Hollow Lane, The Gaslight Detective, Wasteland Radio.
 
 ## Pipeline per batch
 1. Write the files (orchestrator), owner reviews.
@@ -71,4 +88,4 @@ Totals after: dark 12, epic 11, romance 12, modern 9, cozy 8. 17 characters, 23 
 ## Status
 | Batch | Files | Covers | Seeded | Pages |
 |---|---|---|---|---|
-| romance | drafted Oct 22 | – | – | – |
+| romance | 25 written Oct 22, agreed | in progress | script in progress | – |

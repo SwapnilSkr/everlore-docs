@@ -4,9 +4,9 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
-## Launch catalog: 40 new worlds, GM worlds and characters only  ·  Oct 22 2026
+## Launch catalog: ~100 new worlds, 8:2 aimed at men, GM worlds and characters only  ·  Oct 22 2026
 
-**Decided (owner):** the launch catalog adds **40 new worlds on top of the 12 already live**, 52 in all. Every one is either a **GM world** (`kind: world`, `is_sentient: false`, a narrator runs the story and the player is "you") or a **character** (`kind: character`, `is_sentient: true`, the player talks to one person). **No sentient worlds** (`kind: world` with `is_sentient: true`). Romance is built first. The slate: `launch/catalog/README.md`.
+**Decided (owner):** the launch catalog adds **about 100 new worlds on top of the 12 already live** (first set at 40, raised the same day). **8 of every 10 are aimed at male players** (a woman as the lead or love interest), 2 at female players: most of the audience is expected to be male. Every one is either a **GM world** (`kind: world`, `is_sentient: false`, a narrator runs the story and the player is "you") or a **character** (`kind: character`, `is_sentient: true`, the player talks to one person). **No sentient worlds** (`kind: world` with `is_sentient: true`). Romance is built first. The slate: `launch/catalog/README.md`.
 
 **Why:** the live 12 are 8 dark/atmospheric and 1 in each other interest family, so a player who picks romance or cozy at sign-up finds almost nothing. Characters are what bring roleplay players back daily; GM worlds are what the store and site sell. A sentient world is a character in all but vocabulary, and two kinds are easier to explain.
 
