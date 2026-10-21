@@ -9,3 +9,14 @@ Running total of what publishing the catalog has cost. Measured, not estimated: 
 | 2026-10-22 | romance, world-guide rewrite (all 25 updated, casts re-read) | 25 updated | $87.241913 | $87.256144 | $0.0142 (₹1.20) |
 
 **Running total: $0.0280 (₹2.36)** for 25 live worlds, about $0.0011 (₹0.09) a world including one full rewrite. Cap agreed by the owner for the romance batch: ₹50.
+
+## Memory move (one vector section), not the catalog
+
+Re-embedding sample messages for the old-vs-new recall comparison (OpenAI direct, $0.02 per 1M tokens). Counted separately from the catalog.
+
+| Date | Run | Tokens | Spent |
+|---|---|---|---|
+| 2026-10-22 | recall comparison, first pass | 6,404 | $0.000128 (₹0.01) |
+| 2026-10-22 | recall comparison, with breakdown | 6,404 | $0.000128 (₹0.01) |
+
+**Total: $0.000256 (₹0.02).**
