@@ -28,6 +28,38 @@ git log --format="%H %s%n%b" -20 | grep -iE "co-authored|generated with|claude" 
 
 ## 1. STATE
 
+### ⏩ Latest session: Oct 21 2026 (read this first; older state below is history)
+
+**Shared context lives in the root [`GLOSSARY.md`](../GLOSSARY.md)**: terms, the dated change log, decisions, and Status (Live / In flight / Next / Parked). Its "In flight" section is the exact to-do for the next agent.
+
+**Shipped and live today:**
+- **Play:** 1.0.8 is live in production (178 countries). 1.0.9+12 (app `0cced3d`: the OTP button waits for six digits; Create a Character confirms before discarding) was approved and live the same day. Production releases are promoted in the Play Console (built-in browser, signed in as the owner; widen the viewport to 1400×1000 or the release form never loads).
+- **Server `9504b52` (prod):**
+  - the promo is a console switch: `billing_config.promo`, with the env as the seed;
+  - `last_active_at` on users;
+  - `/admin/metrics`, including the onboarding breakdowns;
+  - `/admin/users` gets `onboarding`, `since` and `sort`;
+  - Play installs come from GCS bulk reports (permission granted today, may still 403 until it propagates);
+  - the index sync now compares key order.
+- **Admin `6f710da` (admin.everloreapp.com):** full redesign with Overview charts, a New users page, last active, and the Billing promo switch. Banning from a user's page now works.
+- **Web `18326ce` (everloreapp.com):**
+  - premium v2;
+  - no beta or request-access anywhere;
+  - the official Play badge links to the live listing.
+- **Errors `97c4c8d`:** plain validation copy; empty model replies log their reason.
+
+**In flight:** website v3, the ink-thread nine-chapter site with Codex art. See GLOSSARY → Status → In flight.
+
+**⛔ New hard-won rule:** `everlore-server/.env` points at the **production** Atlas DB. A locally started server writes prod. Test writes on an isolated mongod/redis: see `everlore-server/scripts/admin-ops-smoke.ts`, and the memory `local_server_is_prod_db`.
+
+**Lanes today:**
+- agy's Gemini quota is out until about Oct 24, so `.agents/agy-model` = `cursor:gemini-3.8-flash-high`. Delete it when agy resets.
+- Design-heavy UI (admin, web) went to Claude subagents that load the `frontend-design:frontend-design` skill (plus `dataviz` for charts) and must screenshot and critique their own work. That worked well.
+- The guard: Claude-subagent locks taken by hand make `tools/agent.sh` runs report false OUT OF SCOPE (exit 4) for the subagent's files. Check that the flagged files belong to the other task before treating it as a real scope breach.
+
+**Phase doc:** [`phases/admin-ops.md`](phases/admin-ops.md) (contract for metrics, promo, users and onboarding).
+
+
 ### ▶ Oct 16 2026, evening — media and Keepsakes (read this first)
 
 Paused at the owner's request. No agent runs, no servers, emulator up. Nothing below is on prod.
