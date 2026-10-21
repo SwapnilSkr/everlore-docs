@@ -3,6 +3,85 @@
 Drafted 30 August 2026. Character limits are Play's own; counts are noted so
 edits stay inside them.
 
+
+## ⭐ Revision proposed 2026-10-21 (not applied; needs the owner's OK)
+
+**Why:** the app name is the single word "Everlore", so Play search only
+finds it for the brand. (Store listings shows 0 visitors for the 28 days to
+Oct 17, but production only went live around Oct 21, so that number says
+nothing yet. Read it again in two weeks.) Play weights the name most, then the short
+description, then the full description. The owner decided on 2026-10-21 that
+"AI" may be used in search-facing copy (store listing, website metadata); the
+in-app "no technical copy" rule is unchanged.
+
+**What is live today** (read 2026-10-21): name "Everlore"; short description
+"Enter a story that answers back. Your choices shape what happens next."; a
+~1,100-character full description with no search phrases; 7 phone screenshots
+with captions; feature graphic; no promo video.
+
+### App name: `Everlore: AI Story & Roleplay` (29/30)
+Alternative: `Everlore: AI Roleplay Stories` (29/30).
+
+### Short description (79/80)
+> An AI story game where you write anything and the world remembers what you did.
+
+### Full description (1703/4000)
+> Everlore is an AI story game for Android: interactive fiction where you write what you do, and the story answers back.
+>
+> Pick a world or a character and step in. There is no menu of allowed moves. Type an action, say a line, or take the story somewhere nobody planned, and a narrator answers in the world's own voice: epic fantasy, noir, grimdark, K-drama, cyberpunk, dark academia and more.
+>
+> A STORY THAT REMEMBERS YOU
+> Everyone you meet, what passed between you, and every place you have been is written into your Lore Tome as you play: people, places, bonds and history. Come back a week later and the story picks up where you left it, promises and grudges included.
+>
+> ROLEPLAY YOUR WAY
+> • Text adventure, interactive story or character roleplay, in one app
+> • Fantasy quests, romance and drama, mystery, horror and sci-fi worlds
+> • Characters who react to you, remember you and change over time
+> • Choose the point of view, the narrator's voice, the tone and the reply length
+> • Rewrite a reply, try it again, or rewind to any earlier turn
+>
+> KEEP THE MOMENT
+> Picture a scene, turn it into a short film, and hear characters speak. Everything you make is kept, and opens back onto the moment it came from.
+>
+> MAKE YOUR OWN WORLDS
+> Describe a world in a line and the voice, the lore, the people and a cover are drafted for you. Publish it for other players to step into. (World creation comes with Premium and Creator membership.)
+>
+> YOURS ALONE
+> • Block anything you never want to see
+> • No ads, and your data is not sold
+> • Delete a story, or your whole account, whenever you like
+>
+> Choose a world. Make your move. See where the story goes.
+>
+> Privacy: https://everloreapp.com/privacy
+> Terms: https://everloreapp.com/terms
+
+Search phrases it now carries, all true of the app: AI story game, interactive
+fiction, interactive story, text adventure, roleplay, character roleplay,
+fantasy, romance, mystery, horror, sci-fi. Mature content is still declared,
+not marketed. No competitor names, no superlatives, no prices.
+
+### Graphics
+1. **Screenshots:** the 7th (an ink bottle still life) shows no app. Replace
+   it with the Lore Tome or a character's card. Put the play screen with a
+   strong narration first; the first two are all most visitors see.
+2. **Promo video:** none today. The website hero loop and a "Film this" clip
+   are ready-made material for a 15-30 s YouTube video (public or unlisted,
+   ads off, not age-restricted).
+3. **Feature graphic:** fine as is.
+
+### After applying
+Watch Store listings → Visitors and the "Search" traffic source weekly. Run
+a Store listing experiment (title A vs B) once there are ~100 visitors a week;
+below that, an experiment never reaches a result.
+
+---
+
+## Superseded draft (Aug 30 2026)
+
+Kept for history. ⚠️ Stale: it describes side chats (removed) and dials that
+changed. Do not paste from it.
+
 ---
 
 ## App name (30 char limit)
