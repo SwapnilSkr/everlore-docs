@@ -91,4 +91,4 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 ## Status
 | Batch | Files | Covers | Seeded | Pages |
 |---|---|---|---|---|
-| romance | 25 written Oct 22, agreed | 25 done Oct 22 | 1 of 25 live (Lady of Nightfall Manor); stopped at the Pinecone namespace limit | – |
+| romance | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore (owner `6ad90def8ab4aac77be04ae4`) | – |
