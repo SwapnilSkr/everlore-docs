@@ -85,7 +85,10 @@ To be planned one at a time with the owner, at 8:2. The Oct 22 first draft for t
 3. Seed: dev first, then prod under the official **Everlore** account (AWS login rule).
 4. World pages on everloreapp.com, then `npm run indexnow`.
 
+## Spend
+See `SPEND.md`, the running ledger, read from the provider's counter before and after every run.
+
 ## Status
 | Batch | Files | Covers | Seeded | Pages |
 |---|---|---|---|---|
-| romance | 25 written Oct 22, agreed | in progress | script in progress | – |
+| romance | 25 written Oct 22, agreed | 25 done Oct 22 | 1 of 25 live (Lady of Nightfall Manor); stopped at the Pinecone namespace limit | – |
