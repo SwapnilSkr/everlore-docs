@@ -4,6 +4,16 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## "AI" may appear in search-facing copy, never in the app  ·  Oct 21 2026
+
+**Decided (owner delegated it: "whatever you think is going to be beneficial"):** the Play store listing and the website's search metadata (title, description, structured data, one line of body copy) may say "AI story game" / "AI roleplay". Inside the app, the no-technical-copy rule is unchanged.
+
+**Why:** people looking for this kind of app search "AI story game", "AI roleplay", "AI RPG". A listing named only "Everlore" is found only by people who already know it. The in-app rule protects immersion, which a search result does not need.
+
+**Reopen when** the Play listing is flagged under the AI-generated content policy, or reviews show players reacting badly to the word.
+
+---
+
 ## Keepsakes: a reel of everything the player has made  ·  Oct 16 2026
 
 **Decided (owner):** the Worlds tab becomes **Keepsakes**, a reel and post-style feed of every picture, film and face the player has made across their saves, in Everlore's design language. My Worlds moves into the profile menu as "Your worlds". Passing faces and voice clips are not keepsakes. Spec: `phases/keepsakes.md`.
