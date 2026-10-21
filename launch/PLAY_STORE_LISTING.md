@@ -4,7 +4,9 @@ Drafted 30 August 2026. Character limits are Play's own; counts are noted so
 edits stay inside them.
 
 
-## ⭐ Revision proposed 2026-10-21 (not applied; needs the owner's OK)
+## ⭐ Revision applied 2026-10-21 (text only; in Google review)
+
+**Status:** the owner approved title A plus the short and full description. They were submitted for review on 2026-10-21 (managed publishing off, so they go live on approval). The screenshots, feature graphic and the "Don't label assets" AI declaration were left as they were.
 
 **Why:** the app name is the single word "Everlore", so Play search only
 finds it for the brand. (Store listings shows 0 visitors for the 28 days to
