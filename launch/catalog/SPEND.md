@@ -8,8 +8,9 @@ Running total of what publishing the catalog has cost. Measured, not estimated: 
 | 2026-10-22 | romance, second apply (after freeing 38 leftover namespaces) | 23 created, 1 draft published | $87.229324 | $87.241913 | $0.0126 (₹1.06) |
 | 2026-10-22 | romance, world-guide rewrite (all 25 updated, casts re-read) | 25 updated | $87.241913 | $87.256144 | $0.0142 (₹1.20) |
 | 2026-10-22 | romance, covers re-uploaded compressed (no text changed) | 25 updated | $87.256144 | $87.256144 | $0.0000 |
+| 2026-10-22 | epic, first apply | 25 created | $87.256144 | $87.269472 | $0.0133 (₹1.12) |
 
-**Running total: $0.0280 (₹2.36)** for 25 live worlds, about $0.0011 (₹0.09) a world including one full rewrite. Cap agreed by the owner for the romance batch: ₹50.
+**Running total: $0.0413 (₹3.47)** for 50 live worlds, about $0.0008 (₹0.07) a world. Romance was $0.0280 (₹2.36) including one full rewrite; Epic was $0.0133 (₹1.12), about $0.0005 (₹0.04) a world. Cap agreed by the owner for the romance batch: ₹50.
 
 ## Memory move (one vector section), not the catalog
 

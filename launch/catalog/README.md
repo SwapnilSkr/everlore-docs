@@ -36,7 +36,7 @@ Rules for every file:
 | Family | New worlds |
 |---|---|
 | Romance | 25 (20 for men, 5 for women) |
-| Epic adventure | ~25 |
+| Epic adventure | 25 (20 for men, 5 for women) |
 | Dark and atmospheric | ~20 |
 | Modern everyday | ~15 |
 | Cozy and playful | ~15 |
@@ -72,9 +72,39 @@ Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts
 | the-prince-you-were-sent-to-kill | The Prince You Were Sent to Kill | character | dark_romance | women |
 | the-season-at-ashcombe | The Season at Ashcombe | GM world | regency | women |
 
+### Epic adventure (25: 20 for men, 5 for women; 12 GM worlds, 13 characters; 7 anime covers)
+Agreed with the owner Oct 22 2026. Not NSFW-capable: adventure first.
+
+| Slug | Title | Kind | Voice | Aimed at |
+|---|---|---|---|---|
+| blood-and-sand | Blood and Sand | GM world | grimdark | men |
+| captain-of-the-sky-fleet | Captain of the Sky Fleet | character | epic_fantasy | women |
+| dungeon-lord | Dungeon Lord | GM world | chaotic_comedy | men |
+| ember-academy | Ember Academy | GM world | shonen | men |
+| freya-shieldmaiden-of-the-north | Freya, Shieldmaiden of the North | character | epic_fantasy | men |
+| kaelith-the-last-dragon | Kaelith, the Last Dragon | character | epic_fantasy | women |
+| lyra-the-elf-ranger | Lyra, the Elf Ranger | character | epic_fantasy | men |
+| master-kenjis-last-student | Master Kenji's Last Student | character | default | men |
+| mira-the-mage-who-summoned-you | Mira, the Mage Who Summoned You | character | anime | men |
+| ren-your-rival | Ren, Your Rival | character | shonen | men |
+| sable-the-mercenary-who-owes-you | Sable, the Mercenary Who Owes You | character | tsundere | men |
+| salt-and-cannon | Salt and Cannon | GM world | epic_fantasy | men |
+| starfall-frontier | Starfall Frontier | GM world | default | men |
+| summoned-to-the-wrong-kingdom | Summoned to the Wrong Kingdom | GM world | anime | men |
+| the-exiled-prince-you-travel-with | The Exiled Prince You Travel With | character | epic_fantasy | women |
+| the-exiled-princess-and-her-last-knight | The Exiled Princess and Her Last Knight | character | epic_fantasy | men |
+| the-hundredth-floor | The Hundredth Floor | GM world | litrpg | men |
+| the-last-ronin | The Last Ronin | GM world | epic_fantasy | men |
+| the-long-winter-saga | The Long Winter Saga | GM world | grimdark | men |
+| the-lotus-throne | The Lotus Throne | GM world | epic_fantasy | men |
+| the-sorcerer-who-took-you-in | The Sorcerer Who Took You In | character | dark_academia | women |
+| the-warlords-road | The Warlord's Road | GM world | grimdark | men |
+| valka-the-warchiefs-daughter | Valka, the Warchief's Daughter | character | flirty | men |
+| wings-of-valdris | Wings of Valdris | GM world | epic_fantasy | women |
+| zephyr-the-thief-who-stole-your-quest | Zephyr, the Thief Who Stole Your Quest | character | flirty | men |
+
 ### Other families
 To be planned one at a time with the owner, at 8:2. The Oct 22 first draft for them (written before the 8:2 rule, so most will be re-cut toward male players):
-- Epic adventure: Summoned to the Wrong Kingdom, The Hundredth Floor, Ember Academy, Wings of Valdris, Salt and Cannon, The Lotus Throne (inspired by Indian epics, no real deities or scripture), Starfall Frontier, The Long Winter Saga, Kaelith the Last Dragon, Ren Your Rival.
 - Modern everyday: Backstage at Starlight, Mr. Han Your Boss, The Wedding Week, Roommate Wanted, Summer in Saltmere, Ten Years Later, Startup Nights, Your Best Friend Since Forever.
 - Cozy and playful: The Little Potion Shop, Hollowbrook Farm, The Demon Lord's Day Off, The Kitsune Next Door, Mister Biscuit, The Inn at World's End, Pip the Overly Helpful Ghost.
 - Dark and atmospheric: The Last Safe House, The House on Hollow Lane, The Gaslight Detective, Wasteland Radio.
@@ -91,4 +121,5 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 ## Status
 | Batch | Files | Covers | Seeded | Pages |
 |---|---|---|---|---|
-| romance | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore (owner `6ad90def8ab4aac77be04ae4`) | – |
+| romance | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore (owner `6ad90def8ab4aac77be04ae4`) | | 25 live on everloreapp.com |
+| epic | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`b0ece0a`) |
