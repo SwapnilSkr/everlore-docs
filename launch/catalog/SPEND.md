@@ -20,5 +20,6 @@ Re-embedding sample messages for the old-vs-new recall comparison (OpenAI direct
 | 2026-10-22 | recall comparison, with breakdown | 6,404 | $0.000128 (₹0.01) |
 | 2026-10-22 | exact-score check (both layouts graded against exact similarity) | 6,404 | $0.000128 (₹0.01) |
 | 2026-10-22 | trial switch: four recall timing runs (about 720 short embeddings, estimated) | ~11,000 | ~$0.00022 (₹0.02) |
+| 2026-10-22 | final switch: one recall timing run (estimated) | ~2,700 | ~$0.00005 (₹0.005) |
 
-**Total: about $0.0006 (₹0.05).**
+**Total: about $0.0007 (₹0.06).** The move itself (copy, check, removal) used no paid calls.
