@@ -18,5 +18,6 @@ Re-embedding sample messages for the old-vs-new recall comparison (OpenAI direct
 |---|---|---|---|
 | 2026-10-22 | recall comparison, first pass | 6,404 | $0.000128 (₹0.01) |
 | 2026-10-22 | recall comparison, with breakdown | 6,404 | $0.000128 (₹0.01) |
+| 2026-10-22 | exact-score check (both layouts graded against exact similarity) | 6,404 | $0.000128 (₹0.01) |
 
-**Total: $0.000256 (₹0.02).**
+**Total: $0.000384 (₹0.03).**
