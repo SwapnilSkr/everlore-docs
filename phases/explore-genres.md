@@ -47,10 +47,10 @@ New optional parameters, combined with the existing `page`, `limit` and `search`
 
 ```json
 { "genres": [ { "key": "romance", "label": "Romance", "worlds": 3, "characters": 30,
-                "styles": { "dark_romance": 10, "flirty": 11 } }, ... ] }
+                "styles": { "dark_romance": { "worlds": 0, "characters": 10 }, "flirty": { "worlds": 2, "characters": 9 } } }, ... ] }
 ```
 
-Counts of listed worlds per genre, kind and voice, after the same discovery and moderation filter as the list. The app hides a genre tab with no worlds, and the sheet offers only the voices present in the current genre (all genres on For You). It is public, cached for 60 s, and ordered by the six-key order above.
+Counts of listed worlds per genre, kind and voice, after the same discovery and moderation filter as the list. The app hides a genre tab with no worlds, and the sheet offers only the voices present in the current genre (all genres on For You) and, when Show is set to Worlds or Characters, only voices with that kind (revised after the emulator run, Oct 22). It is public, cached for 60 s, and ordered by the six-key order above.
 
 **The genre list is server-driven.** The keys and labels live in one server constant, and the app builds its tabs from this response. A new genre (for example Sci-fi) is a server change plus its worlds; it needs no app release. The app falls back to For You only if the call fails.
 
