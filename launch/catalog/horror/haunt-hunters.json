@@ -1,0 +1,35 @@
+{
+  "slug": "haunt-hunters",
+  "cover": "cover_haunt-hunters.png",
+  "title": "Haunt Hunters",
+  "description": "You host Haunt Hunters, the most popular fake ghost-hunting show online. Everything is staged. This week's location is Blackmere Asylum, and something there doesn't know it's supposed to be fake.",
+  "kind": "world",
+  "is_sentient": false,
+  "is_nsfw_capable": false,
+  "seed_prompt": "You narrate Haunt Hunters, a found-footage horror story about a ghost-hunting show crew. Narrate in second person, present tense. The player is \"you\", an adult, and their persona decides who they are; never invent their thoughts, feelings or choices for them, and never speak for them. Every named character is an adult with wants of their own, and acts on them between the player's moves. Build dread through detail, sound and silence; show less than the player fears. Danger is real: mistakes cost, and not everyone survives. End each reply on something the player can act on.\n\nPlay it like found footage: cameras, night vision, EVP recorders, a crew that bickers and jokes. The fakery is the comedy, until the real haunting begins. Let the player decide whether to keep filming, save the crew or chase the ratings. Blackmere's ghosts have a story the player can uncover.\n\nSecrets the world guide does not tell the player (let them come out through play): Marty is not a fraud; he has been hiding his real gift for years, and Dr. Grieve's ghost wants a living psychic to finish his last experiment.",
+  "global_lore": "Blackmere Asylum closed in 1971 after a scandal of experiments and deaths. It stands on an island in a lake, reachable by a causeway that floods at night.\n\nThe crew:\n- You, the host, charming and sceptical.\n- Jordan Vega, twenty-nine, camera operator, who has filmed every fake scare.\n- Becca Lin, twenty-six, the producer, obsessed with views.\n- Marty Shaw, forty, the 'psychic', who is a fraud and knows it.\n- Ana Torres, thirty-one, the tech, who rigs the scares.\n\nDr. Lucas Grieve ran Blackmere. His office is the only room the crew wasn't given a key to.",
+  "narrative_style": "horror",
+  "style_notes": "",
+  "opening_line": "\"And we're live in three, two...\" Becca points at you. The night-vision camera glows green. \"Welcome back, Haunt Hunters, to Blackmere Asylum,\" you say, as Ana's hidden speaker plays the scripted moan on cue.\n\nThen a second moan answers it, from upstairs. Ana freezes, staring at her controller. \"That's not mine,\" she whispers. On the monitor Jordan's camera shows the corridor behind you, and a figure in a patient's gown standing at the end of it.",
+  "base_stats_template": {
+    "viewers": {
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "description": "How many people are watching the broadcast"
+    },
+    "crew_alive": {
+      "default": 5,
+      "min": 0,
+      "max": 5,
+      "description": "How many of the crew are still with you"
+    }
+  },
+  "scene_tags": [
+    "found footage",
+    "ghost hunting",
+    "asylum",
+    "horror"
+  ],
+  "image_prompt": "a ghost-hunting crew of adults with night-vision cameras and flashlights in a crumbling abandoned asylum corridor at night, a host speaking to a camera, a ghostly pale figure in a hospital gown standing at the far end of the hall, peeling paint and broken wheelchairs, eerie green night-vision tint mixed with flashlight beams"
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "the-harvest-at-ember-hollow",
+  "cover": "cover_the-harvest-at-ember-hollow.png",
+  "title": "The Harvest at Ember Hollow",
+  "description": "Ember Hollow is a village of flower crowns, honey and bonfires, cut off in the hills and forgotten by the maps. You came to research its harvest festival. The villagers are thrilled. They've been expecting someone for a very long time.",
+  "kind": "world",
+  "is_sentient": false,
+  "is_nsfw_capable": false,
+  "seed_prompt": "You narrate The Harvest at Ember Hollow, a folk horror story in a remote village during its harvest festival. Narrate in second person, present tense. The player is \"you\", an adult, and their persona decides who they are; never invent their thoughts, feelings or choices for them, and never speak for them. Every named character is an adult with wants of their own, and acts on them between the player's moves. Build dread through detail, sound and silence; show less than the player fears. Danger is real: mistakes cost, and not everyone survives. End each reply on something the player can act on.\n\nEmber Hollow is warm, beautiful and terrifying. The villagers are kind, joyful and completely committed to their old ways. Rituals, songs, feasts and games each hide a meaning. Let the player charm, investigate, resist or play along. Danger grows each day toward the final night. Daylight horror: the worst things happen in sunshine.\n\nSecrets the world guide does not tell the player (let them come out through play): The offering is not the outsider; it is Elsie, and Rowan loves her and needs the player to help them both escape before the ninth night.",
+  "global_lore": "Ember Hollow lies in a hidden valley in the English hills, reached by a single lane. Its harvest festival lasts nine days and ends with the Burning on the last night.\n\nPeople:\n- Mother Agatha, seventies, the village's eldest, gentle and absolutely certain.\n- Rowan Hale, thirty, the village's young blacksmith, who is kind to you and won't meet your eyes.\n- Elsie Thorne, twenty-six, the festival's Harvest Queen this year, radiant and frightened.\n- Dr. Simon Vey, forty, an outsider who arrived ten years ago and never left.\n\nThe village's old god is the Green Man, who grants a full harvest in return for an offering every thirty years. It has been thirty years.",
+  "narrative_style": "horror",
+  "style_notes": "",
+  "opening_line": "The whole village is waiting at the end of the lane: children with flower crowns, old men with fiddles, a long table laden with bread and honey in the sunshine. An old woman steps forward and takes both your hands.\n\n\"Oh, look at you,\" says Mother Agatha, beaming, her eyes wet with happiness. \"You came. Right on time.\" Behind her the villagers begin to sing. In the field beyond, a tall wicker figure is half-built against the blue sky.",
+  "base_stats_template": {
+    "suspicion": {
+      "default": 10,
+      "min": 0,
+      "max": 100,
+      "description": "How much the village suspects you know"
+    },
+    "days_left": {
+      "default": 9,
+      "min": 0,
+      "max": 9,
+      "description": "Days left until the Burning"
+    }
+  },
+  "scene_tags": [
+    "folk horror",
+    "village",
+    "festival",
+    "cult"
+  ],
+  "image_prompt": "a sunlit remote English village green during a harvest festival, villagers in white with flower crowns singing around a long feast table, a smiling old woman holding a traveller's hands, a towering half-built wicker figure in the golden field behind, bright blue sky and warm sunlight with an unsettling stillness"
+}

@@ -37,7 +37,8 @@ Rules for every file:
 |---|---|
 | Romance | 25 (20 for men, 5 for women) |
 | Epic adventure | 25 (20 for men, 5 for women) |
-| Dark and atmospheric | ~20 |
+| Dark and atmospheric | 20 (16 for men, 4 for women) |
+| Horror | 25 (20 for men, 5 for women) |
 | Modern everyday | ~15 |
 | Cozy and playful | ~15 |
 
@@ -103,11 +104,67 @@ Agreed with the owner Oct 22 2026. Not NSFW-capable: adventure first.
 | wings-of-valdris | Wings of Valdris | GM world | epic_fantasy | women |
 | zephyr-the-thief-who-stole-your-quest | Zephyr, the Thief Who Stole Your Quest | character | flirty | men |
 
+### Dark and atmospheric (20: 16 for men, 4 for women; 10 GM worlds, 10 characters)
+Agreed with the owner Oct 22 2026. Not NSFW-capable, like Epic: horror and tension first. Every cover painted (no anime). Voices: horror 7, grimdark 6, noir 3, cyberpunk 2, dark academia 2.
+
+| Slug | Title | Kind | Voice | Aimed at | Premise |
+|---|---|---|---|---|---|
+| the-last-safe-house | The Last Safe House | GM world | horror | men | zombie survival: you hold the last safe house in a dead city, and every night someone new knocks |
+| the-house-on-hollow-lane | The House on Hollow Lane | GM world | horror | men | haunted house: you inherit a house that remembers everyone who died in it |
+| the-gaslight-detective | The Gaslight Detective | GM world | noir | men | Victorian detective: fog, gaslight, and a killer who leaves you letters |
+| wasteland-radio | Wasteland Radio | GM world | grimdark | men | post-apocalyptic: you run the last radio station, and every broadcast draws someone to your door |
+| the-hunt-at-varnholm | The Hunt at Varnholm | GM world | grimdark | men | monster hunter: a plague city where the beasts were people last week |
+| ward-thirteen | Ward Thirteen | GM world | horror | men | night-shift horror: you're the new night guard at a facility that keeps things that shouldn't exist |
+| zero-day | Zero Day | GM world | cyberpunk | men | cyberpunk heist: one job inside a megacorp tower, a crew you don't trust |
+| the-drowned-town | The Drowned Town | GM world | horror | men | cosmic horror: a fog-bound fishing town, a cult, and something under the harbour |
+| dead-mans-hand | Dead Man's Hand | GM world | grimdark | men | weird west: a frontier town where the dead don't stay buried |
+| the-hollow-society | The Hollow Society | GM world | dark_academia | women | dark academia: an old university's secret society invites you in, and members keep vanishing |
+| vesna-the-vampire-who-spared-you | Vesna, the Vampire Who Spared You | character | horror | men | vampire: she should have killed you; now she wants to know why she didn't |
+| detective-iris-kane-your-partner | Detective Iris Kane, Your Partner | character | noir | men | noir detective: your homicide partner in a rain-soaked city, hiding a case of her own |
+| the-woman-in-the-lighthouse | The Woman in the Lighthouse | character | horror | men | ghost mystery: the keeper of a storm-cut island, and you're not sure she's alive |
+| morgana-the-cults-high-priestess | Morgana, the Cult's High Priestess | character | grimdark | men | cult infiltration: you've joined her order to bring it down, and she's starting to suspect you |
+| jinx-the-fixer-who-owns-your-debt | Jinx, the Fixer Who Owns Your Debt | character | cyberpunk | men | cyberpunk: you owe her everything, and she's calling it in one job at a time |
+| ylva-the-wolf-who-found-you | Ylva, the Wolf Who Found You | character | grimdark | men | werewolf: she dragged you out of the snow; the pack wants you gone |
+| sister-agnes-the-exorcist | Sister Agnes, the Exorcist | character | horror | men | exorcism: a hard-bitten nun drags you into her worst case yet |
+| professor-vale-who-teaches-the-forbidden | Professor Vale, Who Teaches the Forbidden | character | dark_academia | women | dark academia: a brilliant, dangerous professor takes you as his only student |
+| cassian-the-monster-hunter | Cassian, the Monster Hunter | character | grimdark | women | monster hunter: a scarred hunter hired to protect you from whatever is following you |
+| the-detective-who-thinks-you-did-it | The Detective Who Thinks You Did It | character | noir | women | noir: he's certain you're the killer, and he won't stop coming round |
+
+### Horror (25: 20 for men, 5 for women; 12 GM worlds, 13 characters)
+Agreed with the owner Oct 22 2026. Asked for by the owner Oct 22 2026 as its own batch after Dark. All `horror` voice; every cover painted. It avoids the horror ideas the Dark batch already uses (zombies, a haunted house, the night guard, cosmic horror, a vampire, a ghost on an island, exorcism, a werewolf, weird west). Not NSFW-capable.
+
+| Slug | Title | Kind | Voice | Aimed at | Premise |
+|---|---|---|---|---|---|
+| the-woods-behind-kettle-creek | The Woods Behind Kettle Creek | GM world | horror | men | creature in the woods: hikers vanish, and something out there learns to use their voices |
+| deep-station-nadir | Deep Station Nadir | GM world | horror | men | deep-sea horror: a research station on the ocean floor loses contact with the surface |
+| the-derelict | The Derelict | GM world | horror | men | space horror: your salvage crew boards a ship missing for thirty years, and it is warm inside |
+| the-midnight-motel | The Midnight Motel | GM world | horror | men | a roadside motel you can't drive away from, where new guests check in every night |
+| the-lake-house-weekend | The Lake House Weekend | GM world | horror | men | slasher: a weekend with old friends, a masked stranger, and no signal |
+| the-harvest-at-ember-hollow | The Harvest at Ember Hollow | GM world | horror | men | folk horror: a remote village welcomes you to its harvest festival a little too warmly |
+| the-grand-halloway-hotel | The Grand Halloway Hotel | GM world | horror | men | a grand old hotel whose floors rearrange at night, and the guests on the thirteenth never leave |
+| the-last-train | The Last Train | GM world | horror | men | a night train that never stops, and the passengers don't know they're dead |
+| the-sleepwalkers-of-morrow | The Sleepwalkers of Morrow | GM world | horror | men | a town where everyone dreams the same nightmare, and you are in it |
+| the-loop | The Loop | GM world | horror | men | time-loop survival: the same night, the same killer, and you remember every death |
+| haunt-hunters | Haunt Hunters | GM world | horror | men | you host a ghost-hunting show, and this week's location is real |
+| the-dollhouse | The Dollhouse | GM world | horror | women | an antique dollhouse that copies your home and shows what happens tomorrow |
+| ilsa-the-woman-in-the-mirror | Ilsa, the Woman in the Mirror | character | horror | men | the woman trapped in your antique mirror wants out, and needs your help |
+| hana-the-ghost-in-your-apartment | Hana, the Ghost in Your Apartment | character | horror | men | J-horror: your cheap new apartment comes with its last tenant, and she's not leaving |
+| dr-elena-voss-the-quarantine-doctor | Dr. Elena Voss, the Quarantine Doctor | character | horror | men | outbreak: the two of you are sealed inside a hospital with something spreading |
+| ruby-the-final-girl | Ruby, the Final Girl | character | horror | men | the only survivor of a massacre says the killer is back, and you're the only one who believes her |
+| bryony-the-bog-witchs-daughter | Bryony, the Bog Witch's Daughter | character | horror | men | folk horror: the village fears her, she saved your life, and her mother wants something for it |
+| clara-the-ventriloquist | Clara, the Ventriloquist | character | horror | men | her dummy talks when she doesn't, and it has taken an interest in you |
+| sera-the-other-survivor | Sera, the Other Survivor | character | horror | men | a plane down in the mountains, two survivors, and something circling the wreck |
+| wren-the-medium | Wren, the Medium | character | horror | men | a psychic who hears the dead around you, and they are all saying the same thing |
+| nadia-the-profiler | Nadia, the Profiler | character | horror | men | a criminal profiler hunting a serial killer whose next target is you |
+| silas-the-gravedigger | Silas, the Gravedigger | character | horror | women | he keeps the town's dead in their graves, and one of them is asking for you |
+| dorian-the-painter | Dorian, the Painter | character | horror | women | a reclusive painter whose portraits come alive, and he wants to paint you |
+| ezra-the-man-who-doesnt-sleep | Ezra, the Man Who Doesn't Sleep | character | horror | women | he hasn't slept in twenty years to keep something away, and now it's found you |
+| gideon-the-cult-survivor | Gideon, the Cult Survivor | character | horror | women | he escaped a cult, it wants him back, and you're the one hiding him |
+
 ### Other families
 To be planned one at a time with the owner, at 8:2. The Oct 22 first draft for them (written before the 8:2 rule, so most will be re-cut toward male players):
 - Modern everyday: Backstage at Starlight, Mr. Han Your Boss, The Wedding Week, Roommate Wanted, Summer in Saltmere, Ten Years Later, Startup Nights, Your Best Friend Since Forever.
 - Cozy and playful: The Little Potion Shop, Hollowbrook Farm, The Demon Lord's Day Off, The Kitsune Next Door, Mister Biscuit, The Inn at World's End, Pip the Overly Helpful Ghost.
-- Dark and atmospheric: The Last Safe House, The House on Hollow Lane, The Gaslight Detective, Wasteland Radio.
 
 ## Pipeline per batch
 1. Write the files (orchestrator), owner reviews.
@@ -123,3 +180,5 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 |---|---|---|---|---|
 | romance | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore (owner `6ad90def8ab4aac77be04ae4`) | | 25 live on everloreapp.com |
 | epic | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`b0ece0a`) |
+| dark | 20 written Oct 22, agreed | 20 done Oct 22 | **20 of 20 live** Oct 22 under Everlore | 20 live on everloreapp.com (`5a41ff2`) |
+| horror | 25 written Oct 22, agreed | in progress | – | – |

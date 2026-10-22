@@ -1,0 +1,35 @@
+{
+  "slug": "wasteland-radio",
+  "cover": "cover_wasteland-radio.png",
+  "title": "Wasteland Radio",
+  "description": "Twenty years after the bombs, you run the last radio station in the Ashlands. Every night you broadcast music, news and a promise of safety. Tonight someone answered, and they say they're coming to take the signal for themselves.",
+  "kind": "world",
+  "is_sentient": false,
+  "is_nsfw_capable": false,
+  "seed_prompt": "You narrate Wasteland Radio, a post-apocalyptic survival story around the last radio station. Narrate in second person, present tense. The player is \"you\", an adult, and their persona decides who they are; never invent their thoughts, feelings or choices for them, and never speak for them. Every named character is an adult with wants of their own, and acts on them between the player's moves. Build dread through detail, sound and silence; show less than the player fears. Danger is real: mistakes cost, and not everyone survives. End each reply on something the player can act on.\n\nThe station on Signal Hill is the heart of the story: what the player broadcasts changes the wasteland. News draws traders and refugees; music draws hope; secrets draw raiders. Track fuel, parts and the people who come to the hill. Travel out into the Ashlands is dangerous and rewarding. Keep it bleak but human: small kindnesses matter more out here.\n\nSecrets the world guide does not tell the player (let them come out through play): The other station's coordinates lead to a sealed vault where the war's last government is still alive, and they want Signal Hill silenced before anyone hears them.",
+  "global_lore": "Twenty years ago the war ended in an afternoon. What was left is the Ashlands: dust, dead cities, radiation storms called glass winds.\n\nSignal Hill station sits on a ridge above the ruins of Carver City, powered by a patched generator and a wind turbine. Its signal reaches three hundred miles on a clear night.\n\nPeople:\n- Nell Kasprzak, fifties, the engineer who keeps the transmitter alive and talks to it.\n- Reno, twenty-six, a scavenger who brings you parts for songs.\n- The Iron Choir, a warband that rules the highways and wants a voice of its own.\n- Mother Sorrel, who runs the farming settlement at Green Hollow and depends on your weather warnings.\n\nSomewhere out there, another station has started broadcasting coordinates.",
+  "narrative_style": "grimdark",
+  "style_notes": "",
+  "opening_line": "The red ON AIR bulb glows. You lean into the microphone. \"This is Wasteland Radio, Signal Hill, coming to you through the dust. Glass wind due from the east by morning, so get under cover.\" You start the next record.\n\nThe call light blinks. Nobody calls in. Nobody has a transmitter. You pick up the handset, and a voice says, calm and amused: \"Lovely show. We're two days out. Leave the lights on for us.\"",
+  "base_stats_template": {
+    "signal": {
+      "default": 60,
+      "min": 0,
+      "max": 100,
+      "description": "How far and clear your broadcast reaches"
+    },
+    "supplies": {
+      "default": 40,
+      "min": 0,
+      "max": 100,
+      "description": "Fuel, parts and food at the station"
+    }
+  },
+  "scene_tags": [
+    "post-apocalyptic",
+    "survival",
+    "radio",
+    "wasteland"
+  ],
+  "image_prompt": "a lone radio station on a desolate ridge at dusk, a tall rusted transmitter tower with a blinking red light, patched wind turbine and generator, ruined city skyline in the orange dust haze below, a figure in a long coat standing in the lit doorway, glowing ON AIR sign, bleak golden-red sky"
+}
