@@ -4,6 +4,18 @@ Settled product and engineering calls, so they are not re-asked. Each entry says
 
 ---
 
+## Every official world allows adult content; the player's toggle decides  ·  Oct 22 2026
+
+**Decided (owner):** every world Everlore publishes is `is_nsfw_capable: true`, whatever its genre: the catalog batches and the worlds that were live before it. Whether a player ever sees adult content is decided only by their own toggle on the profile page (`template.is_nsfw_capable && userNsfwEnabled`, `memory.service.ts`). The engine's content bounds (`input-guard.ts`, the in-fiction boundaries) apply as everywhere.
+
+**Why:** the toggle already gates adult content per player, so a world-level "no" only takes the choice away from players who opted in.
+
+**Note:** the app shows a mature-content chip on every NSFW-capable world card (`MatureContentChip`), so every official world now carries it.
+
+**Reopen when** a store or regional rule needs some worlds kept clean regardless of the toggle.
+
+---
+
 ## Launch catalog: ~100 new worlds, 8:2 aimed at men, GM worlds and characters only  ·  Oct 22 2026
 
 **Decided (owner):** the launch catalog adds **about 100 new worlds on top of the 12 already live** (first set at 40, raised the same day). **8 of every 10 are aimed at male players** (a woman as the lead or love interest), 2 at female players: most of the audience is expected to be male. Every one is either a **GM world** (`kind: world`, `is_sentient: false`, a narrator runs the story and the player is "you") or a **character** (`kind: character`, `is_sentient: true`, the player talks to one person). **No sentient worlds** (`kind: world` with `is_sentient: true`). Romance is built first. The slate: `launch/catalog/README.md`.

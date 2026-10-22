@@ -27,7 +27,7 @@ Rules for every file:
 - **Every character is an adult**, and says so in the lore. Nothing is set in a school below university.
 - No vendor, model or mechanic words, and no "AI", in anything a player reads (title, description, opening).
 - The description is what the shelf and the website show, so it sells the premise in two sentences.
-- Romance worlds are `is_nsfw_capable: true`; the engine's content bounds apply as everywhere.
+- **Every world is `is_nsfw_capable: true`** (owner, Oct 22 2026, `DECISIONS.md`): the player's own toggle decides. The engine's content bounds apply as everywhere.
 
 ## The slate (about 100 new worlds)
 
@@ -39,8 +39,8 @@ Rules for every file:
 | Epic adventure | 25 (20 for men, 5 for women) |
 | Dark and atmospheric | 20 (16 for men, 4 for women) |
 | Horror | 25 (20 for men, 5 for women) |
-| Modern everyday | ~15 |
-| Cozy and playful | ~15 |
+| Modern everyday | 15 (12 for men, 3 for women), live |
+| Cozy and playful | ~15, paused (owner, Oct 22: Explore genres come first) |
 
 Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts`). Live before the catalog: dark 8, epic 1, romance 1, modern 1, cozy 1.
 
@@ -74,7 +74,7 @@ Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts
 | the-season-at-ashcombe | The Season at Ashcombe | GM world | regency | women |
 
 ### Epic adventure (25: 20 for men, 5 for women; 12 GM worlds, 13 characters; 7 anime covers)
-Agreed with the owner Oct 22 2026. Not NSFW-capable: adventure first.
+Agreed with the owner Oct 22 2026. NSFW-capable since Oct 22 (owner: every world is; first published without it).
 
 | Slug | Title | Kind | Voice | Aimed at |
 |---|---|---|---|---|
@@ -105,7 +105,7 @@ Agreed with the owner Oct 22 2026. Not NSFW-capable: adventure first.
 | zephyr-the-thief-who-stole-your-quest | Zephyr, the Thief Who Stole Your Quest | character | flirty | men |
 
 ### Dark and atmospheric (20: 16 for men, 4 for women; 10 GM worlds, 10 characters)
-Agreed with the owner Oct 22 2026. Not NSFW-capable, like Epic: horror and tension first. Every cover painted (no anime). Voices: horror 7, grimdark 6, noir 3, cyberpunk 2, dark academia 2.
+Agreed with the owner Oct 22 2026. NSFW-capable since Oct 22 (first published without it). Every cover painted (no anime). Voices: horror 7, grimdark 6, noir 3, cyberpunk 2, dark academia 2.
 
 | Slug | Title | Kind | Voice | Aimed at | Premise |
 |---|---|---|---|---|---|
@@ -131,7 +131,7 @@ Agreed with the owner Oct 22 2026. Not NSFW-capable, like Epic: horror and tensi
 | the-detective-who-thinks-you-did-it | The Detective Who Thinks You Did It | character | noir | women | noir: he's certain you're the killer, and he won't stop coming round |
 
 ### Horror (25: 20 for men, 5 for women; 12 GM worlds, 13 characters)
-Agreed with the owner Oct 22 2026. Asked for by the owner Oct 22 2026 as its own batch after Dark. All `horror` voice; every cover painted. It avoids the horror ideas the Dark batch already uses (zombies, a haunted house, the night guard, cosmic horror, a vampire, a ghost on an island, exorcism, a werewolf, weird west). Not NSFW-capable.
+Agreed with the owner Oct 22 2026. Asked for by the owner Oct 22 2026 as its own batch after Dark. All `horror` voice; every cover painted. It avoids the horror ideas the Dark batch already uses (zombies, a haunted house, the night guard, cosmic horror, a vampire, a ghost on an island, exorcism, a werewolf, weird west). NSFW-capable since Oct 22 (first published without it).
 
 | Slug | Title | Kind | Voice | Aimed at | Premise |
 |---|---|---|---|---|---|
@@ -161,9 +161,29 @@ Agreed with the owner Oct 22 2026. Asked for by the owner Oct 22 2026 as its own
 | ezra-the-man-who-doesnt-sleep | Ezra, the Man Who Doesn't Sleep | character | horror | women | he hasn't slept in twenty years to keep something away, and now it's found you |
 | gideon-the-cult-survivor | Gideon, the Cult Survivor | character | horror | women | he escaped a cult, it wants him back, and you're the one hiding him |
 
+### Modern everyday (15: 12 for men, 3 for women; 7 GM worlds, 8 characters)
+Agreed with the owner Oct 22 2026. Everyday life now, with a love interest at the centre of most. All NSFW-capable, like every world. Every cover painted. Voices: slice of life 6, romcom 4, kdrama 3, modern casual 2. It skips ideas already live: a startup (Founders' Floor), a campus (After Hours at Halcyon U, the campus bully), fake dating and the heiress bodyguard (Romance).
+
+| Slug | Title | Kind | Voice | Aimed at | Premise |
+|---|---|---|---|---|---|
+| the-wedding-week | The Wedding Week | GM world | romcom | men | you're best man at your oldest friend's wedding, and the maid of honour is your ex |
+| ten-years-later | Ten Years Later | GM world | slice_of_life | men | the hometown reunion, and the one who got away is back and single |
+| summer-in-saltmere | Summer in Saltmere | GM world | slice_of_life | men | one summer running your uncle's surf shop in a seaside town |
+| backstage-at-starlight | Backstage at Starlight | GM world | modern_casual | men | you manage a rising band on its first tour, and the lead singer keeps you up all night |
+| the-all-night-diner | The All-Night Diner | GM world | slice_of_life | men | you run a 24-hour diner, and every regular after midnight brings a story |
+| second-chance-garage | Second Chance Garage | GM world | slice_of_life | men | you inherit your late father's failing garage and the town that comes with it |
+| one-year-in-seoul | One Year in Seoul | GM world | kdrama | women | a year-long job in Seoul, a neighbour who won't stop helping, and a rival who won't stop competing |
+| maya-your-new-roommate | Maya, Your New Roommate | character | romcom | men | you answered a "roommate wanted" ad, and she has a lot of house rules |
+| jess-your-best-friend-since-forever | Jess, Your Best Friend Since Forever | character | slice_of_life | men | friends since you were kids, and lately she's been acting different around you |
+| ji-woo-the-idol-next-door | Ji-woo, the Idol Next Door | character | kdrama | men | a burned-out idol hiding from the world in the flat across the hall |
+| riley-your-personal-trainer | Riley, Your Personal Trainer | character | romcom | men | a relentless trainer who's taken your "get in shape" goal as a personal mission |
+| sofia-the-bartender | Sofia, the Bartender | character | modern_casual | men | the bartender at your corner bar knows everyone's secrets, and wants to hear yours |
+| lena-the-neighbour-downstairs | Lena, the Neighbour Downstairs | character | slice_of_life | men | a newly divorced night-shift nurse downstairs, a flooded ceiling, and a friendship that grows from favours (changed from a single mother so no child is in the cast) |
+| mr-han-your-boss | Mr. Han, Your Boss | character | kdrama | women | the cold heir who runs your company hires you as his personal assistant |
+| theo-the-grumpy-bookshop-owner | Theo, the Grumpy Bookshop Owner | character | romcom | women | you take a job at his failing bookshop, and he hates everything about it, except you |
+
 ### Other families
-To be planned one at a time with the owner, at 8:2. The Oct 22 first draft for them (written before the 8:2 rule, so most will be re-cut toward male players):
-- Modern everyday: Backstage at Starlight, Mr. Han Your Boss, The Wedding Week, Roommate Wanted, Summer in Saltmere, Ten Years Later, Startup Nights, Your Best Friend Since Forever.
+To be planned one at a time with the owner, at 8:2. The Oct 22 first draft (written before the 8:2 rule, so it will be re-cut toward male players):
 - Cozy and playful: The Little Potion Shop, Hollowbrook Farm, The Demon Lord's Day Off, The Kitsune Next Door, Mister Biscuit, The Inn at World's End, Pip the Overly Helpful Ghost.
 
 ## Pipeline per batch
@@ -182,3 +202,4 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 | epic | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`b0ece0a`) |
 | dark | 20 written Oct 22, agreed | 20 done Oct 22 | **20 of 20 live** Oct 22 under Everlore | 20 live on everloreapp.com (`5a41ff2`) |
 | horror | 25 written Oct 22, agreed | 25 done Oct 22 (2 redone after review: an extra hand; a killer's mask too close to film ones) | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`e7d0bae`) |
+| modern | 15 written Oct 22, agreed | 15 done Oct 22, all passed close review first time | **15 of 15 live** Oct 22 under Everlore; the same run switched adult content on for the 70 Epic, Dark and Horror worlds, and the 10 pre-catalog worlds were switched by a flag write (0 published worlds now have it off) | 15 live on everloreapp.com (`a29f211`) |
