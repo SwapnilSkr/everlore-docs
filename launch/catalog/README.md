@@ -181,4 +181,4 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 | romance | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore (owner `6ad90def8ab4aac77be04ae4`) | | 25 live on everloreapp.com |
 | epic | 25 written Oct 22, agreed | 25 done Oct 22 | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`b0ece0a`) |
 | dark | 20 written Oct 22, agreed | 20 done Oct 22 | **20 of 20 live** Oct 22 under Everlore | 20 live on everloreapp.com (`5a41ff2`) |
-| horror | 25 written Oct 22, agreed | in progress | – | – |
+| horror | 25 written Oct 22, agreed | 25 done Oct 22 (2 redone after review: an extra hand; a killer's mask too close to film ones) | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`e7d0bae`) |
