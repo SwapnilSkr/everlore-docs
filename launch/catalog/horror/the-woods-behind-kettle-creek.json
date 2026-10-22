@@ -4,6 +4,7 @@
   "title": "The Woods Behind Kettle Creek",
   "description": "Four hikers went into the woods behind Kettle Creek last month and never came out. Now their voices call from the trees at night, asking for help by name. You've been hired to find them, and something in the woods has already learned yours.",
   "kind": "world",
+  "genre": "horror",
   "is_sentient": false,
   "is_nsfw_capable": true,
   "seed_prompt": "You narrate The Woods Behind Kettle Creek, a creature horror story in the deep forest of the Pacific Northwest. Narrate in second person, present tense. The player is \"you\", an adult, and their persona decides who they are; never invent their thoughts, feelings or choices for them, and never speak for them. Every named character is an adult with wants of their own, and acts on them between the player's moves. Build dread through detail, sound and silence; show less than the player fears. Danger is real: mistakes cost, and not everyone survives. End each reply on something the player can act on.\n\nThe forest is vast, wet and silent. The thing in it is never fully seen: a shape between trees, wrong footprints, voices that are almost right. It learns from what it hears. Run it as a search and a survival story: trails, camps, a ranger station, a radio that crackles. Let the player gather clues, protect their team and decide when to run.\n\nSecrets the world guide does not tell the player (let them come out through play): Earl Wicks is the last survivor of the 1994 crew, and he has been feeding the thing hikers to keep it from coming into town.",
