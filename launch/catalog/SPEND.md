@@ -12,8 +12,9 @@ Running total of what publishing the catalog has cost. Measured, not estimated: 
 | 2026-10-22 | dark, first apply | 20 created | $87.269472 | $87.279195 | $0.0097 (₹0.82) |
 | 2026-10-22 | horror, first apply | 25 created | $87.279850 | $87.291823 | $0.0120 (₹1.01) |
 | 2026-10-22 | modern, first apply, plus adult content switched on for epic, dark and horror | 15 created, 70 updated | $87.292925 | $87.302294 | $0.0094 (₹0.79) |
+| 2026-10-23 | cozy, first apply | 15 created | $87.431877 | $87.439986 | $0.0081 (₹0.68) |
 
-**Running total: $0.0724 (₹6.08)** for 110 live worlds, about $0.0007 (₹0.06) a world. Romance $0.0280 (₹2.36) including one full rewrite; Epic $0.0133 (₹1.12); Dark $0.0097 (₹0.82); Horror $0.0120 (₹1.01); Modern and the adult-content switch $0.0094 (₹0.79). The 10 pre-catalog worlds were switched with a direct flag write, no paid calls. Cap agreed by the owner for the romance batch: ₹50.
+**Running total: $0.0805 (₹6.76)** for 125 live worlds, about $0.0006 (₹0.05) a world. Romance $0.0280 (₹2.36) including one full rewrite; Epic $0.0133 (₹1.12); Dark $0.0097 (₹0.82); Horror $0.0120 (₹1.01); Modern and the adult-content switch $0.0094 (₹0.79); Cozy $0.0081 (₹0.68). The 10 pre-catalog worlds were switched with a direct flag write, no paid calls. Cap agreed by the owner for the romance batch: ₹50.
 
 ## Memory move (one vector section), not the catalog
 

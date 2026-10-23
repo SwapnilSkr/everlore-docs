@@ -40,7 +40,7 @@ Rules for every file:
 | Dark and atmospheric | 20 (16 for men, 4 for women) |
 | Horror | 25 (20 for men, 5 for women) |
 | Modern everyday | 15 (12 for men, 3 for women), live |
-| Cozy and playful | ~15, paused (owner, Oct 22: Explore genres come first) |
+| Cozy and playful | 15 (12 for men, 3 for women), live |
 
 Families are the app's interest families (`STYLE_FAMILY` in `narrative-styles.ts`). Live before the catalog: dark 8, epic 1, romance 1, modern 1, cozy 1.
 
@@ -182,9 +182,26 @@ Agreed with the owner Oct 22 2026. Everyday life now, with a love interest at th
 | mr-han-your-boss | Mr. Han, Your Boss | character | kdrama | women | the cold heir who runs your company hires you as his personal assistant |
 | theo-the-grumpy-bookshop-owner | Theo, the Grumpy Bookshop Owner | character | romcom | women | you take a job at his failing bookshop, and he hates everything about it, except you |
 
-### Other families
-To be planned one at a time with the owner, at 8:2. The Oct 22 first draft (written before the 8:2 rule, so it will be re-cut toward male players):
-- Cozy and playful: The Little Potion Shop, Hollowbrook Farm, The Demon Lord's Day Off, The Kitsune Next Door, Mister Biscuit, The Inn at World's End, Pip the Overly Helpful Ghost.
+### Cozy and playful (15: 12 for men, 3 for women; 6 GM worlds, 9 characters)
+Written Oct 23 2026 (owner: "get done with the remaining genre"). All NSFW-capable, like every world. Voices: cozy comfort 5, anime 4, whimsical 3, chaotic comedy 3; the four anime-voice covers are anime, the rest painted. It skips ideas already live: Dungeon Lord, Summoned to the Wrong Kingdom, Mira the mage.
+
+| Slug | Title | Kind | Voice | Aimed at | Premise |
+|---|---|---|---|---|---|
+| hollowbrook-farm | Hollowbrook Farm | GM world | cozy_comfort | men | one year to bring a run-down valley farm back to life |
+| the-inn-at-worlds-end | The Inn at World's End | GM world | whimsical | men | you keep the inn where the road ends, for heroes, dragons and lost gods |
+| the-little-potion-shop | The Little Potion Shop | GM world | cozy_comfort | men | you inherit a potion shop in a mountain town, with a talking cat and an apprentice who has opinions |
+| the-moonlight-monster-cafe | The Moonlight Monster Café | GM world | anime | men | the only human on the night shift at a Tokyo café for yokai |
+| the-retired-hero | The Retired Hero | GM world | chaotic_comedy | men | you saved the world twice; now the defeated dark lord is your neighbour |
+| the-cottage-at-thistledown | The Cottage at Thistledown | GM world | cozy_comfort | women | your grandmother's cottage in a witches' village, and the shy blacksmith next door |
+| ember-the-dragon-who-wants-to-bake | Ember, the Dragon Who Wants to Bake | character | whimsical | men | the mountain's dragon becomes your bakery apprentice |
+| hazel-your-hopeless-witch-apprentice | Hazel, Your Hopeless Witch Apprentice | character | chaotic_comedy | men | the most catastrophic witch in a hundred years is your apprentice |
+| kohana-the-kitsune-next-door | Kohana, the Kitsune Next Door | character | anime | men | your nosy new neighbour is a fox spirit who thinks her tails are hidden |
+| lilith-the-demon-lord-on-her-day-off | Lilith, the Demon Lord on Her Day Off | character | chaotic_comedy | men | the Demon Lord takes her first day off in four hundred years, with you as her guide |
+| marigold-the-village-healer | Marigold, the Village Healer | character | cozy_comfort | men | you wash up on an island and the village healer nurses you back |
+| mochi-the-stray-who-followed-you-home | Mochi, the Stray Who Followed You Home | character | anime | men | the stray cat you fed is now a woman in your hoodie who says she lives here |
+| pip-the-overly-helpful-house-spirit | Pip, the Overly Helpful House Spirit | character | whimsical | men | your cottage came with a house spirit who helps with everything, including your love life |
+| bram-the-bear-who-runs-the-tea-shop | Bram, the Bear Who Runs the Tea Shop | character | cozy_comfort | women | the gentle giant who runs the tea shop below your flat is a bear shifter |
+| lucien-the-demon-butler | Lucien, the Demon Butler | character | anime | women | a sarcastic demon bound to be your butler for a year and a day |
 
 ## Pipeline per batch
 1. Write the files (orchestrator), owner reviews.
@@ -203,3 +220,4 @@ See `SPEND.md`, the running ledger, read from the provider's counter before and 
 | dark | 20 written Oct 22, agreed | 20 done Oct 22 | **20 of 20 live** Oct 22 under Everlore | 20 live on everloreapp.com (`5a41ff2`) |
 | horror | 25 written Oct 22, agreed | 25 done Oct 22 (2 redone after review: an extra hand; a killer's mask too close to film ones) | **25 of 25 live** Oct 22 under Everlore | 25 live on everloreapp.com (`e7d0bae`) |
 | modern | 15 written Oct 22, agreed | 15 done Oct 22, all passed close review first time | **15 of 15 live** Oct 22 under Everlore; the same run switched adult content on for the 70 Epic, Dark and Horror worlds, and the 10 pre-catalog worlds were switched by a flag write (0 published worlds now have it off) | 15 live on everloreapp.com (`a29f211`) |
+| cozy | 15 written Oct 23 | 15 done Oct 23, all passed close review first time | **15 of 15 live** Oct 23 under Everlore | 15 live on everloreapp.com (`6638fcf`) |
